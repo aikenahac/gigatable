@@ -8,7 +8,7 @@ import type { PasteResult } from "./use-data-table";
 import { useCellSelection } from "./use-cell-selection";
 import { useCopyToClipboard } from "./use-copy-to-clipboard";
 import { parseCopyData } from "./parse-copy-data";
-import { useEffect, useRef } from "react";
+import React, { useCallback, useEffect, useRef } from "react";
 
 export interface DataTableProps<TData> {
   table: TanStackTableType<TData>;
@@ -24,6 +24,62 @@ export interface DataTableProps<TData> {
   undo?: () => void;
   redo?: () => void;
 }
+
+// Memoized cell component to prevent unnecessary re-renders
+const TableCell = React.memo(({
+  cell,
+  cellRef,
+  isSelected,
+  isInRange,
+  isEditable,
+  onClick,
+  onKeyDown,
+  onMouseDown,
+  onMouseEnter,
+}: {
+  cell: any;
+  cellRef: React.RefObject<HTMLTableCellElement | null>;
+  isSelected: boolean;
+  isInRange: boolean;
+  isEditable: boolean;
+  onClick: () => void;
+  onKeyDown: (e: React.KeyboardEvent<HTMLDivElement>) => void;
+  onMouseDown: () => void;
+  onMouseEnter: () => void;
+}) => {
+  return (
+    <Table.Data
+      key={cell.id}
+      ref={cellRef}
+      tabIndex={0}
+      style={{ width: `${cell.column.getSize()}px` }}
+      onClick={onClick}
+      onKeyDown={onKeyDown}
+      onMouseDown={onMouseDown}
+      onMouseEnter={onMouseEnter}
+      data-row-id={cell.row.id}
+      data-column-id={cell.column.id}
+      className={clsx({
+        "outline outline-[1.5px] outline-[#3d5aa9] -outline-offset-[2px] rounded-[var(--border-md)] focus-visible:outline focus-visible:outline-[1.5px] focus-visible:outline-[#3d5aa9] focus-visible:-outline-offset-[2px] focus-visible:rounded-[var(--border-md)]":
+          isSelected,
+        "bg-[#dbe1ff]": !isSelected && isInRange,
+        "box-border p-0 cursor-text": isEditable,
+      })}
+    >
+      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+    </Table.Data>
+  );
+}, (prevProps, nextProps) => {
+  // Only re-render if these props changed
+  return (
+    prevProps.isSelected === nextProps.isSelected &&
+    prevProps.isInRange === nextProps.isInRange &&
+    prevProps.cell.getValue() === nextProps.cell.getValue() &&
+    prevProps.cell.row.id === nextProps.cell.row.id &&
+    prevProps.cell.column.id === nextProps.cell.column.id
+  );
+});
+TableCell.displayName = "TableCell";
 
 export function DataTable<TData>({
   table,
@@ -43,7 +99,7 @@ export function DataTable<TData>({
     count: rows.length,
     getScrollElement: () => tableContainerRef.current,
     estimateSize: () => 30,
-    overscan: 50,
+    overscan: 30,
   });
 
   const {
@@ -56,35 +112,78 @@ export function DataTable<TData>({
     handleKeyDown,
     handleMouseDown,
     handleMouseEnter,
-  } = useCellSelection(rows, table.getVisibleFlatColumns());
+  } = useCellSelection(rows, table.getVisibleFlatColumns(), tableContainerRef);
 
   const [, copy] = useCopyToClipboard();
 
-  useEffect(() => {
-    const handleCopy = async (event: KeyboardEvent) => {
-      if (
-        (event.ctrlKey || event.metaKey) &&
-        event.key === "c" &&
-        selectedRange
-      ) {
-        event.preventDefault();
+  // Memoized event handler factories to avoid creating new functions on every render
+  const createClickHandler = useCallback(
+    (rowId: string, columnId: string) => () => {
+      if (allowCellSelection) handleClick(rowId, columnId);
+    },
+    [allowCellSelection, handleClick]
+  );
 
+  const createKeyDownHandler = useCallback(
+    (rowId: string, columnId: string, cellRef: React.RefObject<HTMLTableCellElement | null>) =>
+      (e: React.KeyboardEvent<HTMLDivElement>) => {
+        if (allowCellSelection) handleKeyDown(e, rowId, columnId);
+        if (e.key === "Enter") {
+          const editableCell = cellRef.current?.querySelector("[data-editable-cell-viewing]");
+          if (editableCell) {
+            editableCell.dispatchEvent(
+              new KeyboardEvent("keydown", { key: "Enter", bubbles: true, cancelable: true })
+            );
+          }
+        }
+      },
+    [allowCellSelection, handleKeyDown]
+  );
+
+  const createMouseDownHandler = useCallback(
+    (rowId: string, columnId: string) => () => {
+      if (allowRangeSelection) handleMouseDown(rowId, columnId);
+    },
+    [allowRangeSelection, handleMouseDown]
+  );
+
+  const createMouseEnterHandler = useCallback(
+    (rowId: string, columnId: string) => () => {
+      if (allowRangeSelection) handleMouseEnter(rowId, columnId);
+    },
+    [allowRangeSelection, handleMouseEnter]
+  );
+
+  // Consolidated keyboard event listener for copy and undo/redo
+  useEffect(() => {
+    const handleKeyDown = async (event: KeyboardEvent) => {
+      // Copy
+      if ((event.ctrlKey || event.metaKey) && event.key === "c" && selectedRange) {
+        event.preventDefault();
         const clipboardData = parseCopyData(
           selectedRange,
           table.getRowModel().rows,
           table.getAllColumns(),
         );
-
-        // TODO: it would be great to display a toast with success or error onCopy.
-        // The copy function returns a success or error boolean.
         await copy(clipboardData);
+      }
+
+      // Undo/Redo
+      if (allowHistory && (event.ctrlKey || event.metaKey) && event.key === "z") {
+        event.preventDefault();
+        if (event.shiftKey) {
+          redo?.();
+        } else {
+          undo?.();
+        }
       }
     };
 
-    document.addEventListener("keydown", handleCopy);
-    return () => document.removeEventListener("keydown", handleCopy);
-  }, [selectedRange, copy]);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [selectedRange, copy, allowHistory, undo, redo, table]);
 
+  // Paste event listener
   useEffect(() => {
     if (allowPaste && paste && selectedCell) {
       const pasteHandler = (event: ClipboardEvent) => {
@@ -102,26 +201,6 @@ export function DataTable<TData>({
 
     return undefined;
   }, [allowPaste, selectedCell, paste, onPasteComplete]);
-
-  useEffect(() => {
-    if (allowHistory && undo && redo) {
-      const handleTableKeyDown = (event: KeyboardEvent) => {
-        if ((event.ctrlKey || event.metaKey) && event.key === "z") {
-          event.preventDefault();
-          if (event.shiftKey) {
-            redo();
-          } else {
-            undo();
-          }
-        }
-      };
-
-      document.addEventListener("keydown", handleTableKeyDown);
-      return () => document.removeEventListener("keydown", handleTableKeyDown);
-    }
-
-    return undefined;
-  }, [allowHistory, undo, redo]);
 
   const virtualItems = rowVirtualizer.getVirtualItems();
 
@@ -181,56 +260,18 @@ export function DataTable<TData>({
                         const isEditable = cell.column.columnDef.meta?.editable;
 
                         return (
-                          <Table.Data
+                          <TableCell
                             key={cell.id}
-                            ref={cellRef}
-                            tabIndex={0}
-                            style={{ width: `${cell.column.getSize()}px` }}
-                            onClick={() =>
-                              allowCellSelection &&
-                              handleClick(cell.row.id, cell.column.id)
-                            }
-                            onKeyDown={(e) => {
-                              allowCellSelection &&
-                                handleKeyDown(e, cell.row.id, cell.column.id);
-                              if (e.key === "Enter") {
-                                const editableCell =
-                                  cellRef.current?.querySelector(
-                                    "[data-editable-cell-viewing]",
-                                  );
-                                if (editableCell) {
-                                  const event = new KeyboardEvent("keydown", {
-                                    key: "Enter",
-                                    bubbles: true,
-                                    cancelable: true,
-                                  });
-
-                                  editableCell.dispatchEvent(event);
-                                }
-                              }
-                            }}
-                            onMouseDown={() =>
-                              allowRangeSelection &&
-                              handleMouseDown(cell.row.id, cell.column.id)
-                            }
-                            onMouseEnter={() =>
-                              allowRangeSelection &&
-                              handleMouseEnter(cell.row.id, cell.column.id)
-                            }
-                            data-row-id={cell.row.id}
-                            data-column-id={cell.column.id}
-                            className={clsx({
-                              "outline outline-[1.5px] outline-[#3d5aa9] -outline-offset-[2px] rounded-[var(--border-md)] focus-visible:outline focus-visible:outline-[1.5px] focus-visible:outline-[#3d5aa9] focus-visible:-outline-offset-[2px] focus-visible:rounded-[var(--border-md)]":
-                                isSelected,
-                              "bg-[#dbe1ff]": !isSelected && isInRange,
-                              "box-border p-0 cursor-text": isEditable,
-                            })}
-                          >
-                            {flexRender(
-                              cell.column.columnDef.cell,
-                              cell.getContext(),
-                            )}
-                          </Table.Data>
+                            cell={cell}
+                            cellRef={cellRef}
+                            isSelected={isSelected}
+                            isInRange={isInRange}
+                            isEditable={isEditable ?? false}
+                            onClick={createClickHandler(cell.row.id, cell.column.id)}
+                            onKeyDown={createKeyDownHandler(cell.row.id, cell.column.id, cellRef)}
+                            onMouseDown={createMouseDownHandler(cell.row.id, cell.column.id)}
+                            onMouseEnter={createMouseEnterHandler(cell.row.id, cell.column.id)}
+                          />
                         );
                       })}
                     </Table.Row>

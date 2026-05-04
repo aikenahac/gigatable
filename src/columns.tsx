@@ -2,6 +2,47 @@ import { EditableCell } from "./data-table";
 import { Strain } from "./strains";
 import { ColumnDef } from "@tanstack/react-table";
 import "./types/react-table";
+import React from "react";
+
+// Memoized input components to prevent re-renders
+const TextInput = React.memo(({ value, onChange, onBlur, onKeyDown }: any) => (
+  <input
+    type="text"
+    autoFocus
+    value={value as string}
+    onChange={onChange}
+    onBlur={onBlur}
+    onKeyDown={onKeyDown}
+  />
+));
+TextInput.displayName = "TextInput";
+
+const NumberInput = React.memo(({ value, onChange, onBlur, onKeyDown, step }: any) => (
+  <input
+    type="number"
+    autoFocus
+    step={step}
+    value={value as number}
+    onChange={onChange}
+    onBlur={onBlur}
+    onKeyDown={onKeyDown}
+  />
+));
+NumberInput.displayName = "NumberInput";
+
+// Wrapper to pass step prop
+const createNumberInput = (step?: string | number) => {
+  const SteppedNumberInput = React.memo((props: any) => (
+    <NumberInput {...props} step={step} />
+  ));
+  SteppedNumberInput.displayName = `NumberInput_${step}`;
+  return SteppedNumberInput;
+};
+
+const NumberInput01 = createNumberInput("0.1");
+const NumberInput001 = createNumberInput("0.01");
+const NumberInput0001 = createNumberInput("0.001");
+const NumberInputDefault = createNumberInput(undefined);
 
 export const columns: Array<ColumnDef<Strain>> = [
   {
@@ -13,19 +54,7 @@ export const columns: Array<ColumnDef<Strain>> = [
   {
     accessorKey: "name",
     header: "Name",
-    cell: (cell) => (
-      <EditableCell
-        {...cell}
-        renderInput={(props) => (
-          <input
-            type="text"
-            autoFocus
-            {...props}
-            value={props.value as string}
-          />
-        )}
-      />
-    ),
+    cell: (cell) => <EditableCell {...cell} renderInput={TextInput} />,
     size: 110,
     meta: {
       editable: true,
@@ -52,19 +81,7 @@ export const columns: Array<ColumnDef<Strain>> = [
   {
     accessorKey: "description",
     header: "Description",
-    cell: (cell) => (
-      <EditableCell
-        {...cell}
-        renderInput={(props) => (
-          <input
-            type="text"
-            autoFocus
-            {...props}
-            value={props.value as string}
-          />
-        )}
-      />
-    ),
+    cell: (cell) => <EditableCell {...cell} renderInput={TextInput} />,
     size: 200,
     meta: {
       editable: true,
@@ -73,19 +90,7 @@ export const columns: Array<ColumnDef<Strain>> = [
   {
     accessorKey: "temperature",
     header: "Temp (°C)",
-    cell: (cell) => (
-      <EditableCell
-        {...cell}
-        renderInput={(props) => (
-          <input
-            type="number"
-            autoFocus
-            {...props}
-            value={props.value as number}
-          />
-        )}
-      />
-    ),
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInputDefault} />,
     size: 80,
     meta: {
       editable: true,
@@ -94,20 +99,7 @@ export const columns: Array<ColumnDef<Strain>> = [
   {
     accessorKey: "ph",
     header: "pH",
-    cell: (cell) => (
-      <EditableCell
-        {...cell}
-        renderInput={(props) => (
-          <input
-            type="number"
-            step="0.1"
-            autoFocus
-            {...props}
-            value={props.value as number}
-          />
-        )}
-      />
-    ),
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
     size: 70,
     meta: {
       editable: true,
@@ -116,19 +108,7 @@ export const columns: Array<ColumnDef<Strain>> = [
   {
     accessorKey: "viability",
     header: "Viability (%)",
-    cell: (cell) => (
-      <EditableCell
-        {...cell}
-        renderInput={(props) => (
-          <input
-            type="number"
-            autoFocus
-            {...props}
-            value={props.value as number}
-          />
-        )}
-      />
-    ),
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInputDefault} />,
     size: 90,
     meta: {
       editable: true,
@@ -161,19 +141,7 @@ export const columns: Array<ColumnDef<Strain>> = [
   {
     accessorKey: "osmolarity",
     header: "Osmolarity",
-    cell: (cell) => (
-      <EditableCell
-        {...cell}
-        renderInput={(props) => (
-          <input
-            type="number"
-            autoFocus
-            {...props}
-            value={props.value as number}
-          />
-        )}
-      />
-    ),
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInputDefault} />,
     size: 90,
     meta: {
       editable: true,
@@ -182,20 +150,7 @@ export const columns: Array<ColumnDef<Strain>> = [
   {
     accessorKey: "oxygenLevel",
     header: "O2 Level",
-    cell: (cell) => (
-      <EditableCell
-        {...cell}
-        renderInput={(props) => (
-          <input
-            type="number"
-            step="0.1"
-            autoFocus
-            {...props}
-            value={props.value as number}
-          />
-        )}
-      />
-    ),
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
     size: 80,
     meta: {
       editable: true,
@@ -204,20 +159,7 @@ export const columns: Array<ColumnDef<Strain>> = [
   {
     accessorKey: "glucoseConc",
     header: "Glucose (g/L)",
-    cell: (cell) => (
-      <EditableCell
-        {...cell}
-        renderInput={(props) => (
-          <input
-            type="number"
-            step="0.1"
-            autoFocus
-            {...props}
-            value={props.value as number}
-          />
-        )}
-      />
-    ),
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
     size: 100,
     meta: {
       editable: true,
@@ -232,20 +174,7 @@ export const columns: Array<ColumnDef<Strain>> = [
   {
     accessorKey: "growthRate",
     header: "Growth Rate",
-    cell: (cell) => (
-      <EditableCell
-        {...cell}
-        renderInput={(props) => (
-          <input
-            type="number"
-            step="0.01"
-            autoFocus
-            {...props}
-            value={props.value as number}
-          />
-        )}
-      />
-    ),
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput001} />,
     size: 100,
     meta: {
       editable: true,
@@ -260,19 +189,7 @@ export const columns: Array<ColumnDef<Strain>> = [
   {
     accessorKey: "attenuation",
     header: "Attenuation (%)",
-    cell: (cell) => (
-      <EditableCell
-        {...cell}
-        renderInput={(props) => (
-          <input
-            type="number"
-            autoFocus
-            {...props}
-            value={props.value as number}
-          />
-        )}
-      />
-    ),
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInputDefault} />,
     size: 110,
     meta: {
       editable: true,
@@ -293,20 +210,7 @@ export const columns: Array<ColumnDef<Strain>> = [
   {
     accessorKey: "purityLevel",
     header: "Purity (%)",
-    cell: (cell) => (
-      <EditableCell
-        {...cell}
-        renderInput={(props) => (
-          <input
-            type="number"
-            step="0.1"
-            autoFocus
-            {...props}
-            value={props.value as number}
-          />
-        )}
-      />
-    ),
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
     size: 80,
     meta: {
       editable: true,
@@ -327,20 +231,7 @@ export const columns: Array<ColumnDef<Strain>> = [
   {
     accessorKey: "mutationRate",
     header: "Mutation Rate",
-    cell: (cell) => (
-      <EditableCell
-        {...cell}
-        renderInput={(props) => (
-          <input
-            type="number"
-            step="0.001"
-            autoFocus
-            {...props}
-            value={props.value as number}
-          />
-        )}
-      />
-    ),
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput0001} />,
     size: 100,
     meta: {
       editable: true,
@@ -355,20 +246,7 @@ export const columns: Array<ColumnDef<Strain>> = [
   {
     accessorKey: "metabolicRate",
     header: "Metabolic Rate",
-    cell: (cell) => (
-      <EditableCell
-        {...cell}
-        renderInput={(props) => (
-          <input
-            type="number"
-            step="0.01"
-            autoFocus
-            {...props}
-            value={props.value as number}
-          />
-        )}
-      />
-    ),
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput001} />,
     size: 110,
     meta: {
       editable: true,
@@ -383,20 +261,7 @@ export const columns: Array<ColumnDef<Strain>> = [
   {
     accessorKey: "lipidContent",
     header: "Lipid Content (%)",
-    cell: (cell) => (
-      <EditableCell
-        {...cell}
-        renderInput={(props) => (
-          <input
-            type="number"
-            step="0.1"
-            autoFocus
-            {...props}
-            value={props.value as number}
-          />
-        )}
-      />
-    ),
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
     size: 120,
     meta: {
       editable: true,
@@ -447,20 +312,7 @@ export const columns: Array<ColumnDef<Strain>> = [
   {
     accessorKey: "qualityScore",
     header: "Quality Score",
-    cell: (cell) => (
-      <EditableCell
-        {...cell}
-        renderInput={(props) => (
-          <input
-            type="number"
-            step="0.1"
-            autoFocus
-            {...props}
-            value={props.value as number}
-          />
-        )}
-      />
-    ),
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
     size: 100,
     meta: {
       editable: true,
@@ -481,19 +333,7 @@ export const columns: Array<ColumnDef<Strain>> = [
   {
     accessorKey: "notes",
     header: "Notes",
-    cell: (cell) => (
-      <EditableCell
-        {...cell}
-        renderInput={(props) => (
-          <input
-            type="text"
-            autoFocus
-            {...props}
-            value={props.value as string}
-          />
-        )}
-      />
-    ),
+    cell: (cell) => <EditableCell {...cell} renderInput={TextInput} />,
     size: 200,
     meta: {
       editable: true,
@@ -602,20 +442,7 @@ export const columns: Array<ColumnDef<Strain>> = [
   {
     accessorKey: "density",
     header: "Density (g/mL)",
-    cell: (cell) => (
-      <EditableCell
-        {...cell}
-        renderInput={(props) => (
-          <input
-            type="number"
-            step="0.001"
-            autoFocus
-            {...props}
-            value={props.value as number}
-          />
-        )}
-      />
-    ),
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput0001} />,
     size: 100,
     meta: {
       editable: true,
@@ -624,20 +451,7 @@ export const columns: Array<ColumnDef<Strain>> = [
   {
     accessorKey: "viscosity",
     header: "Viscosity (cP)",
-    cell: (cell) => (
-      <EditableCell
-        {...cell}
-        renderInput={(props) => (
-          <input
-            type="number"
-            step="0.1"
-            autoFocus
-            {...props}
-            value={props.value as number}
-          />
-        )}
-      />
-    ),
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
     size: 100,
     meta: {
       editable: true,
@@ -646,20 +460,7 @@ export const columns: Array<ColumnDef<Strain>> = [
   {
     accessorKey: "turbidity",
     header: "Turbidity (NTU)",
-    cell: (cell) => (
-      <EditableCell
-        {...cell}
-        renderInput={(props) => (
-          <input
-            type="number"
-            step="0.1"
-            autoFocus
-            {...props}
-            value={props.value as number}
-          />
-        )}
-      />
-    ),
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
     size: 110,
     meta: {
       editable: true,
@@ -668,19 +469,7 @@ export const columns: Array<ColumnDef<Strain>> = [
   {
     accessorKey: "colorValue",
     header: "Color (EBC)",
-    cell: (cell) => (
-      <EditableCell
-        {...cell}
-        renderInput={(props) => (
-          <input
-            type="number"
-            autoFocus
-            {...props}
-            value={props.value as number}
-          />
-        )}
-      />
-    ),
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInputDefault} />,
     size: 90,
     meta: {
       editable: true,
@@ -689,20 +478,7 @@ export const columns: Array<ColumnDef<Strain>> = [
   {
     accessorKey: "clarityIndex",
     header: "Clarity Index",
-    cell: (cell) => (
-      <EditableCell
-        {...cell}
-        renderInput={(props) => (
-          <input
-            type="number"
-            step="0.1"
-            autoFocus
-            {...props}
-            value={props.value as number}
-          />
-        )}
-      />
-    ),
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
     size: 100,
     meta: {
       editable: true,
@@ -711,20 +487,7 @@ export const columns: Array<ColumnDef<Strain>> = [
   {
     accessorKey: "sedimentLevel",
     header: "Sediment (mg/L)",
-    cell: (cell) => (
-      <EditableCell
-        {...cell}
-        renderInput={(props) => (
-          <input
-            type="number"
-            step="0.1"
-            autoFocus
-            {...props}
-            value={props.value as number}
-          />
-        )}
-      />
-    ),
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
     size: 110,
     meta: {
       editable: true,
@@ -733,19 +496,7 @@ export const columns: Array<ColumnDef<Strain>> = [
   {
     accessorKey: "foamStability",
     header: "Foam Stability",
-    cell: (cell) => (
-      <EditableCell
-        {...cell}
-        renderInput={(props) => (
-          <input
-            type="number"
-            autoFocus
-            {...props}
-            value={props.value as number}
-          />
-        )}
-      />
-    ),
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInputDefault} />,
     size: 110,
     meta: {
       editable: true,
@@ -754,20 +505,7 @@ export const columns: Array<ColumnDef<Strain>> = [
   {
     accessorKey: "yieldRate",
     header: "Yield Rate (%)",
-    cell: (cell) => (
-      <EditableCell
-        {...cell}
-        renderInput={(props) => (
-          <input
-            type="number"
-            step="0.1"
-            autoFocus
-            {...props}
-            value={props.value as number}
-          />
-        )}
-      />
-    ),
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
     size: 100,
     meta: {
       editable: true,
@@ -776,20 +514,7 @@ export const columns: Array<ColumnDef<Strain>> = [
   {
     accessorKey: "efficiency",
     header: "Efficiency (%)",
-    cell: (cell) => (
-      <EditableCell
-        {...cell}
-        renderInput={(props) => (
-          <input
-            type="number"
-            step="0.1"
-            autoFocus
-            {...props}
-            value={props.value as number}
-          />
-        )}
-      />
-    ),
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
     size: 100,
     meta: {
       editable: true,
@@ -798,20 +523,7 @@ export const columns: Array<ColumnDef<Strain>> = [
   {
     accessorKey: "potency",
     header: "Potency (U/mL)",
-    cell: (cell) => (
-      <EditableCell
-        {...cell}
-        renderInput={(props) => (
-          <input
-            type="number"
-            step="0.01"
-            autoFocus
-            {...props}
-            value={props.value as number}
-          />
-        )}
-      />
-    ),
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput001} />,
     size: 100,
     meta: {
       editable: true,
@@ -820,20 +532,7 @@ export const columns: Array<ColumnDef<Strain>> = [
   {
     accessorKey: "concentration",
     header: "Conc (mg/mL)",
-    cell: (cell) => (
-      <EditableCell
-        {...cell}
-        renderInput={(props) => (
-          <input
-            type="number"
-            step="0.1"
-            autoFocus
-            {...props}
-            value={props.value as number}
-          />
-        )}
-      />
-    ),
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
     size: 100,
     meta: {
       editable: true,
@@ -842,19 +541,7 @@ export const columns: Array<ColumnDef<Strain>> = [
   {
     accessorKey: "dilutionFactor",
     header: "Dilution",
-    cell: (cell) => (
-      <EditableCell
-        {...cell}
-        renderInput={(props) => (
-          <input
-            type="number"
-            autoFocus
-            {...props}
-            value={props.value as number}
-          />
-        )}
-      />
-    ),
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInputDefault} />,
     size: 80,
     meta: {
       editable: true,
@@ -863,19 +550,7 @@ export const columns: Array<ColumnDef<Strain>> = [
   {
     accessorKey: "volumeMl",
     header: "Volume (mL)",
-    cell: (cell) => (
-      <EditableCell
-        {...cell}
-        renderInput={(props) => (
-          <input
-            type="number"
-            autoFocus
-            {...props}
-            value={props.value as number}
-          />
-        )}
-      />
-    ),
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInputDefault} />,
     size: 100,
     meta: {
       editable: true,
@@ -884,20 +559,7 @@ export const columns: Array<ColumnDef<Strain>> = [
   {
     accessorKey: "weightGrams",
     header: "Weight (g)",
-    cell: (cell) => (
-      <EditableCell
-        {...cell}
-        renderInput={(props) => (
-          <input
-            type="number"
-            step="0.01"
-            autoFocus
-            {...props}
-            value={props.value as number}
-          />
-        )}
-      />
-    ),
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput001} />,
     size: 90,
     meta: {
       editable: true,
@@ -906,20 +568,7 @@ export const columns: Array<ColumnDef<Strain>> = [
   {
     accessorKey: "moistureContent",
     header: "Moisture (%)",
-    cell: (cell) => (
-      <EditableCell
-        {...cell}
-        renderInput={(props) => (
-          <input
-            type="number"
-            step="0.1"
-            autoFocus
-            {...props}
-            value={props.value as number}
-          />
-        )}
-      />
-    ),
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
     size: 100,
     meta: {
       editable: true,
@@ -928,20 +577,7 @@ export const columns: Array<ColumnDef<Strain>> = [
   {
     accessorKey: "ashContent",
     header: "Ash (%)",
-    cell: (cell) => (
-      <EditableCell
-        {...cell}
-        renderInput={(props) => (
-          <input
-            type="number"
-            step="0.1"
-            autoFocus
-            {...props}
-            value={props.value as number}
-          />
-        )}
-      />
-    ),
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
     size: 80,
     meta: {
       editable: true,
@@ -950,20 +586,7 @@ export const columns: Array<ColumnDef<Strain>> = [
   {
     accessorKey: "proteinContent",
     header: "Protein (%)",
-    cell: (cell) => (
-      <EditableCell
-        {...cell}
-        renderInput={(props) => (
-          <input
-            type="number"
-            step="0.1"
-            autoFocus
-            {...props}
-            value={props.value as number}
-          />
-        )}
-      />
-    ),
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
     size: 90,
     meta: {
       editable: true,
@@ -972,20 +595,7 @@ export const columns: Array<ColumnDef<Strain>> = [
   {
     accessorKey: "carbContent",
     header: "Carbs (%)",
-    cell: (cell) => (
-      <EditableCell
-        {...cell}
-        renderInput={(props) => (
-          <input
-            type="number"
-            step="0.1"
-            autoFocus
-            {...props}
-            value={props.value as number}
-          />
-        )}
-      />
-    ),
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
     size: 90,
     meta: {
       editable: true,
@@ -994,20 +604,7 @@ export const columns: Array<ColumnDef<Strain>> = [
   {
     accessorKey: "fatContent",
     header: "Fat (%)",
-    cell: (cell) => (
-      <EditableCell
-        {...cell}
-        renderInput={(props) => (
-          <input
-            type="number"
-            step="0.1"
-            autoFocus
-            {...props}
-            value={props.value as number}
-          />
-        )}
-      />
-    ),
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
     size: 80,
     meta: {
       editable: true,
@@ -1016,20 +613,7 @@ export const columns: Array<ColumnDef<Strain>> = [
   {
     accessorKey: "fiberContent",
     header: "Fiber (%)",
-    cell: (cell) => (
-      <EditableCell
-        {...cell}
-        renderInput={(props) => (
-          <input
-            type="number"
-            step="0.1"
-            autoFocus
-            {...props}
-            value={props.value as number}
-          />
-        )}
-      />
-    ),
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
     size: 80,
     meta: {
       editable: true,
@@ -1038,20 +622,7 @@ export const columns: Array<ColumnDef<Strain>> = [
   {
     accessorKey: "saltContent",
     header: "Salt (g/L)",
-    cell: (cell) => (
-      <EditableCell
-        {...cell}
-        renderInput={(props) => (
-          <input
-            type="number"
-            step="0.1"
-            autoFocus
-            {...props}
-            value={props.value as number}
-          />
-        )}
-      />
-    ),
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
     size: 90,
     meta: {
       editable: true,
@@ -1060,20 +631,7 @@ export const columns: Array<ColumnDef<Strain>> = [
   {
     accessorKey: "sugarContent",
     header: "Sugar (g/L)",
-    cell: (cell) => (
-      <EditableCell
-        {...cell}
-        renderInput={(props) => (
-          <input
-            type="number"
-            step="0.1"
-            autoFocus
-            {...props}
-            value={props.value as number}
-          />
-        )}
-      />
-    ),
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
     size: 90,
     meta: {
       editable: true,
@@ -1082,20 +640,7 @@ export const columns: Array<ColumnDef<Strain>> = [
   {
     accessorKey: "alcoholContent",
     header: "Alcohol (%)",
-    cell: (cell) => (
-      <EditableCell
-        {...cell}
-        renderInput={(props) => (
-          <input
-            type="number"
-            step="0.1"
-            autoFocus
-            {...props}
-            value={props.value as number}
-          />
-        )}
-      />
-    ),
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
     size: 90,
     meta: {
       editable: true,
@@ -1104,20 +649,7 @@ export const columns: Array<ColumnDef<Strain>> = [
   {
     accessorKey: "acidityLevel",
     header: "Acidity",
-    cell: (cell) => (
-      <EditableCell
-        {...cell}
-        renderInput={(props) => (
-          <input
-            type="number"
-            step="0.01"
-            autoFocus
-            {...props}
-            value={props.value as number}
-          />
-        )}
-      />
-    ),
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput001} />,
     size: 80,
     meta: {
       editable: true,
@@ -1126,19 +658,7 @@ export const columns: Array<ColumnDef<Strain>> = [
   {
     accessorKey: "bitterLevel",
     header: "Bitterness (IBU)",
-    cell: (cell) => (
-      <EditableCell
-        {...cell}
-        renderInput={(props) => (
-          <input
-            type="number"
-            autoFocus
-            {...props}
-            value={props.value as number}
-          />
-        )}
-      />
-    ),
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInputDefault} />,
     size: 110,
     meta: {
       editable: true,
@@ -1147,19 +667,7 @@ export const columns: Array<ColumnDef<Strain>> = [
   {
     accessorKey: "aromaScore",
     header: "Aroma",
-    cell: (cell) => (
-      <EditableCell
-        {...cell}
-        renderInput={(props) => (
-          <input
-            type="number"
-            autoFocus
-            {...props}
-            value={props.value as number}
-          />
-        )}
-      />
-    ),
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInputDefault} />,
     size: 70,
     meta: {
       editable: true,
@@ -1168,19 +676,7 @@ export const columns: Array<ColumnDef<Strain>> = [
   {
     accessorKey: "flavorScore",
     header: "Flavor",
-    cell: (cell) => (
-      <EditableCell
-        {...cell}
-        renderInput={(props) => (
-          <input
-            type="number"
-            autoFocus
-            {...props}
-            value={props.value as number}
-          />
-        )}
-      />
-    ),
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInputDefault} />,
     size: 70,
     meta: {
       editable: true,
@@ -1189,19 +685,7 @@ export const columns: Array<ColumnDef<Strain>> = [
   {
     accessorKey: "textureScore",
     header: "Texture",
-    cell: (cell) => (
-      <EditableCell
-        {...cell}
-        renderInput={(props) => (
-          <input
-            type="number"
-            autoFocus
-            {...props}
-            value={props.value as number}
-          />
-        )}
-      />
-    ),
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInputDefault} />,
     size: 70,
     meta: {
       editable: true,
@@ -1210,19 +694,7 @@ export const columns: Array<ColumnDef<Strain>> = [
   {
     accessorKey: "appearanceScore",
     header: "Appearance",
-    cell: (cell) => (
-      <EditableCell
-        {...cell}
-        renderInput={(props) => (
-          <input
-            type="number"
-            autoFocus
-            {...props}
-            value={props.value as number}
-          />
-        )}
-      />
-    ),
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInputDefault} />,
     size: 90,
     meta: {
       editable: true,
@@ -1231,19 +703,7 @@ export const columns: Array<ColumnDef<Strain>> = [
   {
     accessorKey: "overallScore",
     header: "Overall",
-    cell: (cell) => (
-      <EditableCell
-        {...cell}
-        renderInput={(props) => (
-          <input
-            type="number"
-            autoFocus
-            {...props}
-            value={props.value as number}
-          />
-        )}
-      />
-    ),
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInputDefault} />,
     size: 70,
     meta: {
       editable: true,

@@ -16,10 +16,10 @@ interface EditableCellProps<TData, TValue> extends CellContext<TData, TValue> {
     onKeyDown: (e: React.KeyboardEvent) => void;
     cancelEditing: () => void;
     className?: string;
-  }) => React.ReactElement;
+  }) => React.ReactNode;
 }
 
-export function EditableCell<TData, TValue>({
+function EditableCellComponent<TData, TValue>({
   getValue,
   row: { index: rowId },
   column: { id: colId },
@@ -117,3 +117,13 @@ export function EditableCell<TData, TValue>({
     </div>
   );
 }
+
+// Memoize EditableCell to prevent unnecessary re-renders
+export const EditableCell = React.memo(EditableCellComponent, (prevProps, nextProps) => {
+  // Custom comparison to prevent re-renders when value hasn't changed
+  return (
+    prevProps.getValue() === nextProps.getValue() &&
+    prevProps.row.index === nextProps.row.index &&
+    prevProps.column.id === nextProps.column.id
+  );
+}) as typeof EditableCellComponent;
