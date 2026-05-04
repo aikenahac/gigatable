@@ -25,60 +25,39 @@ export interface DataTableProps<TData> {
   redo?: () => void;
 }
 
-// Memoized cell component to prevent unnecessary re-renders
-const TableCell = React.memo(({
-  cell,
-  cellRef,
-  isSelected,
-  isInRange,
-  isEditable,
-  onClick,
-  onKeyDown,
-  onMouseDown,
-  onMouseEnter,
-}: {
-  cell: any;
-  cellRef: React.RefObject<HTMLTableCellElement | null>;
-  isSelected: boolean;
-  isInRange: boolean;
-  isEditable: boolean;
-  onClick: () => void;
-  onKeyDown: (e: React.KeyboardEvent<HTMLDivElement>) => void;
-  onMouseDown: () => void;
-  onMouseEnter: () => void;
-}) => {
-  return (
+const TableCell = React.memo(
+  ({
+    cell,
+    cellRef,
+    isSelected,
+    isEditable,
+  }: {
+    cell: any;
+    cellRef: (el: HTMLTableCellElement | null) => void;
+    isSelected: boolean;
+    isEditable: boolean;
+  }) => (
     <Table.Data
-      key={cell.id}
       ref={cellRef}
       tabIndex={0}
       style={{ width: `${cell.column.getSize()}px` }}
-      onClick={onClick}
-      onKeyDown={onKeyDown}
-      onMouseDown={onMouseDown}
-      onMouseEnter={onMouseEnter}
       data-row-id={cell.row.id}
       data-column-id={cell.column.id}
       className={clsx({
         "outline outline-[1.5px] outline-[#3d5aa9] -outline-offset-[2px] rounded-[var(--border-md)] focus-visible:outline focus-visible:outline-[1.5px] focus-visible:outline-[#3d5aa9] focus-visible:-outline-offset-[2px] focus-visible:rounded-[var(--border-md)]":
           isSelected,
-        "bg-[#dbe1ff]": !isSelected && isInRange,
         "box-border p-0 cursor-text": isEditable,
       })}
     >
       {flexRender(cell.column.columnDef.cell, cell.getContext())}
     </Table.Data>
-  );
-}, (prevProps, nextProps) => {
-  // Only re-render if these props changed
-  return (
+  ),
+  (prevProps, nextProps) =>
     prevProps.isSelected === nextProps.isSelected &&
-    prevProps.isInRange === nextProps.isInRange &&
     prevProps.cell.getValue() === nextProps.cell.getValue() &&
     prevProps.cell.row.id === nextProps.cell.row.id &&
-    prevProps.cell.column.id === nextProps.cell.column.id
-  );
-});
+    prevProps.cell.column.id === nextProps.cell.column.id,
+);
 TableCell.displayName = "TableCell";
 
 export function DataTable<TData>({
@@ -94,12 +73,22 @@ export function DataTable<TData>({
 }: DataTableProps<TData>) {
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const rows = table.getRowModel().rows;
+  const leafColumns = table.getVisibleLeafColumns();
+  const lastMouseOverCellRef = useRef<string | null>(null);
 
   const rowVirtualizer = useVirtualizer({
     count: rows.length,
     getScrollElement: () => tableContainerRef.current,
     estimateSize: () => 30,
-    overscan: 30,
+    overscan: 5,
+  });
+
+  const columnVirtualizer = useVirtualizer({
+    count: leafColumns.length,
+    getScrollElement: () => tableContainerRef.current,
+    estimateSize: (index) => leafColumns[index].getSize(),
+    horizontal: true,
+    overscan: 3,
   });
 
   const {
@@ -107,58 +96,90 @@ export function DataTable<TData>({
     selection: selectedRange,
     getCellRef,
     isCellSelected,
-    isCellInRange,
+    isSelectingRef,
     handleClick,
     handleKeyDown,
     handleMouseDown,
     handleMouseEnter,
-  } = useCellSelection(rows, table.getVisibleFlatColumns(), tableContainerRef);
+  } = useCellSelection(rows, leafColumns, tableContainerRef);
 
   const [, copy] = useCopyToClipboard();
 
-  // Memoized event handler factories to avoid creating new functions on every render
-  const createClickHandler = useCallback(
-    (rowId: string, columnId: string) => () => {
-      if (allowCellSelection) handleClick(rowId, columnId);
+  const handleBodyClick = useCallback(
+    (e: React.MouseEvent) => {
+      if (!allowCellSelection) return;
+      const td = (e.target as Element).closest(
+        "td[data-row-id]",
+      ) as HTMLTableCellElement | null;
+      if (!td) return;
+      handleClick(td.dataset.rowId!, td.dataset.columnId!);
     },
-    [allowCellSelection, handleClick]
+    [allowCellSelection, handleClick],
   );
 
-  const createKeyDownHandler = useCallback(
-    (rowId: string, columnId: string, cellRef: React.RefObject<HTMLTableCellElement | null>) =>
-      (e: React.KeyboardEvent<HTMLDivElement>) => {
-        if (allowCellSelection) handleKeyDown(e, rowId, columnId);
-        if (e.key === "Enter") {
-          const editableCell = cellRef.current?.querySelector("[data-editable-cell-viewing]");
-          if (editableCell) {
-            editableCell.dispatchEvent(
-              new KeyboardEvent("keydown", { key: "Enter", bubbles: true, cancelable: true })
-            );
-          }
+  const handleBodyMouseDown = useCallback(
+    (e: React.MouseEvent) => {
+      if (!allowRangeSelection) return;
+      const td = (e.target as Element).closest(
+        "td[data-row-id]",
+      ) as HTMLTableCellElement | null;
+      if (!td) return;
+      lastMouseOverCellRef.current = null;
+      handleMouseDown(td.dataset.rowId!, td.dataset.columnId!);
+    },
+    [allowRangeSelection, handleMouseDown],
+  );
+
+  const handleBodyMouseOver = useCallback(
+    (e: React.MouseEvent) => {
+      if (!allowRangeSelection || !isSelectingRef.current) return;
+      const td = (e.target as Element).closest(
+        "td[data-row-id]",
+      ) as HTMLTableCellElement | null;
+      if (!td) return;
+      const key = `${td.dataset.rowId}-${td.dataset.columnId}`;
+      if (key === lastMouseOverCellRef.current) return;
+      lastMouseOverCellRef.current = key;
+      handleMouseEnter(td.dataset.rowId!, td.dataset.columnId!);
+    },
+    [allowRangeSelection, isSelectingRef, handleMouseEnter],
+  );
+
+  const handleContainerKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (!allowCellSelection) return;
+      const td = (e.target as Element).closest(
+        "td[data-row-id]",
+      ) as HTMLTableCellElement | null;
+      if (!td) return;
+      handleKeyDown(
+        e as React.KeyboardEvent<HTMLDivElement>,
+        td.dataset.rowId!,
+        td.dataset.columnId!,
+      );
+      if (e.key === "Enter") {
+        const editableCell = td.querySelector("[data-editable-cell-viewing]");
+        if (editableCell) {
+          editableCell.dispatchEvent(
+            new KeyboardEvent("keydown", {
+              key: "Enter",
+              bubbles: true,
+              cancelable: true,
+            }),
+          );
         }
-      },
-    [allowCellSelection, handleKeyDown]
-  );
-
-  const createMouseDownHandler = useCallback(
-    (rowId: string, columnId: string) => () => {
-      if (allowRangeSelection) handleMouseDown(rowId, columnId);
+      }
     },
-    [allowRangeSelection, handleMouseDown]
+    [allowCellSelection, handleKeyDown],
   );
 
-  const createMouseEnterHandler = useCallback(
-    (rowId: string, columnId: string) => () => {
-      if (allowRangeSelection) handleMouseEnter(rowId, columnId);
-    },
-    [allowRangeSelection, handleMouseEnter]
-  );
-
-  // Consolidated keyboard event listener for copy and undo/redo
   useEffect(() => {
-    const handleKeyDown = async (event: KeyboardEvent) => {
-      // Copy
-      if ((event.ctrlKey || event.metaKey) && event.key === "c" && selectedRange) {
+    const handler = async (event: KeyboardEvent) => {
+      if (
+        (event.ctrlKey || event.metaKey) &&
+        event.key === "c" &&
+        selectedRange
+      ) {
         event.preventDefault();
         const clipboardData = parseCopyData(
           selectedRange,
@@ -167,59 +188,60 @@ export function DataTable<TData>({
         );
         await copy(clipboardData);
       }
-
-      // Undo/Redo
-      if (allowHistory && (event.ctrlKey || event.metaKey) && event.key === "z") {
+      if (
+        allowHistory &&
+        (event.ctrlKey || event.metaKey) &&
+        event.key === "z"
+      ) {
         event.preventDefault();
-        if (event.shiftKey) {
-          redo?.();
-        } else {
-          undo?.();
-        }
+        if (event.shiftKey) redo?.();
+        else undo?.();
       }
     };
-
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
   }, [selectedRange, copy, allowHistory, undo, redo, table]);
 
-  // Paste event listener
   useEffect(() => {
     if (allowPaste && paste && selectedCell) {
       const pasteHandler = (event: ClipboardEvent) => {
         const clipboardData = event.clipboardData?.getData("Text");
         const result = paste(selectedCell, clipboardData);
-
-        if (onPasteComplete && result.totalChanges > 0) {
-          onPasteComplete(result);
-        }
+        if (onPasteComplete && result.totalChanges > 0) onPasteComplete(result);
       };
-
       document.addEventListener("paste", pasteHandler);
       return () => document.removeEventListener("paste", pasteHandler);
     }
-
     return undefined;
   }, [allowPaste, selectedCell, paste, onPasteComplete]);
 
-  const virtualItems = rowVirtualizer.getVirtualItems();
+  const virtualRows = rowVirtualizer.getVirtualItems();
+  const virtualColumns = columnVirtualizer.getVirtualItems();
+  const totalColumnsWidth = columnVirtualizer.getTotalSize();
+  const leftColPad = virtualColumns[0]?.start ?? 0;
+  const rightColPad =
+    totalColumnsWidth - (virtualColumns[virtualColumns.length - 1]?.end ?? 0);
 
   return (
     <div
-      className={clsx("box-border border border-[hsl(240_5.9%_90%)] rounded-[var(--border-md)]", {
-        "select-none": allowRangeSelection,
-      })}
+      className={clsx(
+        "box-border border border-[hsl(240_5.9%_90%)] rounded-[var(--border-md)]",
+        { "select-none": allowRangeSelection },
+      )}
+      onKeyDown={handleContainerKeyDown}
     >
       <div ref={tableContainerRef} className="h-[90vh] overflow-auto">
-        <Table>
+        <Table style={{ width: `${totalColumnsWidth}px` }}>
           <Table.Header>
             {table.getHeaderGroups().map((headerGroup) => (
               <Table.Row key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
+                <th style={{ width: `${leftColPad}px`, padding: 0 }} />
+                {virtualColumns.map((vc) => {
+                  const header = headerGroup.headers[vc.index];
                   return (
                     <Table.Head
                       key={header.id}
-                      style={{ width: `${header.getSize()}px` }}
+                      style={{ width: `${vc.size}px` }}
                     >
                       {header.isPlaceholder
                         ? null
@@ -230,50 +252,48 @@ export function DataTable<TData>({
                     </Table.Head>
                   );
                 })}
+                <th style={{ width: `${rightColPad}px`, padding: 0 }} />
               </Table.Row>
             ))}
           </Table.Header>
-          <Table.Body>
+          <Table.Body
+            onClick={handleBodyClick}
+            onMouseDown={handleBodyMouseDown}
+            onMouseOver={handleBodyMouseOver}
+          >
             {rows.length > 0 ? (
               <>
-                <tr style={{ height: `${virtualItems[0]?.start ?? 0}px` }} />
-                {virtualItems.map((virtualRow) => {
+                <tr
+                  style={{ height: `${virtualRows[0]?.start ?? 0}px` }}
+                />
+                {virtualRows.map((virtualRow) => {
                   const row = rows[virtualRow.index];
+                  const visibleCells = row.getVisibleCells();
                   return (
                     <Table.Row
                       key={row.id}
                       data-state={row.getIsSelected() && "selected"}
-                      style={{
-                        height: `${virtualRow.size}px`,
-                      }}
+                      style={{ height: `${virtualRow.size}px` }}
                     >
-                      {row.getVisibleCells().map((cell) => {
-                        const cellRef = getCellRef(cell.row.id, cell.column.id);
-                        const isSelected = isCellSelected(
-                          cell.row.id,
-                          cell.column.id,
-                        );
-                        const isInRange = isCellInRange(
-                          cell.row.id,
-                          cell.column.id,
-                        );
-                        const isEditable = cell.column.columnDef.meta?.editable;
-
+                      <td style={{ width: `${leftColPad}px`, padding: 0 }} />
+                      {virtualColumns.map((vc) => {
+                        const cell = visibleCells[vc.index];
                         return (
                           <TableCell
                             key={cell.id}
                             cell={cell}
-                            cellRef={cellRef}
-                            isSelected={isSelected}
-                            isInRange={isInRange}
-                            isEditable={isEditable ?? false}
-                            onClick={createClickHandler(cell.row.id, cell.column.id)}
-                            onKeyDown={createKeyDownHandler(cell.row.id, cell.column.id, cellRef)}
-                            onMouseDown={createMouseDownHandler(cell.row.id, cell.column.id)}
-                            onMouseEnter={createMouseEnterHandler(cell.row.id, cell.column.id)}
+                            cellRef={getCellRef(cell.row.id, cell.column.id)}
+                            isSelected={isCellSelected(
+                              cell.row.id,
+                              cell.column.id,
+                            )}
+                            isEditable={
+                              cell.column.columnDef.meta?.editable ?? false
+                            }
                           />
                         );
                       })}
+                      <td style={{ width: `${rightColPad}px`, padding: 0 }} />
                     </Table.Row>
                   );
                 })}
@@ -281,7 +301,7 @@ export function DataTable<TData>({
                   style={{
                     height: `${
                       rowVirtualizer.getTotalSize() -
-                      (virtualItems[virtualItems.length - 1]?.end ?? 0)
+                      (virtualRows[virtualRows.length - 1]?.end ?? 0)
                     }px`,
                   }}
                 />
@@ -289,7 +309,7 @@ export function DataTable<TData>({
             ) : (
               <Table.Row>
                 <Table.Data
-                  colSpan={table.getVisibleFlatColumns().length}
+                  colSpan={leafColumns.length}
                   className="h-24 text-center"
                 >
                   No data.

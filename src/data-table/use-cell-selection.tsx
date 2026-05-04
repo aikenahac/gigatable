@@ -24,74 +24,162 @@ export function useCellSelection<TData>(
   columns: Column<TData>[],
   containerRef?: React.RefObject<HTMLDivElement | null>,
 ) {
-  const [selectedCell, setSelectedCell] = useState<CellCoordinates | null>(
-    null,
-  );
+  const [selectedCell, setSelectedCell] = useState<CellCoordinates | null>(null);
   const [selection, setSelection] = useState<Selection | null>(null);
   const [isSelecting, setIsSelecting] = useState(false);
   const isSelectingRef = useRef(false);
   const mousePositionRef = useRef({ x: 0, y: 0 });
-  const rafIdRef = useRef<number | null>(null);
 
-  const cellRefsMap = useRef<Map<string, React.RefObject<HTMLTableCellElement | null>>>(new Map());
+  // Stores actual DOM elements (not RefObjects)
+  const cellRefsMap = useRef<Map<string, HTMLTableCellElement>>(new Map());
+  // Stable callback ref cache — same function identity per cell key across renders
+  const cellRefCallbacksCache = useRef<Map<string, (el: HTMLTableCellElement | null) => void>>(new Map());
+  // Live drag selection — never causes React re-renders
+  const liveSelectionRef = useRef<Selection | null>(null);
+
+  // Refs so stable callbacks can always read current index maps
+  const rowIndexMapRef = useRef<Record<string, number>>({});
+  const columnIndexMapRef = useRef<Record<string, number>>({});
+  const rowIdsRef = useRef<string[]>([]);
+  const columnIdsRef = useRef<string[]>([]);
 
   const columnIndexMap = useMemo(() => {
-    return columns.reduce((acc: { [key: string]: number }, column, index) => {
+    const map = columns.reduce((acc: Record<string, number>, column, index) => {
       acc[column.id] = index;
       return acc;
     }, {});
+    columnIndexMapRef.current = map;
+    columnIdsRef.current = columns.map((c) => c.id);
+    return map;
   }, [columns]);
 
   const rowIndexMap = useMemo(() => {
-    return rows.reduce((acc: { [key: string]: number }, row, index) => {
+    const map = rows.reduce((acc: Record<string, number>, row, index) => {
       acc[row.id] = index;
       return acc;
     }, {});
+    rowIndexMapRef.current = map;
+    rowIdsRef.current = rows.map((r) => r.id);
+    return map;
   }, [rows]);
 
+  // Toggles .is-in-range on cells that changed membership between prev and next ranges.
+  // Iterates only the union bounding box; skips cells not in the DOM (virtual window).
+  const updateSelectionDOM = useCallback(
+    (prev: Selection | null, next: Selection | null) => {
+      if (!prev && !next) return;
+
+      const rIdx = (s: Selection, k: "start" | "end") =>
+        rowIndexMapRef.current[s[k].rowId] ?? -1;
+      const cIdx = (s: Selection, k: "start" | "end") =>
+        columnIndexMapRef.current[s[k].columnId] ?? -1;
+
+      const prevRMin = prev ? Math.min(rIdx(prev, "start"), rIdx(prev, "end")) : Infinity;
+      const prevRMax = prev ? Math.max(rIdx(prev, "start"), rIdx(prev, "end")) : -Infinity;
+      const prevCMin = prev ? Math.min(cIdx(prev, "start"), cIdx(prev, "end")) : Infinity;
+      const prevCMax = prev ? Math.max(cIdx(prev, "start"), cIdx(prev, "end")) : -Infinity;
+
+      const nextRMin = next ? Math.min(rIdx(next, "start"), rIdx(next, "end")) : -1;
+      const nextRMax = next ? Math.max(rIdx(next, "start"), rIdx(next, "end")) : -1;
+      const nextCMin = next ? Math.min(cIdx(next, "start"), cIdx(next, "end")) : -1;
+      const nextCMax = next ? Math.max(cIdx(next, "start"), cIdx(next, "end")) : -1;
+
+      const minRow = Math.min(prev ? prevRMin : Infinity, next ? nextRMin : Infinity);
+      const maxRow = Math.max(prev ? prevRMax : -Infinity, next ? nextRMax : -Infinity);
+      const minCol = Math.min(prev ? prevCMin : Infinity, next ? nextCMin : Infinity);
+      const maxCol = Math.max(prev ? prevCMax : -Infinity, next ? nextCMax : -Infinity);
+
+      if (minRow > maxRow || minCol > maxCol) return;
+
+      const rowIds = rowIdsRef.current;
+      const colIds = columnIdsRef.current;
+
+      for (let r = minRow; r <= maxRow; r++) {
+        const rowId = rowIds[r];
+        if (!rowId) continue;
+        for (let c = minCol; c <= maxCol; c++) {
+          const colId = colIds[c];
+          if (!colId) continue;
+          const el = cellRefsMap.current.get(`${rowId}-${colId}`);
+          if (!el) continue;
+          const inNext =
+            next !== null &&
+            r >= nextRMin &&
+            r <= nextRMax &&
+            c >= nextCMin &&
+            c <= nextCMax;
+          el.classList.toggle("is-in-range", inNext);
+        }
+      }
+    },
+    [], // reads only from refs — truly stable
+  );
+
+  // Updates DOM + liveSelectionRef + React state atomically.
+  // Use for keyboard navigation and initial mousedown — not during drag mousemove.
+  const commitSelection = useCallback(
+    (next: Selection | null) => {
+      updateSelectionDOM(liveSelectionRef.current, next);
+      liveSelectionRef.current = next;
+      setSelection(next);
+    },
+    [updateSelectionDOM],
+  );
+
+  // Returns a stable callback ref for a cell.
+  // React calls it with the element on mount and null on unmount.
+  // On mount: registers element + applies correct .is-in-range from liveSelectionRef.
   const getCellRef = useCallback((rowId: string, columnId: string) => {
     const key = `${rowId}-${columnId}`;
-
-    if (!cellRefsMap.current.has(key)) {
-      cellRefsMap.current.set(key, { current: null });
+    if (!cellRefCallbacksCache.current.has(key)) {
+      cellRefCallbacksCache.current.set(key, (el: HTMLTableCellElement | null) => {
+        if (el) {
+          cellRefsMap.current.set(key, el);
+          // Apply correct class when cell mounts (e.g. scrolled back into virtual window)
+          if (liveSelectionRef.current) {
+            const sel = liveSelectionRef.current;
+            const r = rowIndexMapRef.current[rowId] ?? -1;
+            const c = columnIndexMapRef.current[columnId] ?? -1;
+            const rMin = Math.min(
+              rowIndexMapRef.current[sel.start.rowId] ?? -1,
+              rowIndexMapRef.current[sel.end.rowId] ?? -1,
+            );
+            const rMax = Math.max(
+              rowIndexMapRef.current[sel.start.rowId] ?? -1,
+              rowIndexMapRef.current[sel.end.rowId] ?? -1,
+            );
+            const cMin = Math.min(
+              columnIndexMapRef.current[sel.start.columnId] ?? -1,
+              columnIndexMapRef.current[sel.end.columnId] ?? -1,
+            );
+            const cMax = Math.max(
+              columnIndexMapRef.current[sel.start.columnId] ?? -1,
+              columnIndexMapRef.current[sel.end.columnId] ?? -1,
+            );
+            if (r >= 0 && c >= 0) {
+              el.classList.toggle(
+                "is-in-range",
+                r >= rMin && r <= rMax && c >= cMin && c <= cMax,
+              );
+            }
+          }
+        } else {
+          cellRefsMap.current.delete(key);
+          cellRefCallbacksCache.current.delete(key);
+        }
+      });
     }
-
-    return cellRefsMap.current.get(key)!;
-  }, []);
+    return cellRefCallbacksCache.current.get(key)!;
+  }, []); // Truly stable — reads only from refs
 
   const isCellSelected = useCallback(
-    (cellRowId: string, cellColumnId: string) => {
-      return !!(
+    (cellRowId: string, cellColumnId: string) =>
+      !!(
         selectedCell &&
         selectedCell.rowId === cellRowId &&
         selectedCell.columnId === cellColumnId
-      );
-    },
+      ),
     [selectedCell],
-  );
-
-  const isCellInRange = useCallback(
-    (cellRowId: string, cellColumnId: string) => {
-      if (!selection) return false;
-
-      const rowIndex = rowIndexMap[cellRowId];
-      const columnIndex = columnIndexMap[cellColumnId];
-
-      const startRowIndex = rowIndexMap[selection.start.rowId];
-      const startColumnIndex = columnIndexMap[selection.start.columnId];
-      const endRowIndex = rowIndexMap[selection.end.rowId];
-      const endColumnIndex = columnIndexMap[selection.end.columnId];
-
-      const isRowInRange =
-        rowIndex >= Math.min(startRowIndex, endRowIndex) &&
-        rowIndex <= Math.max(startRowIndex, endRowIndex);
-      const isColumnInRange =
-        columnIndex >= Math.min(startColumnIndex, endColumnIndex) &&
-        columnIndex <= Math.max(startColumnIndex, endColumnIndex);
-
-      return isRowInRange && isColumnInRange;
-    },
-    [selection, columnIndexMap, rowIndexMap],
   );
 
   const handleKeyDown = (
@@ -100,232 +188,140 @@ export function useCellSelection<TData>(
     columnId: string,
   ) => {
     const { key } = e;
+    if (!["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(key)) return;
+    e.preventDefault();
 
-    if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(key)) {
-      e.preventDefault();
+    const edgeRowId = liveSelectionRef.current?.end.rowId ?? rowId;
+    const edgeColumnId = liveSelectionRef.current?.end.columnId ?? columnId;
+    const rowIndex = rowIndexMap[edgeRowId];
+    const colIndex = columnIndexMap[edgeColumnId];
 
-      const edgeRowId = selection ? selection.end.rowId : rowId;
-      const edgeColumnId = selection ? selection.end.columnId : columnId;
+    let nextRowId = edgeRowId;
+    let nextColumnId = edgeColumnId;
 
-      const rowIndex = rowIndexMap[edgeRowId];
-      const columnIndex = columnIndexMap[edgeColumnId];
+    switch (key) {
+      case "ArrowUp":
+        if (rowIndex > 0) nextRowId = rows[rowIndex - 1].id;
+        break;
+      case "ArrowDown":
+        if (rowIndex < rows.length - 1) nextRowId = rows[rowIndex + 1].id;
+        break;
+      case "ArrowLeft":
+        if (colIndex > 0) nextColumnId = columns[colIndex - 1].id;
+        break;
+      case "ArrowRight":
+        if (colIndex < columns.length - 1) nextColumnId = columns[colIndex + 1].id;
+        break;
+    }
 
-      let nextRowId = edgeRowId;
-      let nextColumnId = edgeColumnId;
+    const nextCoord: CellCoordinates = { rowId: nextRowId, columnId: nextColumnId };
 
-      switch (key) {
-        case "ArrowUp":
-          if (rowIndex > 0) {
-            nextRowId = rows[rowIndex - 1].id;
-          }
-          break;
-        case "ArrowDown":
-          if (rowIndex < rows.length - 1) {
-            nextRowId = rows[rowIndex + 1].id;
-          }
-          break;
-        case "ArrowLeft":
-          if (columnIndex > 0) {
-            nextColumnId = columns[columnIndex - 1].id;
-          }
-          break;
-        case "ArrowRight":
-          if (columnIndex < columns.length - 1) {
-            nextColumnId = columns[columnIndex + 1].id;
-          }
-          break;
-        default:
-          return;
-      }
-
-      const nextSelectedCell = { rowId: nextRowId, columnId: nextColumnId };
-
-      if (e.shiftKey && selectedCell) {
-        setSelection((prev) => {
-          const start = prev?.start || selectedCell;
-          return { start, end: nextSelectedCell };
-        });
-      } else {
-        if (!e.shiftKey) {
-          setSelectedCell(nextSelectedCell);
-          setSelection({
-            start: nextSelectedCell,
-            end: nextSelectedCell,
-          });
-        }
-      }
+    if (e.shiftKey && selectedCell) {
+      const start = liveSelectionRef.current?.start ?? selectedCell;
+      commitSelection({ start, end: nextCoord });
+    } else {
+      setSelectedCell(nextCoord);
+      commitSelection({ start: nextCoord, end: nextCoord });
     }
   };
 
-  const handleMouseDown = useCallback((rowId: string, columnId: string) => {
-    setSelectedCell({ rowId, columnId });
-    setSelection({
-      start: { rowId, columnId },
-      end: { rowId, columnId },
-    });
-    isSelectingRef.current = true;
-    setIsSelecting(true);
-  }, []);
+  const handleMouseDown = useCallback(
+    (rowId: string, columnId: string) => {
+      setSelectedCell({ rowId, columnId });
+      const newSel: Selection = {
+        start: { rowId, columnId },
+        end: { rowId, columnId },
+      };
+      commitSelection(newSel);
+      isSelectingRef.current = true;
+      setIsSelecting(true);
+    },
+    [commitSelection],
+  );
 
+  // DOM-only during drag — zero React state updates, zero re-renders.
   const handleMouseEnter = useCallback(
     (rowId: string, columnId: string) => {
-      if (isSelectingRef.current) {
-        // Cancel any pending RAF
-        if (rafIdRef.current !== null) {
-          cancelAnimationFrame(rafIdRef.current);
-        }
-
-        // Schedule state update for next frame
-        rafIdRef.current = requestAnimationFrame(() => {
-          setSelection((prev) => {
-            if (!prev) return null;
-            return {
-              start: prev.start,
-              end: { rowId, columnId },
-            };
-          });
-          rafIdRef.current = null;
-        });
-      }
+      if (!isSelectingRef.current) return;
+      const prev = liveSelectionRef.current;
+      if (!prev) return;
+      const next: Selection = { start: prev.start, end: { rowId, columnId } };
+      liveSelectionRef.current = next;
+      updateSelectionDOM(prev, next);
     },
-    [],
+    [updateSelectionDOM],
   );
 
   const handleMouseUp = useCallback(() => {
     isSelectingRef.current = false;
     setIsSelecting(false);
+    // Commit live selection to React state once (for copy/paste)
+    setSelection(liveSelectionRef.current);
   }, []);
 
   const handleClick = useCallback((rowId: string, columnId: string) => {
-    setSelectedCell({
-      rowId,
-      columnId,
-    });
+    setSelectedCell({ rowId, columnId });
   }, []);
 
-  // Attach mouse listeners once - check isSelecting inside handler
+  // Attach global listeners once
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       mousePositionRef.current = { x: e.clientX, y: e.clientY };
     };
-
     document.addEventListener("mouseup", handleMouseUp);
     document.addEventListener("mousemove", handleMouseMove, { passive: true });
-
     return () => {
       document.removeEventListener("mouseup", handleMouseUp);
       document.removeEventListener("mousemove", handleMouseMove);
     };
-  }, []); // Empty deps - attach once
+  }, []); // handleMouseUp is stable (no deps)
 
-  // Cleanup RAF on unmount
-  useEffect(() => {
-    return () => {
-      if (rafIdRef.current !== null) {
-        cancelAnimationFrame(rafIdRef.current);
-      }
-    };
-  }, []);
-
-  // Cleanup cell refs for virtualized rows that are no longer visible
-  useEffect(() => {
-    const currentRowIds = new Set(rows.map(r => r.id));
-    const keysToDelete: string[] = [];
-
-    cellRefsMap.current.forEach((_, key) => {
-      const rowId = key.split('-')[0];
-      if (!currentRowIds.has(rowId)) {
-        keysToDelete.push(key);
-      }
-    });
-
-    keysToDelete.forEach(key => cellRefsMap.current.delete(key));
-  }, [rows]);
-
-  // Scroll into view when selected cell changes (for single cell selection)
+  // Scroll selected cell into view
   useLayoutEffect(() => {
-    if (selectedCell) {
-      const { rowId, columnId } = selectedCell;
-      const key = `${rowId}-${columnId}`;
-      const cellRef = cellRefsMap.current.get(key);
-      if (cellRef && cellRef.current) {
-        cellRef.current.focus();
-
-        // Use native scrollIntoView for better performance
-        cellRef.current.scrollIntoView({
-          behavior: "smooth",
-          block: "nearest",
-          inline: "nearest",
-        });
-      }
+    if (!selectedCell) return;
+    const el = cellRefsMap.current.get(`${selectedCell.rowId}-${selectedCell.columnId}`);
+    if (el) {
+      el.focus();
+      el.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
     }
   }, [selectedCell]);
 
-  // Optimized auto-scroll using mouse position (avoids layout thrashing)
+  // Auto-scroll at viewport edges during drag
   useEffect(() => {
-    if (!isSelecting || !containerRef?.current) {
-      return;
-    }
-
+    if (!isSelecting || !containerRef?.current) return;
     let animationFrameId: number;
-
     const autoScroll = () => {
-      if (!containerRef.current || !isSelecting) {
-        return;
-      }
-
+      if (!containerRef.current || !isSelectingRef.current) return;
       const container = containerRef.current;
-      const containerRect = container.getBoundingClientRect();
-      const mouseX = mousePositionRef.current.x;
-      const mouseY = mousePositionRef.current.y;
-
-      const edgeThreshold = 80; // Distance from edge to trigger scroll
-      const maxScrollSpeed = 15; // Maximum scroll speed per frame
-
+      const rect = container.getBoundingClientRect();
+      const { x: mouseX, y: mouseY } = mousePositionRef.current;
+      const edgeThreshold = 80;
+      const maxScrollSpeed = 15;
       let scrollX = 0;
       let scrollY = 0;
-
-      // Calculate scroll speed based on distance from edge (closer = faster)
-      // Vertical scrolling
-      const distanceFromBottom = containerRect.bottom - mouseY;
-      const distanceFromTop = mouseY - containerRect.top;
-
-      if (distanceFromBottom < edgeThreshold && distanceFromBottom > 0) {
-        scrollY = maxScrollSpeed * (1 - distanceFromBottom / edgeThreshold);
-      } else if (distanceFromTop < edgeThreshold && distanceFromTop > 0) {
-        scrollY = -maxScrollSpeed * (1 - distanceFromTop / edgeThreshold);
-      }
-
-      // Horizontal scrolling
-      const distanceFromRight = containerRect.right - mouseX;
-      const distanceFromLeft = mouseX - containerRect.left;
-
-      if (distanceFromRight < edgeThreshold && distanceFromRight > 0) {
-        scrollX = maxScrollSpeed * (1 - distanceFromRight / edgeThreshold);
-      } else if (distanceFromLeft < edgeThreshold && distanceFromLeft > 0) {
-        scrollX = -maxScrollSpeed * (1 - distanceFromLeft / edgeThreshold);
-      }
-
-      // Apply scroll
+      const distBottom = rect.bottom - mouseY;
+      const distTop = mouseY - rect.top;
+      if (distBottom < edgeThreshold && distBottom > 0)
+        scrollY = maxScrollSpeed * (1 - distBottom / edgeThreshold);
+      else if (distTop < edgeThreshold && distTop > 0)
+        scrollY = -maxScrollSpeed * (1 - distTop / edgeThreshold);
+      const distRight = rect.right - mouseX;
+      const distLeft = mouseX - rect.left;
+      if (distRight < edgeThreshold && distRight > 0)
+        scrollX = maxScrollSpeed * (1 - distRight / edgeThreshold);
+      else if (distLeft < edgeThreshold && distLeft > 0)
+        scrollX = -maxScrollSpeed * (1 - distLeft / edgeThreshold);
       if (scrollX !== 0 || scrollY !== 0) {
         container.scrollTop += scrollY;
         container.scrollLeft += scrollX;
       }
-
-      // Continue loop while selecting
-      if (isSelecting) {
+      if (isSelectingRef.current) {
         animationFrameId = requestAnimationFrame(autoScroll);
       }
     };
-
-    // Start the animation loop
     animationFrameId = requestAnimationFrame(autoScroll);
-
-    // Cleanup
     return () => {
-      if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId);
-      }
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
     };
   }, [isSelecting, containerRef]);
 
@@ -334,7 +330,7 @@ export function useCellSelection<TData>(
     selection,
     getCellRef,
     isCellSelected,
-    isCellInRange,
+    isSelectingRef,
     handleClick,
     handleKeyDown,
     handleMouseDown,

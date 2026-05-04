@@ -7,3 +7,7 @@
     --border-md: 0.375rem;
   }
 }
+
+td.is-in-range {
+  background-color: #dbe1ff;
+}
