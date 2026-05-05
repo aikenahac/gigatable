@@ -94,7 +94,7 @@ function EditableCellComponent<TData, TValue>({
     return (
       <div
         onDoubleClick={onDoubleClick}
-        className="flex items-center box-border w-full h-full p-2 cursor-text [&_input]:w-full [&_input]:h-full [&_input]:border-none [&_input]:outline-none [&_input]:bg-transparent [&_input]:text-inherit [&_input]:font-inherit [&_input]:p-0"
+        className="flex items-center box-border w-full h-full cursor-text [&_input]:w-full [&_input]:h-full [&_input]:border-none [&_input]:outline-none [&_input]:bg-transparent [&_input]:text-inherit [&_input]:font-inherit [&_input]:p-0"
         tabIndex={0}
       >
         <RenderInput
@@ -113,7 +113,7 @@ function EditableCellComponent<TData, TValue>({
     <div
       onKeyDown={handleKeyDownOnView}
       onDoubleClick={onDoubleClick}
-      className="w-full h-full p-2 overflow-hidden text-ellipsis whitespace-nowrap flex items-center"
+      className="w-full h-full overflow-hidden text-ellipsis whitespace-nowrap flex items-center"
       data-editable-cell-viewing
       tabIndex={0}
     >

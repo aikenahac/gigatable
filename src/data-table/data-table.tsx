@@ -46,7 +46,7 @@ const TableCell = React.memo(
       className={clsx({
         "outline outline-[1.5px] outline-[#3d5aa9] -outline-offset-[2px] rounded-[var(--border-md)] focus-visible:outline focus-visible:outline-[1.5px] focus-visible:outline-[#3d5aa9] focus-visible:-outline-offset-[2px] focus-visible:rounded-[var(--border-md)]":
           isSelected,
-        "box-border p-0 cursor-text": isEditable,
+        "cursor-text": isEditable,
       })}
     >
       {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -91,6 +91,31 @@ export function DataTable<TData>({
     overscan: 3,
   });
 
+  const scrollToCell = useCallback(
+    (
+      rowIndex: number,
+      colIndex: number,
+      behavior: 'auto' | 'smooth',
+      rowAlign: 'start' | 'end' | 'auto' = 'auto',
+      colAlign: 'start' | 'end' | 'auto' = 'auto',
+    ) => {
+      const container = tableContainerRef.current;
+      // Use scrollHeight/scrollWidth for 'end' alignment — virtualizer estimates row heights
+      // from a fixed 30px guess, so getOffsetForIndex undershoots for taller actual rows.
+      if (rowAlign === 'end' && container) {
+        container.scrollTop = container.scrollHeight;
+      } else {
+        rowVirtualizer.scrollToIndex(rowIndex, { behavior, align: rowAlign });
+      }
+      if (colAlign === 'end' && container) {
+        container.scrollLeft = container.scrollWidth;
+      } else {
+        columnVirtualizer.scrollToIndex(colIndex, { behavior, align: colAlign });
+      }
+    },
+    [rowVirtualizer, columnVirtualizer],
+  );
+
   const {
     selectedCell,
     selection: selectedRange,
@@ -101,7 +126,7 @@ export function DataTable<TData>({
     handleKeyDown,
     handleMouseDown,
     handleMouseEnter,
-  } = useCellSelection(rows, leafColumns, tableContainerRef);
+  } = useCellSelection(rows, leafColumns, tableContainerRef, scrollToCell);
 
   const [, copy] = useCopyToClipboard();
 
@@ -151,14 +176,12 @@ export function DataTable<TData>({
       const td = (e.target as Element).closest(
         "td[data-row-id]",
       ) as HTMLTableCellElement | null;
-      if (!td) return;
-      handleKeyDown(
-        e as React.KeyboardEvent<HTMLDivElement>,
-        td.dataset.rowId!,
-        td.dataset.columnId!,
-      );
+      const rowId = td?.dataset.rowId ?? selectedCell?.rowId;
+      const columnId = td?.dataset.columnId ?? selectedCell?.columnId;
+      if (!rowId || !columnId) return;
+      handleKeyDown(e as React.KeyboardEvent<HTMLDivElement>, rowId, columnId);
       if (e.key === "Enter") {
-        const editableCell = td.querySelector("[data-editable-cell-viewing]");
+        const editableCell = td?.querySelector("[data-editable-cell-viewing]");
         if (editableCell) {
           editableCell.dispatchEvent(
             new KeyboardEvent("keydown", {
@@ -170,7 +193,7 @@ export function DataTable<TData>({
         }
       }
     },
-    [allowCellSelection, handleKeyDown],
+    [allowCellSelection, handleKeyDown, selectedCell],
   );
 
   useEffect(() => {
@@ -230,7 +253,7 @@ export function DataTable<TData>({
       )}
       onKeyDown={handleContainerKeyDown}
     >
-      <div ref={tableContainerRef} className="h-[90vh] overflow-auto">
+      <div ref={tableContainerRef} className="h-[90vh] overflow-auto outline-none" tabIndex={-1}>
         <Table style={{ width: `${totalColumnsWidth}px` }}>
           <Table.Header>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -313,14 +336,14 @@ export function DataTable<TData>({
                 />
               </>
             ) : (
-              <Table.Row>
-                <Table.Data
+              <tr>
+                <td
                   colSpan={leafColumns.length}
-                  className="h-24 text-center"
+                  className="h-24 text-center align-middle border-r border-[hsl(240_5.9%_90%)]"
                 >
                   No data.
-                </Table.Data>
-              </Table.Row>
+                </td>
+              </tr>
             )}
           </Table.Body>
         </Table>

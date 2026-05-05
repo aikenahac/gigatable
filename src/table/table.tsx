@@ -113,15 +113,19 @@ TableHead.displayName = "TableHead";
 const TableData = React.forwardRef<
   HTMLTableCellElement,
   React.TdHTMLAttributes<HTMLTableCellElement>
->(({ className, ...props }, ref) => (
+>(({ className, children, ...props }, ref) => (
   <td
     ref={ref}
     className={clsx(
-      "px-[12px] py-[6px] align-middle h-[30px] max-h-[30px] overflow-hidden text-ellipsis whitespace-nowrap border-r border-[hsl(240_5.9%_90%)] has-[role=checkbox]:pr-0",
+      "p-0 align-middle h-[30px] border-r border-[hsl(240_5.9%_90%)] has-[role=checkbox]:pr-0",
       className
     )}
     {...props}
-  />
+  >
+    <div className="h-[30px] px-[12px] overflow-hidden text-ellipsis whitespace-nowrap flex items-center">
+      {children}
+    </div>
+  </td>
 ));
 TableData.displayName = "TableData";
 

@@ -34,6 +34,7 @@ export function useCellSelection<TData>(
   rows: Row<TData>[],
   columns: Column<TData>[],
   containerRef?: React.RefObject<HTMLDivElement | null>,
+  scrollToIndex?: (rowIndex: number, colIndex: number, behavior: 'auto' | 'smooth', rowAlign?: 'start' | 'end' | 'auto', colAlign?: 'start' | 'end' | 'auto') => void,
 ) {
   const [selectedCell, setSelectedCell] = useState<CellCoordinates | null>(null);
   const [selection, setSelection] = useState<Selection | null>(null);
@@ -53,6 +54,8 @@ export function useCellSelection<TData>(
   const columnIndexMapRef = useRef<Record<string, number>>({});
   const rowIdsRef = useRef<string[]>([]);
   const columnIdsRef = useRef<string[]>([]);
+  // Mirrors selectedCell state so stable callbacks can read it without re-creating
+  const selectedCellRef = useRef<CellCoordinates | null>(null);
 
   const columnIndexMap = useMemo(() => {
     const map = columns.reduce((acc: Record<string, number>, column, index) => {
@@ -174,6 +177,16 @@ export function useCellSelection<TData>(
               );
             }
           }
+          // If this cell is the selected cell and it's mounting (virtualizer just scrolled to it),
+          // focus it — handles the case where el.focus() failed in useLayoutEffect because the
+          // cell wasn't in the DOM yet.
+          const sc = selectedCellRef.current;
+          if (sc && `${sc.rowId}-${sc.columnId}` === key) {
+            const activeEl = document.activeElement;
+            if (!el.contains(activeEl) || !isEditableElement(activeEl)) {
+              el.focus();
+            }
+          }
         } else {
           cellRefsMap.current.delete(key);
           cellRefCallbacksCache.current.delete(key);
@@ -206,37 +219,63 @@ export function useCellSelection<TData>(
     if (!["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(key)) return;
     e.preventDefault();
 
+    const isCtrl = e.ctrlKey || e.metaKey;
     const edgeRowId = liveSelectionRef.current?.end.rowId ?? rowId;
     const edgeColumnId = liveSelectionRef.current?.end.columnId ?? columnId;
     const rowIndex = rowIndexMap[edgeRowId];
     const colIndex = columnIndexMap[edgeColumnId];
 
-    let nextRowId = edgeRowId;
-    let nextColumnId = edgeColumnId;
+    let nextRowIndex = rowIndex;
+    let nextColIndex = colIndex;
 
     switch (key) {
       case "ArrowUp":
-        if (rowIndex > 0) nextRowId = rows[rowIndex - 1].id;
+        nextRowIndex = isCtrl ? 0 : Math.max(0, rowIndex - 1);
         break;
       case "ArrowDown":
-        if (rowIndex < rows.length - 1) nextRowId = rows[rowIndex + 1].id;
+        nextRowIndex = isCtrl ? rows.length - 1 : Math.min(rows.length - 1, rowIndex + 1);
         break;
       case "ArrowLeft":
-        if (colIndex > 0) nextColumnId = columns[colIndex - 1].id;
+        nextColIndex = isCtrl ? 0 : Math.max(0, colIndex - 1);
         break;
       case "ArrowRight":
-        if (colIndex < columns.length - 1) nextColumnId = columns[colIndex + 1].id;
+        nextColIndex = isCtrl ? columns.length - 1 : Math.min(columns.length - 1, colIndex + 1);
         break;
     }
 
-    const nextCoord: CellCoordinates = { rowId: nextRowId, columnId: nextColumnId };
+    const nextCoord: CellCoordinates = {
+      rowId: rows[nextRowIndex].id,
+      columnId: columns[nextColIndex].id,
+    };
+    const scrollBehavior: 'auto' | 'smooth' = isCtrl ? 'auto' : 'smooth';
+    let rowAlign: 'start' | 'end' | 'auto' = 'auto';
+    let colAlign: 'start' | 'end' | 'auto' = 'auto';
+    if (isCtrl) {
+      if (key === 'ArrowDown') rowAlign = 'end';
+      else if (key === 'ArrowUp') rowAlign = 'start';
+      else if (key === 'ArrowRight') colAlign = 'end';
+      else if (key === 'ArrowLeft') colAlign = 'start';
+    }
 
     if (e.shiftKey && selectedCell) {
       const start = liveSelectionRef.current?.start ?? selectedCell;
       commitSelection({ start, end: nextCoord });
+      scrollToIndex?.(nextRowIndex, nextColIndex, scrollBehavior, rowAlign, colAlign);
+      // selectedCell (the anchor) didn't change, so useLayoutEffect won't fire.
+      // After the scroll, the anchor cell may be virtualized off-screen and lose focus.
+      // Re-focus the container in the next frame so keyboard events keep working.
+      if (containerRef?.current) {
+        const container = containerRef.current;
+        requestAnimationFrame(() => {
+          if (!container.contains(document.activeElement)) {
+            container.focus();
+          }
+        });
+      }
     } else {
       setSelectedCellIfChanged(nextCoord);
       commitSelection({ start: nextCoord, end: nextCoord });
+      scrollToIndex?.(nextRowIndex, nextColIndex, scrollBehavior, rowAlign, colAlign);
     }
   };
 
@@ -296,6 +335,7 @@ export function useCellSelection<TData>(
 
   // Scroll selected cell into view
   useLayoutEffect(() => {
+    selectedCellRef.current = selectedCell;
     if (!selectedCell) return;
     const el = cellRefsMap.current.get(`${selectedCell.rowId}-${selectedCell.columnId}`);
     if (el) {
@@ -303,8 +343,13 @@ export function useCellSelection<TData>(
       if (el.contains(activeElement) && isEditableElement(activeElement)) return;
       el.focus();
       el.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
+    } else if (containerRef?.current) {
+      // Cell is not in the DOM yet (virtualizer hasn't rendered it). Focus the container
+      // so keyboard events still bubble to the outer onKeyDown handler while we wait for
+      // the virtualizer to mount the cell (getCellRef will focus it on mount).
+      containerRef.current.focus();
     }
-  }, [selectedCell]);
+  }, [selectedCell, containerRef]);
 
   // Auto-scroll at viewport edges during drag
   useEffect(() => {
