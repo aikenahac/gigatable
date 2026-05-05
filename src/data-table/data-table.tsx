@@ -235,7 +235,10 @@ export function DataTable<TData>({
           <Table.Header>
             {table.getHeaderGroups().map((headerGroup) => (
               <Table.Row key={headerGroup.id}>
-                <th style={{ width: `${leftColPad}px`, padding: 0 }} />
+                <th
+                  className="bg-[#374151] border-r border-[#4b5563]"
+                  style={{ width: `${leftColPad}px`, padding: 0 }}
+                />
                 {virtualColumns.map((vc) => {
                   const header = headerGroup.headers[vc.index];
                   return (
@@ -252,7 +255,10 @@ export function DataTable<TData>({
                     </Table.Head>
                   );
                 })}
-                <th style={{ width: `${rightColPad}px`, padding: 0 }} />
+                <th
+                  className="bg-[#374151]"
+                  style={{ width: `${rightColPad}px`, padding: 0 }}
+                />
               </Table.Row>
             ))}
           </Table.Header>

@@ -19,6 +19,17 @@ export interface Selection {
   end: CellCoordinates;
 }
 
+const isSameCell = (
+  cell: CellCoordinates | null,
+  nextCell: CellCoordinates,
+) => cell?.rowId === nextCell.rowId && cell.columnId === nextCell.columnId;
+
+const isEditableElement = (element: Element | null) =>
+  element instanceof HTMLInputElement ||
+  element instanceof HTMLTextAreaElement ||
+  element instanceof HTMLSelectElement ||
+  (element instanceof HTMLElement && element.isContentEditable);
+
 export function useCellSelection<TData>(
   rows: Row<TData>[],
   columns: Column<TData>[],
@@ -182,6 +193,10 @@ export function useCellSelection<TData>(
     [selectedCell],
   );
 
+  const setSelectedCellIfChanged = useCallback((nextCell: CellCoordinates) => {
+    setSelectedCell((cell) => (isSameCell(cell, nextCell) ? cell : nextCell));
+  }, []);
+
   const handleKeyDown = (
     e: React.KeyboardEvent<HTMLDivElement>,
     rowId: string,
@@ -220,14 +235,14 @@ export function useCellSelection<TData>(
       const start = liveSelectionRef.current?.start ?? selectedCell;
       commitSelection({ start, end: nextCoord });
     } else {
-      setSelectedCell(nextCoord);
+      setSelectedCellIfChanged(nextCoord);
       commitSelection({ start: nextCoord, end: nextCoord });
     }
   };
 
   const handleMouseDown = useCallback(
     (rowId: string, columnId: string) => {
-      setSelectedCell({ rowId, columnId });
+      setSelectedCellIfChanged({ rowId, columnId });
       const newSel: Selection = {
         start: { rowId, columnId },
         end: { rowId, columnId },
@@ -236,7 +251,7 @@ export function useCellSelection<TData>(
       isSelectingRef.current = true;
       setIsSelecting(true);
     },
-    [commitSelection],
+    [commitSelection, setSelectedCellIfChanged],
   );
 
   // DOM-only during drag — zero React state updates, zero re-renders.
@@ -259,9 +274,12 @@ export function useCellSelection<TData>(
     setSelection(liveSelectionRef.current);
   }, []);
 
-  const handleClick = useCallback((rowId: string, columnId: string) => {
-    setSelectedCell({ rowId, columnId });
-  }, []);
+  const handleClick = useCallback(
+    (rowId: string, columnId: string) => {
+      setSelectedCellIfChanged({ rowId, columnId });
+    },
+    [setSelectedCellIfChanged],
+  );
 
   // Attach global listeners once
   useEffect(() => {
@@ -281,6 +299,8 @@ export function useCellSelection<TData>(
     if (!selectedCell) return;
     const el = cellRefsMap.current.get(`${selectedCell.rowId}-${selectedCell.columnId}`);
     if (el) {
+      const activeElement = document.activeElement;
+      if (el.contains(activeElement) && isEditableElement(activeElement)) return;
       el.focus();
       el.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
     }

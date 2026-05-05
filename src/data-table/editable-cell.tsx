@@ -5,18 +5,21 @@ import { useEffect, useState } from "react";
 export interface TableMeta<TData> extends TableMetaTS<TData> {
   updateCellData?: (rowId: number, colId: string, value: unknown) => void;
 }
+
+interface EditableCellInputProps<TValue> {
+  value: TValue;
+  onChange: (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => void;
+  onBlur: () => void;
+  onValueChange: (value: string) => void;
+  onKeyDown: (e: React.KeyboardEvent) => void;
+  cancelEditing: () => void;
+  className?: string;
+}
+
 interface EditableCellProps<TData, TValue> extends CellContext<TData, TValue> {
-  renderInput: (props: {
-    value: TValue;
-    onChange: (
-      e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
-    ) => void;
-    onBlur: () => void;
-    onValueChange: (value: string) => void;
-    onKeyDown: (e: React.KeyboardEvent) => void;
-    cancelEditing: () => void;
-    className?: string;
-  }) => React.ReactNode;
+  renderInput: (props: EditableCellInputProps<TValue>) => React.ReactNode;
 }
 
 function EditableCellComponent<TData, TValue>({
@@ -118,7 +121,6 @@ function EditableCellComponent<TData, TValue>({
   );
 }
 
-// Memoize EditableCell to prevent unnecessary re-renders
 export const EditableCell = React.memo(EditableCellComponent, (prevProps, nextProps) => {
   // Custom comparison to prevent re-renders when value hasn't changed
   return (

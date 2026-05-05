@@ -19,11 +19,11 @@ const Table: Partial<TableComponent> = React.forwardRef<
   HTMLTableElement,
   React.HTMLAttributes<HTMLTableElement>
 >(({ className, ...props }, ref) => (
-  <div className="font-sans relative w-full">
+  <div className="font-[ui-sans-serif,system-ui,sans-serif] relative w-full">
     <table
       ref={ref}
       className={clsx(
-        "w-full text-sm leading-5 caption-bottom border-collapse border-0 border-solid border-[hsl(240_5.9%_90%)]",
+        "w-full text-[14px] leading-[20px] caption-bottom border-collapse border-0 border-solid border-[hsl(240_5.9%_90%)]",
         "table-fixed",
         className
       )}
@@ -40,7 +40,7 @@ const TableHeader = React.forwardRef<
   <thead
     ref={ref}
     className={clsx(
-      "sticky top-0 z-10 bg-white [&_tr]:border-b",
+      "sticky top-0 z-10 bg-[#374151] [&_tr]:border-b [&_tr]:border-[#4b5563]",
       className
     )}
     {...props}
@@ -100,8 +100,8 @@ const TableHead = React.forwardRef<
   <th
     ref={ref}
     className={clsx(
-      "px-4 h-12 font-medium text-left align-middle",
-      "text-[hsl(240_3.8%_46.1%)]",
+      "h-[40px] px-[12px] py-[8px] font-[600] text-left align-middle",
+      "bg-[#374151] text-[#f9fafb] border-r border-[#4b5563]",
       "has-[role=checkbox]:pr-0",
       className
     )}
@@ -117,7 +117,7 @@ const TableData = React.forwardRef<
   <td
     ref={ref}
     className={clsx(
-      "p-2 align-middle h-[30px] max-h-[30px] overflow-hidden text-ellipsis whitespace-nowrap has-[role=checkbox]:pr-0",
+      "px-[12px] py-[6px] align-middle h-[30px] max-h-[30px] overflow-hidden text-ellipsis whitespace-nowrap border-r border-[hsl(240_5.9%_90%)] has-[role=checkbox]:pr-0",
       className
     )}
     {...props}
