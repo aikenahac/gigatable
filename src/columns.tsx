@@ -799,4 +799,1684 @@ export const columns: Array<ColumnDef<Strain>> = [
     cell: ({ row }) => row.getValue("inspectionDate"),
     size: 100,
   },
+  {
+    accessorKey: "geneMarker01",
+    header: "Gene Marker 01",
+    cell: ({ row }) => row.getValue("geneMarker01"),
+    size: 120,
+  },
+  {
+    accessorKey: "geneMarker02",
+    header: "Gene Marker 02",
+    cell: ({ row }) => row.getValue("geneMarker02"),
+    size: 120,
+  },
+  {
+    accessorKey: "geneMarker03",
+    header: "Gene Marker 03",
+    cell: ({ row }) => row.getValue("geneMarker03"),
+    size: 120,
+  },
+  {
+    accessorKey: "geneMarker04",
+    header: "Gene Marker 04",
+    cell: ({ row }) => row.getValue("geneMarker04"),
+    size: 120,
+  },
+  {
+    accessorKey: "geneMarker05",
+    header: "Gene Marker 05",
+    cell: ({ row }) => row.getValue("geneMarker05"),
+    size: 120,
+  },
+  {
+    accessorKey: "geneMarker06",
+    header: "Gene Marker 06",
+    cell: ({ row }) => row.getValue("geneMarker06"),
+    size: 120,
+  },
+  {
+    accessorKey: "geneMarker07",
+    header: "Gene Marker 07",
+    cell: ({ row }) => row.getValue("geneMarker07"),
+    size: 120,
+  },
+  {
+    accessorKey: "geneMarker08",
+    header: "Gene Marker 08",
+    cell: ({ row }) => row.getValue("geneMarker08"),
+    size: 120,
+  },
+  {
+    accessorKey: "geneMarker09",
+    header: "Gene Marker 09",
+    cell: ({ row }) => row.getValue("geneMarker09"),
+    size: 120,
+  },
+  {
+    accessorKey: "geneMarker10",
+    header: "Gene Marker 10",
+    cell: ({ row }) => row.getValue("geneMarker10"),
+    size: 120,
+  },
+  {
+    accessorKey: "geneMarker11",
+    header: "Gene Marker 11",
+    cell: ({ row }) => row.getValue("geneMarker11"),
+    size: 120,
+  },
+  {
+    accessorKey: "geneMarker12",
+    header: "Gene Marker 12",
+    cell: ({ row }) => row.getValue("geneMarker12"),
+    size: 120,
+  },
+  {
+    accessorKey: "geneMarker13",
+    header: "Gene Marker 13",
+    cell: ({ row }) => row.getValue("geneMarker13"),
+    size: 120,
+  },
+  {
+    accessorKey: "geneMarker14",
+    header: "Gene Marker 14",
+    cell: ({ row }) => row.getValue("geneMarker14"),
+    size: 120,
+  },
+  {
+    accessorKey: "geneMarker15",
+    header: "Gene Marker 15",
+    cell: ({ row }) => row.getValue("geneMarker15"),
+    size: 120,
+  },
+  {
+    accessorKey: "geneMarker16",
+    header: "Gene Marker 16",
+    cell: ({ row }) => row.getValue("geneMarker16"),
+    size: 120,
+  },
+  {
+    accessorKey: "geneMarker17",
+    header: "Gene Marker 17",
+    cell: ({ row }) => row.getValue("geneMarker17"),
+    size: 120,
+  },
+  {
+    accessorKey: "geneMarker18",
+    header: "Gene Marker 18",
+    cell: ({ row }) => row.getValue("geneMarker18"),
+    size: 120,
+  },
+  {
+    accessorKey: "geneMarker19",
+    header: "Gene Marker 19",
+    cell: ({ row }) => row.getValue("geneMarker19"),
+    size: 120,
+  },
+  {
+    accessorKey: "geneMarker20",
+    header: "Gene Marker 20",
+    cell: ({ row }) => row.getValue("geneMarker20"),
+    size: 120,
+  },
+  {
+    accessorKey: "geneCopyNumber01",
+    header: "Gene Copy # 01",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInputDefault} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "geneCopyNumber02",
+    header: "Gene Copy # 02",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInputDefault} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "geneCopyNumber03",
+    header: "Gene Copy # 03",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInputDefault} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "geneCopyNumber04",
+    header: "Gene Copy # 04",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInputDefault} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "geneCopyNumber05",
+    header: "Gene Copy # 05",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInputDefault} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "geneCopyNumber06",
+    header: "Gene Copy # 06",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInputDefault} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "geneCopyNumber07",
+    header: "Gene Copy # 07",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInputDefault} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "geneCopyNumber08",
+    header: "Gene Copy # 08",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInputDefault} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "geneCopyNumber09",
+    header: "Gene Copy # 09",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInputDefault} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "geneCopyNumber10",
+    header: "Gene Copy # 10",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInputDefault} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "geneCopyNumber11",
+    header: "Gene Copy # 11",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInputDefault} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "geneCopyNumber12",
+    header: "Gene Copy # 12",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInputDefault} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "geneCopyNumber13",
+    header: "Gene Copy # 13",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInputDefault} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "geneCopyNumber14",
+    header: "Gene Copy # 14",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInputDefault} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "geneCopyNumber15",
+    header: "Gene Copy # 15",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInputDefault} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "geneCopyNumber16",
+    header: "Gene Copy # 16",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInputDefault} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "geneCopyNumber17",
+    header: "Gene Copy # 17",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInputDefault} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "geneCopyNumber18",
+    header: "Gene Copy # 18",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInputDefault} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "geneCopyNumber19",
+    header: "Gene Copy # 19",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInputDefault} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "geneCopyNumber20",
+    header: "Gene Copy # 20",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInputDefault} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "expressionLevel01",
+    header: "Expression Level 01",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput001} />,
+    size: 130,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "expressionLevel02",
+    header: "Expression Level 02",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput001} />,
+    size: 130,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "expressionLevel03",
+    header: "Expression Level 03",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput001} />,
+    size: 130,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "expressionLevel04",
+    header: "Expression Level 04",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput001} />,
+    size: 130,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "expressionLevel05",
+    header: "Expression Level 05",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput001} />,
+    size: 130,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "expressionLevel06",
+    header: "Expression Level 06",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput001} />,
+    size: 130,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "expressionLevel07",
+    header: "Expression Level 07",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput001} />,
+    size: 130,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "expressionLevel08",
+    header: "Expression Level 08",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput001} />,
+    size: 130,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "expressionLevel09",
+    header: "Expression Level 09",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput001} />,
+    size: 130,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "expressionLevel10",
+    header: "Expression Level 10",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput001} />,
+    size: 130,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "expressionLevel11",
+    header: "Expression Level 11",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput001} />,
+    size: 130,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "expressionLevel12",
+    header: "Expression Level 12",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput001} />,
+    size: 130,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "expressionLevel13",
+    header: "Expression Level 13",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput001} />,
+    size: 130,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "expressionLevel14",
+    header: "Expression Level 14",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput001} />,
+    size: 130,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "expressionLevel15",
+    header: "Expression Level 15",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput001} />,
+    size: 130,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "expressionLevel16",
+    header: "Expression Level 16",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput001} />,
+    size: 130,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "expressionLevel17",
+    header: "Expression Level 17",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput001} />,
+    size: 130,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "expressionLevel18",
+    header: "Expression Level 18",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput001} />,
+    size: 130,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "expressionLevel19",
+    header: "Expression Level 19",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput001} />,
+    size: 130,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "expressionLevel20",
+    header: "Expression Level 20",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput001} />,
+    size: 130,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "enzymeActivityUml01",
+    header: "Enzyme U/mL 01",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput001} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "enzymeActivityUml02",
+    header: "Enzyme U/mL 02",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput001} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "enzymeActivityUml03",
+    header: "Enzyme U/mL 03",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput001} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "enzymeActivityUml04",
+    header: "Enzyme U/mL 04",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput001} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "enzymeActivityUml05",
+    header: "Enzyme U/mL 05",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput001} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "enzymeActivityUml06",
+    header: "Enzyme U/mL 06",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput001} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "enzymeActivityUml07",
+    header: "Enzyme U/mL 07",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput001} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "enzymeActivityUml08",
+    header: "Enzyme U/mL 08",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput001} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "enzymeActivityUml09",
+    header: "Enzyme U/mL 09",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput001} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "enzymeActivityUml10",
+    header: "Enzyme U/mL 10",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput001} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "enzymeActivityUml11",
+    header: "Enzyme U/mL 11",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput001} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "enzymeActivityUml12",
+    header: "Enzyme U/mL 12",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput001} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "enzymeActivityUml13",
+    header: "Enzyme U/mL 13",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput001} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "enzymeActivityUml14",
+    header: "Enzyme U/mL 14",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput001} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "enzymeActivityUml15",
+    header: "Enzyme U/mL 15",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput001} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "enzymeActivityUml16",
+    header: "Enzyme U/mL 16",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput001} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "enzymeActivityUml17",
+    header: "Enzyme U/mL 17",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput001} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "enzymeActivityUml18",
+    header: "Enzyme U/mL 18",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput001} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "enzymeActivityUml19",
+    header: "Enzyme U/mL 19",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput001} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "enzymeActivityUml20",
+    header: "Enzyme U/mL 20",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput001} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "metaboliteMgL01",
+    header: "Metabolite mg/L 01",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 130,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "metaboliteMgL02",
+    header: "Metabolite mg/L 02",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 130,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "metaboliteMgL03",
+    header: "Metabolite mg/L 03",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 130,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "metaboliteMgL04",
+    header: "Metabolite mg/L 04",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 130,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "metaboliteMgL05",
+    header: "Metabolite mg/L 05",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 130,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "metaboliteMgL06",
+    header: "Metabolite mg/L 06",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 130,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "metaboliteMgL07",
+    header: "Metabolite mg/L 07",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 130,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "metaboliteMgL08",
+    header: "Metabolite mg/L 08",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 130,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "metaboliteMgL09",
+    header: "Metabolite mg/L 09",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 130,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "metaboliteMgL10",
+    header: "Metabolite mg/L 10",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 130,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "metaboliteMgL11",
+    header: "Metabolite mg/L 11",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 130,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "metaboliteMgL12",
+    header: "Metabolite mg/L 12",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 130,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "metaboliteMgL13",
+    header: "Metabolite mg/L 13",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 130,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "metaboliteMgL14",
+    header: "Metabolite mg/L 14",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 130,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "metaboliteMgL15",
+    header: "Metabolite mg/L 15",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 130,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "metaboliteMgL16",
+    header: "Metabolite mg/L 16",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 130,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "metaboliteMgL17",
+    header: "Metabolite mg/L 17",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 130,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "metaboliteMgL18",
+    header: "Metabolite mg/L 18",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 130,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "metaboliteMgL19",
+    header: "Metabolite mg/L 19",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 130,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "metaboliteMgL20",
+    header: "Metabolite mg/L 20",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 130,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "cultureTempC01",
+    header: "Culture Temp C 01",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "cultureTempC02",
+    header: "Culture Temp C 02",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "cultureTempC03",
+    header: "Culture Temp C 03",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "cultureTempC04",
+    header: "Culture Temp C 04",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "cultureTempC05",
+    header: "Culture Temp C 05",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "cultureTempC06",
+    header: "Culture Temp C 06",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "cultureTempC07",
+    header: "Culture Temp C 07",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "cultureTempC08",
+    header: "Culture Temp C 08",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "cultureTempC09",
+    header: "Culture Temp C 09",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "cultureTempC10",
+    header: "Culture Temp C 10",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "cultureTempC11",
+    header: "Culture Temp C 11",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "cultureTempC12",
+    header: "Culture Temp C 12",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "cultureTempC13",
+    header: "Culture Temp C 13",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "cultureTempC14",
+    header: "Culture Temp C 14",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "cultureTempC15",
+    header: "Culture Temp C 15",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "cultureTempC16",
+    header: "Culture Temp C 16",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "cultureTempC17",
+    header: "Culture Temp C 17",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "cultureTempC18",
+    header: "Culture Temp C 18",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "cultureTempC19",
+    header: "Culture Temp C 19",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "cultureTempC20",
+    header: "Culture Temp C 20",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "culturePh01",
+    header: "Culture pH 01",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 100,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "culturePh02",
+    header: "Culture pH 02",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 100,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "culturePh03",
+    header: "Culture pH 03",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 100,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "culturePh04",
+    header: "Culture pH 04",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 100,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "culturePh05",
+    header: "Culture pH 05",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 100,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "culturePh06",
+    header: "Culture pH 06",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 100,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "culturePh07",
+    header: "Culture pH 07",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 100,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "culturePh08",
+    header: "Culture pH 08",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 100,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "culturePh09",
+    header: "Culture pH 09",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 100,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "culturePh10",
+    header: "Culture pH 10",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 100,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "culturePh11",
+    header: "Culture pH 11",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 100,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "culturePh12",
+    header: "Culture pH 12",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 100,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "culturePh13",
+    header: "Culture pH 13",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 100,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "culturePh14",
+    header: "Culture pH 14",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 100,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "culturePh15",
+    header: "Culture pH 15",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 100,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "culturePh16",
+    header: "Culture pH 16",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 100,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "culturePh17",
+    header: "Culture pH 17",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 100,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "culturePh18",
+    header: "Culture pH 18",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 100,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "culturePh19",
+    header: "Culture pH 19",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 100,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "culturePh20",
+    header: "Culture pH 20",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 100,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "assayResult01",
+    header: "Assay Result 01",
+    cell: ({ row }) => row.getValue("assayResult01"),
+    size: 120,
+  },
+  {
+    accessorKey: "assayResult02",
+    header: "Assay Result 02",
+    cell: ({ row }) => row.getValue("assayResult02"),
+    size: 120,
+  },
+  {
+    accessorKey: "assayResult03",
+    header: "Assay Result 03",
+    cell: ({ row }) => row.getValue("assayResult03"),
+    size: 120,
+  },
+  {
+    accessorKey: "assayResult04",
+    header: "Assay Result 04",
+    cell: ({ row }) => row.getValue("assayResult04"),
+    size: 120,
+  },
+  {
+    accessorKey: "assayResult05",
+    header: "Assay Result 05",
+    cell: ({ row }) => row.getValue("assayResult05"),
+    size: 120,
+  },
+  {
+    accessorKey: "assayResult06",
+    header: "Assay Result 06",
+    cell: ({ row }) => row.getValue("assayResult06"),
+    size: 120,
+  },
+  {
+    accessorKey: "assayResult07",
+    header: "Assay Result 07",
+    cell: ({ row }) => row.getValue("assayResult07"),
+    size: 120,
+  },
+  {
+    accessorKey: "assayResult08",
+    header: "Assay Result 08",
+    cell: ({ row }) => row.getValue("assayResult08"),
+    size: 120,
+  },
+  {
+    accessorKey: "assayResult09",
+    header: "Assay Result 09",
+    cell: ({ row }) => row.getValue("assayResult09"),
+    size: 120,
+  },
+  {
+    accessorKey: "assayResult10",
+    header: "Assay Result 10",
+    cell: ({ row }) => row.getValue("assayResult10"),
+    size: 120,
+  },
+  {
+    accessorKey: "assayResult11",
+    header: "Assay Result 11",
+    cell: ({ row }) => row.getValue("assayResult11"),
+    size: 120,
+  },
+  {
+    accessorKey: "assayResult12",
+    header: "Assay Result 12",
+    cell: ({ row }) => row.getValue("assayResult12"),
+    size: 120,
+  },
+  {
+    accessorKey: "assayResult13",
+    header: "Assay Result 13",
+    cell: ({ row }) => row.getValue("assayResult13"),
+    size: 120,
+  },
+  {
+    accessorKey: "assayResult14",
+    header: "Assay Result 14",
+    cell: ({ row }) => row.getValue("assayResult14"),
+    size: 120,
+  },
+  {
+    accessorKey: "assayResult15",
+    header: "Assay Result 15",
+    cell: ({ row }) => row.getValue("assayResult15"),
+    size: 120,
+  },
+  {
+    accessorKey: "assayResult16",
+    header: "Assay Result 16",
+    cell: ({ row }) => row.getValue("assayResult16"),
+    size: 120,
+  },
+  {
+    accessorKey: "assayResult17",
+    header: "Assay Result 17",
+    cell: ({ row }) => row.getValue("assayResult17"),
+    size: 120,
+  },
+  {
+    accessorKey: "assayResult18",
+    header: "Assay Result 18",
+    cell: ({ row }) => row.getValue("assayResult18"),
+    size: 120,
+  },
+  {
+    accessorKey: "assayResult19",
+    header: "Assay Result 19",
+    cell: ({ row }) => row.getValue("assayResult19"),
+    size: 120,
+  },
+  {
+    accessorKey: "assayResult20",
+    header: "Assay Result 20",
+    cell: ({ row }) => row.getValue("assayResult20"),
+    size: 120,
+  },
+  {
+    accessorKey: "qcScore01",
+    header: "QC Score 01",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 100,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "qcScore02",
+    header: "QC Score 02",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 100,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "qcScore03",
+    header: "QC Score 03",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 100,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "qcScore04",
+    header: "QC Score 04",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 100,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "qcScore05",
+    header: "QC Score 05",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 100,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "qcScore06",
+    header: "QC Score 06",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 100,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "qcScore07",
+    header: "QC Score 07",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 100,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "qcScore08",
+    header: "QC Score 08",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 100,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "qcScore09",
+    header: "QC Score 09",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 100,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "qcScore10",
+    header: "QC Score 10",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 100,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "qcScore11",
+    header: "QC Score 11",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 100,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "qcScore12",
+    header: "QC Score 12",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 100,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "qcScore13",
+    header: "QC Score 13",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 100,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "qcScore14",
+    header: "QC Score 14",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 100,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "qcScore15",
+    header: "QC Score 15",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 100,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "qcScore16",
+    header: "QC Score 16",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 100,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "qcScore17",
+    header: "QC Score 17",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 100,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "qcScore18",
+    header: "QC Score 18",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 100,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "qcScore19",
+    header: "QC Score 19",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 100,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "qcScore20",
+    header: "QC Score 20",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput01} />,
+    size: 100,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "stabilityIndex01",
+    header: "Stability Index 01",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput0001} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "stabilityIndex02",
+    header: "Stability Index 02",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput0001} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "stabilityIndex03",
+    header: "Stability Index 03",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput0001} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "stabilityIndex04",
+    header: "Stability Index 04",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput0001} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "stabilityIndex05",
+    header: "Stability Index 05",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput0001} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "stabilityIndex06",
+    header: "Stability Index 06",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput0001} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "stabilityIndex07",
+    header: "Stability Index 07",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput0001} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "stabilityIndex08",
+    header: "Stability Index 08",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput0001} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "stabilityIndex09",
+    header: "Stability Index 09",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput0001} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "stabilityIndex10",
+    header: "Stability Index 10",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput0001} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "stabilityIndex11",
+    header: "Stability Index 11",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput0001} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "stabilityIndex12",
+    header: "Stability Index 12",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput0001} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "stabilityIndex13",
+    header: "Stability Index 13",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput0001} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "stabilityIndex14",
+    header: "Stability Index 14",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput0001} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "stabilityIndex15",
+    header: "Stability Index 15",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput0001} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "stabilityIndex16",
+    header: "Stability Index 16",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput0001} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "stabilityIndex17",
+    header: "Stability Index 17",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput0001} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "stabilityIndex18",
+    header: "Stability Index 18",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput0001} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "stabilityIndex19",
+    header: "Stability Index 19",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput0001} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
+  {
+    accessorKey: "stabilityIndex20",
+    header: "Stability Index 20",
+    cell: (cell) => <EditableCell {...cell} renderInput={NumberInput0001} />,
+    size: 120,
+    meta: {
+      editable: true,
+    },
+  },
 ];

@@ -109,6 +109,79 @@ const methods = ["HPLC", "GC-MS", "PCR", "ELISA", "Spectrophotometry"];
 const protocols = ["ISO9001", "GMP", "ISO17025", "FDA", "ASTM"];
 const approvals = ["Approved", "Pending", "Rejected", "Conditional"];
 const reviews = ["Passed", "Failed", "Pending", "Skipped"];
+const geneMarkers = [
+  "ACT1",
+  "TEF1",
+  "GAPDH",
+  "RPL3",
+  "HXT1",
+  "MAL12",
+  "URA3",
+  "LEU2",
+  "HIS3",
+  "TRP1",
+];
+const assayResults = [
+  "Pass",
+  "Fail",
+  "Pending",
+  "Retest",
+  "Validated",
+  "Inconclusive",
+  "Outlier",
+];
+
+function roundedFloat(min, max, multipleOf, precision) {
+  return parseFloat(
+    faker.number.float({ min, max, multipleOf }).toFixed(precision),
+  );
+}
+
+function generateNumberedFields(prefix, generateValue) {
+  return Array.from({ length: 20 }, (_, index) => {
+    const suffix = String(index + 1).padStart(2, "0");
+    return [`${prefix}${suffix}`, generateValue(index, suffix)];
+  }).reduce((fields, [key, value]) => {
+    fields[key] = value;
+    return fields;
+  }, {});
+}
+
+function generateAdditionalStrainMetrics() {
+  return {
+    ...generateNumberedFields(
+      "geneMarker",
+      (_, suffix) => `${getRandomElement(geneMarkers)}-${suffix}`,
+    ),
+    ...generateNumberedFields("geneCopyNumber", () =>
+      faker.number.int({ min: 1, max: 12 }),
+    ),
+    ...generateNumberedFields("expressionLevel", () =>
+      roundedFloat(0.01, 250.0, 0.01, 2),
+    ),
+    ...generateNumberedFields("enzymeActivityUml", () =>
+      roundedFloat(0.01, 500.0, 0.01, 2),
+    ),
+    ...generateNumberedFields("metaboliteMgL", () =>
+      roundedFloat(0.1, 2500.0, 0.1, 1),
+    ),
+    ...generateNumberedFields("cultureTempC", () =>
+      roundedFloat(15.0, 45.0, 0.1, 1),
+    ),
+    ...generateNumberedFields("culturePh", () =>
+      roundedFloat(3.5, 8.5, 0.1, 1),
+    ),
+    ...generateNumberedFields("assayResult", () =>
+      getRandomElement(assayResults),
+    ),
+    ...generateNumberedFields("qcScore", () =>
+      roundedFloat(0.0, 100.0, 0.1, 1),
+    ),
+    ...generateNumberedFields("stabilityIndex", () =>
+      roundedFloat(0.001, 1.0, 0.001, 3),
+    ),
+  };
+}
 
 function generateStrainData(count = 500) {
   console.log(`Generating ${count} strain entries...`);
@@ -303,6 +376,7 @@ function generateStrainData(count = 500) {
       reviewStatus: getRandomElement(reviews),
       auditDate: faker.date.recent({ days: 180 }).toISOString().split("T")[0],
       inspectionDate: faker.date.recent({ days: 60 }).toISOString().split("T")[0],
+      ...generateAdditionalStrainMetrics(),
     };
   });
 
