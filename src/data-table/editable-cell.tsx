@@ -19,7 +19,7 @@ interface EditableCellInputProps<TValue> {
 }
 
 interface EditableCellProps<TData, TValue> extends CellContext<TData, TValue> {
-  renderInput: (props: EditableCellInputProps<TValue>) => React.ReactNode;
+  renderInput: React.FunctionComponent<EditableCellInputProps<TValue>>;
 }
 
 function EditableCellComponent<TData, TValue>({
@@ -30,6 +30,7 @@ function EditableCellComponent<TData, TValue>({
   renderInput,
 }: EditableCellProps<TData, TValue>): React.ReactElement {
   const initialValue = getValue();
+  const RenderInput = renderInput;
   const [isEditing, setIsEditing] = useState(false);
   const [value, setValue] = useState<TValue>(initialValue);
 
@@ -96,14 +97,14 @@ function EditableCellComponent<TData, TValue>({
         className="flex items-center box-border w-full h-full p-2 cursor-text [&_input]:w-full [&_input]:h-full [&_input]:border-none [&_input]:outline-none [&_input]:bg-transparent [&_input]:text-inherit [&_input]:font-inherit [&_input]:p-0"
         tabIndex={0}
       >
-        {renderInput({
-          value,
-          onChange,
-          onBlur: handleBlur,
-          onValueChange,
-          onKeyDown: handleKeyDownOnEdit,
-          cancelEditing,
-        })}
+        <RenderInput
+          value={value}
+          onChange={onChange}
+          onBlur={handleBlur}
+          onValueChange={onValueChange}
+          onKeyDown={handleKeyDownOnEdit}
+          cancelEditing={cancelEditing}
+        />
       </div>
     );
   }
