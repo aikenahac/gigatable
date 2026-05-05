@@ -150,7 +150,7 @@ export function DataTable<TData>({
       ) as HTMLTableCellElement | null;
       if (!td) return;
       lastMouseOverCellRef.current = null;
-      handleMouseDown(td.dataset.rowId!, td.dataset.columnId!);
+      handleMouseDown(td.dataset.rowId!, td.dataset.columnId!, e.shiftKey);
     },
     [allowRangeSelection, handleMouseDown],
   );

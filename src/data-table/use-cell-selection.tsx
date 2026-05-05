@@ -280,13 +280,14 @@ export function useCellSelection<TData>(
   };
 
   const handleMouseDown = useCallback(
-    (rowId: string, columnId: string) => {
-      setSelectedCellIfChanged({ rowId, columnId });
-      const newSel: Selection = {
-        start: { rowId, columnId },
-        end: { rowId, columnId },
-      };
-      commitSelection(newSel);
+    (rowId: string, columnId: string, shiftKey?: boolean) => {
+      if (shiftKey && selectedCellRef.current) {
+        const start = liveSelectionRef.current?.start ?? selectedCellRef.current;
+        commitSelection({ start, end: { rowId, columnId } });
+      } else {
+        setSelectedCellIfChanged({ rowId, columnId });
+        commitSelection({ start: { rowId, columnId }, end: { rowId, columnId } });
+      }
       isSelectingRef.current = true;
       setIsSelecting(true);
     },
