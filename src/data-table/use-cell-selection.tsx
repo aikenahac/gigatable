@@ -386,15 +386,35 @@ export function useCellSelection<TData>(
       if (scrollX !== 0 || scrollY !== 0) {
         container.scrollTop += scrollY;
         container.scrollLeft += scrollX;
-        // When cursor is outside the container, extend selection to the nearest visible cell
-        const clampedX = Math.max(rect.left + 2, Math.min(rect.right - 2, mouseX));
-        const clampedY = Math.max(rect.top + 2, Math.min(rect.bottom - 2, mouseY));
-        if (mouseX !== clampedX || mouseY !== clampedY) {
-          const el = document.elementFromPoint(clampedX, clampedY);
-          const td = el?.closest?.("td[data-row-id]") as HTMLTableCellElement | null;
-          if (td?.dataset.rowId && td.dataset.columnId) {
-            handleMouseEnterRef.current(td.dataset.rowId, td.dataset.columnId);
-          }
+      }
+      // Extend selection when cursor is outside the container
+      const outsideTop = mouseY < rect.top;
+      const outsideBottom = mouseY > rect.bottom;
+      const outsideLeft = mouseX < rect.left;
+      const outsideRight = mouseX > rect.right;
+      if (outsideTop || outsideBottom || outsideLeft || outsideRight) {
+        // clientWidth/clientHeight exclude scrollbar gutter, giving reliable content coords
+        const contentRight = rect.left + container.clientWidth;
+        const contentBottom = rect.top + container.clientHeight;
+        let hitX: number;
+        let hitY: number;
+        if (outsideBottom) {
+          hitY = contentBottom - 2;
+          hitX = Math.max(rect.left + 2, Math.min(contentRight - 2, mouseX));
+        } else if (outsideTop) {
+          hitY = rect.top + 2;
+          hitX = Math.max(rect.left + 2, Math.min(contentRight - 2, mouseX));
+        } else if (outsideRight) {
+          hitX = contentRight - 2;
+          hitY = Math.max(rect.top + 2, Math.min(contentBottom - 2, mouseY));
+        } else {
+          hitX = rect.left + 2;
+          hitY = Math.max(rect.top + 2, Math.min(contentBottom - 2, mouseY));
+        }
+        const el = document.elementFromPoint(hitX, hitY);
+        const td = el?.closest?.("td[data-row-id]") as HTMLTableCellElement | null;
+        if (td?.dataset.rowId && td.dataset.columnId) {
+          handleMouseEnterRef.current(td.dataset.rowId, td.dataset.columnId);
         }
       }
       if (isSelectingRef.current) {
