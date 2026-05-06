@@ -15,14 +15,14 @@ export interface CellChange {
 }
 
 export interface PasteResult {
-  changes: CellChange[];
+  changes: Array<CellChange>;
   totalChanges: number;
 }
 
 export interface UseDataTableProps<TData extends RowData, TValue>
   extends Omit<TableOptions<TData>, "getCoreRowModel"> {
-  columns: ColumnDef<TData, TValue>[];
-  data: TData[];
+  columns: Array<ColumnDef<TData, TValue>>;
+  data: Array<TData>;
   history?: boolean;
   maxHistorySize?: number;
 }
@@ -34,13 +34,13 @@ export function useDataTable<TData extends Record<string, any>, TValue>({
   maxHistorySize,
   ...props
 }: UseDataTableProps<TData, TValue>) {
-  const [data, setData] = useState<TData[]>(initialData);
+  const [data, setData] = useState<Array<TData>>(initialData);
 
   const { presentState, setPresent, undo, redo, clear, canUndo, canRedo } =
-    useHistoryState<TData[]>(initialData, maxHistorySize);
+    useHistoryState<Array<TData>>(initialData, maxHistorySize);
 
   const handleSetData = useCallback(
-    (newData: TData[] | ((prevData: TData[]) => TData[])) => {
+    (newData: Array<TData> | ((prevData: Array<TData>) => Array<TData>)) => {
       setData((prevData) => {
         const updatedData =
           newData instanceof Function ? newData(prevData) : newData;
@@ -65,7 +65,7 @@ export function useDataTable<TData extends Record<string, any>, TValue>({
   );
 
   const applyFill = useCallback(
-    (columnId: string, targetRowIndices: number[], value: unknown) => {
+    (columnId: string, targetRowIndices: Array<number>, value: unknown) => {
       handleSetData((old) =>
         old.map((row, index) =>
           targetRowIndices.includes(index) ? { ...row, [columnId]: value } : row,
@@ -92,7 +92,7 @@ export function useDataTable<TData extends Record<string, any>, TValue>({
         return { changes: [], totalChanges: 0 };
       }
 
-      const changes: CellChange[] = [];
+      const changes: Array<CellChange> = [];
 
       handleSetData((oldData) => {
         const parsedData = parsePasteData(clipboardData);

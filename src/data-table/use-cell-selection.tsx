@@ -31,8 +31,8 @@ const isEditableElement = (element: Element | null) =>
   (element instanceof HTMLElement && element.isContentEditable);
 
 export function useCellSelection<TData>(
-  rows: Row<TData>[],
-  columns: Column<TData>[],
+  rows: Array<Row<TData>>,
+  columns: Array<Column<TData>>,
   containerRef?: React.RefObject<HTMLDivElement | null>,
   scrollToIndex?: (rowIndex: number, colIndex: number, behavior: 'auto' | 'smooth', rowAlign?: 'start' | 'end' | 'auto', colAlign?: 'start' | 'end' | 'auto') => void,
 ) {
@@ -52,8 +52,8 @@ export function useCellSelection<TData>(
   // Refs so stable callbacks can always read current index maps
   const rowIndexMapRef = useRef<Record<string, number>>({});
   const columnIndexMapRef = useRef<Record<string, number>>({});
-  const rowIdsRef = useRef<string[]>([]);
-  const columnIdsRef = useRef<string[]>([]);
+  const rowIdsRef = useRef<Array<string>>([]);
+  const columnIdsRef = useRef<Array<string>>([]);
   // Mirrors selectedCell state so stable callbacks can read it without re-creating
   const selectedCellRef = useRef<CellCoordinates | null>(null);
 

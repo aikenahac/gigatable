@@ -74,4 +74,4 @@ export interface Strain extends Record<string, unknown> {
 
 // Import generated strain data from JSON file
 // To regenerate this data, run: npm run generate-data
-export const strains: Strain[] = strainsData as Strain[];
+export const strains: Array<Strain> = strainsData as Array<Strain>;

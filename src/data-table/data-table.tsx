@@ -25,7 +25,7 @@ export interface DataTableProps<TData> {
   onPasteComplete?: (result: PasteResult) => void;
   applyFill?: (
     columnId: string,
-    targetRowIndices: number[],
+    targetRowIndices: Array<number>,
     value: unknown,
   ) => void;
   undo?: () => void;
@@ -175,7 +175,7 @@ export function DataTable<TData>({
   const { isAnchorCell, isFillRangeCell, isFillSourceCell, fillPreviewValue, fillHandleMouseDown } = useFillHandle({
     selectedCell,
     selection: selectedRange,
-    rows: rows as Row<any>[],
+    rows: rows as Array<Row<any>>,
     isColumnEditable,
     applyFill: applyFill ?? (() => {}),
     onFillComplete: setRangeSelection,

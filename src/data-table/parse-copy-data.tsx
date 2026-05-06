@@ -3,8 +3,8 @@ import type { Column, Row } from "@tanstack/react-table";
 
 export function parseCopyData<TData>(
   selection: Selection,
-  rows: Row<TData>[],
-  columns: Column<TData>[],
+  rows: Array<Row<TData>>,
+  columns: Array<Column<TData>>,
 ) {
   const { start, end } = selection;
 

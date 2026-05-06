@@ -12,9 +12,9 @@ interface DragState {
 export interface UseFillHandleProps {
   selectedCell: CellCoordinates | null;
   selection: Selection | null;
-  rows: Row<any>[];
+  rows: Array<Row<any>>;
   isColumnEditable: (columnId: string) => boolean;
-  applyFill: (columnId: string, targetRowIndices: number[], value: unknown) => void;
+  applyFill: (columnId: string, targetRowIndices: Array<number>, value: unknown) => void;
   onFillComplete?: (start: CellCoordinates, end: CellCoordinates) => void;
   enabled: boolean;
 }
@@ -37,7 +37,7 @@ export function useFillHandle({
   enabled,
 }: UseFillHandleProps): UseFillHandleReturn {
   const rowIndexMapRef = useRef<Record<string, number>>({});
-  const rowsRef = useRef<Row<any>[]>(rows);
+  const rowsRef = useRef<Array<Row<any>>>(rows);
 
   const rowIndexMap = useMemo(() => {
     const map: Record<string, number> = {};
@@ -140,7 +140,7 @@ export function useFillHandle({
     if (!state) return;
     const { columnId, selTopIdx, selBotIdx, hoverRowIdx } = state;
     const currentRows = rowsRef.current;
-    let targetIndices: number[] = [];
+    let targetIndices: Array<number> = [];
     let sourceValue: unknown;
     let newSelTopIdx = selTopIdx;
     let newSelBotIdx = selBotIdx;

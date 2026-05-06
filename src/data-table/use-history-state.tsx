@@ -1,9 +1,9 @@
 import { useCallback, useReducer, useRef } from "react";
 
 type HistoryState<T> = {
-  past: T[];
+  past: Array<T>;
   present: T | null;
-  future: T[];
+  future: Array<T>;
 };
 
 type Action<T> =
@@ -31,7 +31,7 @@ function useHistoryStateReducer<T>(
       return {
         past: past.slice(0, past.length - 1),
         present: past[past.length - 1],
-        future: [present, ...future].filter((p) => p !== null) as T[],
+        future: [present, ...future].filter((p) => p !== null) as Array<T>,
       };
 
     case "REDO":
