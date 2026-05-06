@@ -41,6 +41,7 @@ export function useCellSelection<TData>(
   const [isSelecting, setIsSelecting] = useState(false);
   const isSelectingRef = useRef(false);
   const mousePositionRef = useRef({ x: 0, y: 0 });
+  const handleMouseEnterRef = useRef<(rowId: string, columnId: string) => void>(() => {});
 
   // Stores actual DOM elements (not RefObjects)
   const cellRefsMap = useRef<Map<string, HTMLTableCellElement>>(new Map());
@@ -306,6 +307,9 @@ export function useCellSelection<TData>(
     },
     [updateSelectionDOM],
   );
+  useEffect(() => {
+    handleMouseEnterRef.current = handleMouseEnter;
+  }, [handleMouseEnter]);
 
   const handleMouseUp = useCallback(() => {
     isSelectingRef.current = false;
@@ -367,19 +371,31 @@ export function useCellSelection<TData>(
       let scrollY = 0;
       const distBottom = rect.bottom - mouseY;
       const distTop = mouseY - rect.top;
-      if (distBottom < edgeThreshold && distBottom > 0)
-        scrollY = maxScrollSpeed * (1 - distBottom / edgeThreshold);
-      else if (distTop < edgeThreshold && distTop > 0)
-        scrollY = -maxScrollSpeed * (1 - distTop / edgeThreshold);
+      if (distBottom < edgeThreshold) {
+        scrollY = maxScrollSpeed * (1 - Math.max(0, distBottom) / edgeThreshold);
+      } else if (distTop < edgeThreshold) {
+        scrollY = -maxScrollSpeed * (1 - Math.max(0, distTop) / edgeThreshold);
+      }
       const distRight = rect.right - mouseX;
       const distLeft = mouseX - rect.left;
-      if (distRight < edgeThreshold && distRight > 0)
-        scrollX = maxScrollSpeed * (1 - distRight / edgeThreshold);
-      else if (distLeft < edgeThreshold && distLeft > 0)
-        scrollX = -maxScrollSpeed * (1 - distLeft / edgeThreshold);
+      if (distRight < edgeThreshold) {
+        scrollX = maxScrollSpeed * (1 - Math.max(0, distRight) / edgeThreshold);
+      } else if (distLeft < edgeThreshold) {
+        scrollX = -maxScrollSpeed * (1 - Math.max(0, distLeft) / edgeThreshold);
+      }
       if (scrollX !== 0 || scrollY !== 0) {
         container.scrollTop += scrollY;
         container.scrollLeft += scrollX;
+        // When cursor is outside the container, extend selection to the nearest visible cell
+        const clampedX = Math.max(rect.left + 2, Math.min(rect.right - 2, mouseX));
+        const clampedY = Math.max(rect.top + 2, Math.min(rect.bottom - 2, mouseY));
+        if (mouseX !== clampedX || mouseY !== clampedY) {
+          const el = document.elementFromPoint(clampedX, clampedY);
+          const td = el?.closest?.("td[data-row-id]") as HTMLTableCellElement | null;
+          if (td?.dataset.rowId && td.dataset.columnId) {
+            handleMouseEnterRef.current(td.dataset.rowId, td.dataset.columnId);
+          }
+        }
       }
       if (isSelectingRef.current) {
         animationFrameId = requestAnimationFrame(autoScroll);
