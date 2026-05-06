@@ -64,6 +64,17 @@ export function useDataTable<TData extends Record<string, any>, TValue>({
     [handleSetData],
   );
 
+  const applyFill = useCallback(
+    (columnId: string, targetRowIndices: number[], value: unknown) => {
+      handleSetData((old) =>
+        old.map((row, index) =>
+          targetRowIndices.includes(index) ? { ...row, [columnId]: value } : row,
+        ),
+      );
+    },
+    [handleSetData],
+  );
+
   const table = useReactTable({
     data: history && presentState ? presentState : data,
     columns,
@@ -153,6 +164,7 @@ export function useDataTable<TData extends Record<string, any>, TValue>({
   return {
     table,
     paste: handleTablePaste,
+    applyFill,
     undo,
     redo,
     clear,

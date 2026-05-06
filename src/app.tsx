@@ -3,7 +3,7 @@ import { columns } from "./columns";
 import { strains } from "./strains";
 
 export default function App() {
-  const { table, paste, undo, redo } = useDataTable({
+  const { table, paste, applyFill, undo, redo } = useDataTable({
     columns,
     data: strains,
     history: true,
@@ -22,7 +22,9 @@ export default function App() {
         allowRangeSelection={true}
         allowHistory={true}
         allowPaste={true}
+        allowFillHandle={true}
         paste={paste}
+        applyFill={applyFill}
         onPasteComplete={handlePasteComplete}
         undo={undo}
         redo={redo}

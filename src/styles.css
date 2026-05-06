@@ -11,3 +11,7 @@
 td.is-in-range {
   background-color: #dbe1ff;
 }
+
+td.is-fill-range {
+  background-color: #eff4ff;
+}

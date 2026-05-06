@@ -391,6 +391,14 @@ export function useCellSelection<TData>(
     };
   }, [isSelecting, containerRef]);
 
+  const setRangeSelection = useCallback(
+    (start: CellCoordinates, end: CellCoordinates) => {
+      setSelectedCellIfChanged(start);
+      commitSelection({ start, end });
+    },
+    [commitSelection, setSelectedCellIfChanged],
+  );
+
   return {
     selectedCell,
     selection,
@@ -401,5 +409,6 @@ export function useCellSelection<TData>(
     handleKeyDown,
     handleMouseDown,
     handleMouseEnter,
+    setRangeSelection,
   };
 }

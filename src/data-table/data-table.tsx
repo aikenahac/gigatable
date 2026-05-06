@@ -1,5 +1,5 @@
 import { clsx } from "clsx";
-import type { Table as TanStackTableType } from "@tanstack/react-table";
+import type { Row, Table as TanStackTableType } from "@tanstack/react-table";
 import { flexRender } from "@tanstack/react-table";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Table } from "../table";
@@ -7,6 +7,7 @@ import type { CellCoordinates } from "./use-cell-selection";
 import type { PasteResult } from "./use-data-table";
 import { useCellSelection } from "./use-cell-selection";
 import { useCopyToClipboard } from "./use-copy-to-clipboard";
+import { useFillHandle } from "./use-fill-handle";
 import { parseCopyData } from "./parse-copy-data";
 import React, { useCallback, useEffect, useRef } from "react";
 
@@ -16,11 +17,17 @@ export interface DataTableProps<TData> {
   allowRangeSelection?: boolean;
   allowHistory?: boolean;
   allowPaste?: boolean;
+  allowFillHandle?: boolean;
   paste?: (
     selectedCell: CellCoordinates,
     clipboardData?: string,
   ) => PasteResult;
   onPasteComplete?: (result: PasteResult) => void;
+  applyFill?: (
+    columnId: string,
+    targetRowIndices: number[],
+    value: unknown,
+  ) => void;
   undo?: () => void;
   redo?: () => void;
 }
@@ -31,11 +38,21 @@ const TableCell = React.memo(
     cellRef,
     isSelected,
     isEditable,
+    isFillAnchor,
+    isFillRange,
+    isFillSource,
+    fillPreviewValue,
+    fillHandleMouseDown,
   }: {
     cell: any;
     cellRef: (el: HTMLTableCellElement | null) => void;
     isSelected: boolean;
     isEditable: boolean;
+    isFillAnchor: boolean;
+    isFillRange: boolean;
+    isFillSource: boolean;
+    fillPreviewValue: unknown;
+    fillHandleMouseDown: (e: React.MouseEvent) => void;
   }) => (
     <Table.Data
       ref={cellRef}
@@ -47,13 +64,29 @@ const TableCell = React.memo(
         "outline outline-[1.5px] outline-[#3d5aa9] -outline-offset-[2px] rounded-[var(--border-md)] focus-visible:outline focus-visible:outline-[1.5px] focus-visible:outline-[#3d5aa9] focus-visible:-outline-offset-[2px] focus-visible:rounded-[var(--border-md)]":
           isSelected,
         "cursor-text": isEditable,
+        relative: isFillAnchor,
+        "is-fill-range": isFillRange,
       })}
+      overlay={
+        isFillAnchor ? (
+          <span
+            className="absolute bottom-[-3px] right-[-3px] w-[5px] h-[5px] bg-[#3d5aa9] border border-white cursor-crosshair z-10"
+            onMouseDown={fillHandleMouseDown}
+          />
+        ) : undefined
+      }
     >
-      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+      {isFillRange && !isFillSource && fillPreviewValue !== undefined
+        ? <span className="text-[#6b8ccd] italic truncate">{String(fillPreviewValue)}</span>
+        : flexRender(cell.column.columnDef.cell, cell.getContext())}
     </Table.Data>
   ),
   (prevProps, nextProps) =>
     prevProps.isSelected === nextProps.isSelected &&
+    prevProps.isFillAnchor === nextProps.isFillAnchor &&
+    prevProps.isFillRange === nextProps.isFillRange &&
+    prevProps.isFillSource === nextProps.isFillSource &&
+    prevProps.fillPreviewValue === nextProps.fillPreviewValue &&
     prevProps.cell.getValue() === nextProps.cell.getValue() &&
     prevProps.cell.row.id === nextProps.cell.row.id &&
     prevProps.cell.column.id === nextProps.cell.column.id,
@@ -66,8 +99,10 @@ export function DataTable<TData>({
   allowRangeSelection = false,
   allowHistory = false,
   allowPaste = false,
+  allowFillHandle = false,
   paste,
   onPasteComplete,
+  applyFill,
   undo,
   redo,
 }: DataTableProps<TData>) {
@@ -126,7 +161,26 @@ export function DataTable<TData>({
     handleKeyDown,
     handleMouseDown,
     handleMouseEnter,
+    setRangeSelection,
   } = useCellSelection(rows, leafColumns, tableContainerRef, scrollToCell);
+
+  const isColumnEditable = useCallback(
+    (columnId: string) => {
+      const col = leafColumns.find((c) => c.id === columnId);
+      return col?.columnDef.meta?.editable ?? false;
+    },
+    [leafColumns],
+  );
+
+  const { isAnchorCell, isFillRangeCell, isFillSourceCell, fillPreviewValue, fillHandleMouseDown } = useFillHandle({
+    selectedCell,
+    selection: selectedRange,
+    rows: rows as Row<any>[],
+    isColumnEditable,
+    applyFill: applyFill ?? (() => {}),
+    onFillComplete: setRangeSelection,
+    enabled: allowFillHandle && !!applyFill,
+  });
 
   const [, copy] = useCopyToClipboard();
 
@@ -319,6 +373,11 @@ export function DataTable<TData>({
                             isEditable={
                               cell.column.columnDef.meta?.editable ?? false
                             }
+                            isFillAnchor={isAnchorCell(cell.row.id, cell.column.id)}
+                            isFillRange={isFillRangeCell(cell.row.id, cell.column.id)}
+                            isFillSource={isFillSourceCell(cell.row.id, cell.column.id)}
+                            fillPreviewValue={fillPreviewValue}
+                            fillHandleMouseDown={fillHandleMouseDown}
                           />
                         );
                       })}
