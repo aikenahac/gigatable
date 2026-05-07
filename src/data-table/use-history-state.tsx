@@ -27,7 +27,9 @@ function useHistoryStateReducer<T>(
 
   switch (action.type) {
     case "UNDO":
-      if (!past.length) return state;
+      if (!past.length) {
+        return state;
+      }
       return {
         past: past.slice(0, past.length - 1),
         present: past[past.length - 1],
@@ -35,7 +37,9 @@ function useHistoryStateReducer<T>(
       };
 
     case "REDO":
-      if (!future.length) return state;
+      if (!future.length) {
+        return state;
+      }
       return {
         past: present !== null ? [...past, present] : past,
         present: future[0],
@@ -43,7 +47,9 @@ function useHistoryStateReducer<T>(
       };
 
     case "SET": {
-      if (action.newPresent === present) return state;
+      if (action.newPresent === present) {
+        return state;
+      }
       const newPast = present !== null ? [...past, present] : past;
       if (newPast.length > maxHistorySize) {
         newPast.shift();
@@ -82,11 +88,15 @@ export function useHistoryState<T>(initialPresent: T, maxHistorySize = 20) {
   const canRedo = state.future.length !== 0;
 
   const undo = useCallback(() => {
-    if (canUndo) dispatch({ type: "UNDO" });
+    if (canUndo) {
+      dispatch({ type: "UNDO" });
+    }
   }, [canUndo]);
 
   const redo = useCallback(() => {
-    if (canRedo) dispatch({ type: "REDO" });
+    if (canRedo) {
+      dispatch({ type: "REDO" });
+    }
   }, [canRedo]);
 
   const set = useCallback(

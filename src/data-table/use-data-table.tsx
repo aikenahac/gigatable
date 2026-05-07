@@ -68,7 +68,9 @@ export function useDataTable<TData extends Record<string, unknown>, TValue>({
     (columnId: string, targetRowIndices: Array<number>, value: unknown) => {
       handleSetData((old) =>
         old.map((row, index) =>
-          targetRowIndices.includes(index) ? { ...row, [columnId]: value } : row,
+          targetRowIndices.includes(index)
+            ? { ...row, [columnId]: value }
+            : row,
         ),
       );
     },
@@ -109,7 +111,9 @@ export function useDataTable<TData extends Record<string, unknown>, TValue>({
 
         parsedData.forEach((row, rowIndex) => {
           const targetRowIndex = startRowIndex + rowIndex;
-          if (targetRowIndex >= rows.length) return;
+          if (targetRowIndex >= rows.length) {
+            return;
+          }
 
           row.forEach((newValue, colIndex) => {
             const targetColIndex = startColIndex + colIndex;

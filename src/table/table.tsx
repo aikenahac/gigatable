@@ -25,7 +25,7 @@ const Table: Partial<TableComponent> = React.forwardRef<
       className={clsx(
         "w-full text-[14px] leading-[20px] caption-bottom border-collapse border-0 border-solid border-[hsl(240_5.9%_90%)]",
         "table-fixed",
-        className
+        className,
       )}
       {...props}
     />
@@ -41,7 +41,7 @@ const TableHeader = React.forwardRef<
     ref={ref}
     className={clsx(
       "sticky top-0 z-10 bg-[#374151] [&_tr]:border-b [&_tr]:border-[#4b5563]",
-      className
+      className,
     )}
     {...props}
   />
@@ -69,7 +69,7 @@ const TableFooter = React.forwardRef<
     className={clsx(
       "border-t bg-[hsl(240_4.8%_95.9%/0.5)] font-medium",
       "[&_tr:last-child]:border-0",
-      className
+      className,
     )}
     {...props}
   />
@@ -86,7 +86,7 @@ const TableRow = React.forwardRef<
       "border-b h-[30px] max-h-[30px]",
       "hover:bg-[hsl(240_4.8%_95.9%/0.5)]",
       "data-[state=selected]:bg-[hsl(240_4.8%_95.9%)]",
-      className
+      className,
     )}
     {...props}
   />
@@ -103,7 +103,7 @@ const TableHead = React.forwardRef<
       "h-[40px] px-[12px] py-[8px] font-[600] text-left align-middle",
       "bg-[#374151] text-[#f9fafb] border-r border-[#4b5563]",
       "has-[role=checkbox]:pr-0",
-      className
+      className,
     )}
     {...props}
   />
@@ -138,7 +138,7 @@ const TableCaption = React.forwardRef<
     ref={ref}
     className={clsx(
       "mt-4 text-sm leading-5 text-[hsl(240_3.8%_46.1%)]",
-      className
+      className,
     )}
     {...props}
   />

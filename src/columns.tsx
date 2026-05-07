@@ -6,36 +6,48 @@ import "./types/react-table";
 import React from "react";
 
 // Memoized input components to prevent re-renders
-const TextInput = React.memo(({ value, onChange, onBlur, onKeyDown }: EditableCellInputProps<unknown>) => (
-  <input
-    type="text"
-    autoFocus
-    value={value as string}
-    onChange={onChange}
-    onBlur={onBlur}
-    onKeyDown={onKeyDown}
-  />
-));
+const TextInput = React.memo(
+  ({ value, onChange, onBlur, onKeyDown }: EditableCellInputProps<unknown>) => (
+    <input
+      type="text"
+      autoFocus
+      value={value as string}
+      onChange={onChange}
+      onBlur={onBlur}
+      onKeyDown={onKeyDown}
+    />
+  ),
+);
 TextInput.displayName = "TextInput";
 
-const NumberInput = React.memo(({ value, onChange, onBlur, onKeyDown, step }: EditableCellInputProps<unknown> & { step?: string | number }) => (
-  <input
-    type="number"
-    autoFocus
-    step={step}
-    value={value as number}
-    onChange={onChange}
-    onBlur={onBlur}
-    onKeyDown={onKeyDown}
-  />
-));
+const NumberInput = React.memo(
+  ({
+    value,
+    onChange,
+    onBlur,
+    onKeyDown,
+    step,
+  }: EditableCellInputProps<unknown> & { step?: string | number }) => (
+    <input
+      type="number"
+      autoFocus
+      step={step}
+      value={value as number}
+      onChange={onChange}
+      onBlur={onBlur}
+      onKeyDown={onKeyDown}
+    />
+  ),
+);
 NumberInput.displayName = "NumberInput";
 
 // Wrapper to pass step prop
 const createNumberInput = (step?: string | number) => {
-  const SteppedNumberInput = React.memo((props: EditableCellInputProps<unknown>) => (
-    <NumberInput {...props} step={step} />
-  ));
+  const SteppedNumberInput = React.memo(
+    (props: EditableCellInputProps<unknown>) => (
+      <NumberInput {...props} step={step} />
+    ),
+  );
   SteppedNumberInput.displayName = `NumberInput_${step}`;
   return SteppedNumberInput;
 };

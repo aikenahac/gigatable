@@ -104,7 +104,15 @@ const statuses = [
 ];
 
 const suppliers = ["BioSupply", "LabCorp", "ScienceCo", "GeneTech", "BioPure"];
-const countries = ["USA", "Germany", "Japan", "Canada", "UK", "France", "China"];
+const countries = [
+  "USA",
+  "Germany",
+  "Japan",
+  "Canada",
+  "UK",
+  "France",
+  "China",
+];
 const methods = ["HPLC", "GC-MS", "PCR", "ELISA", "Spectrophotometry"];
 const protocols = ["ISO9001", "GMP", "ISO17025", "FDA", "ASTM"];
 const approvals = ["Approved", "Pending", "Rejected", "Conditional"];
@@ -197,8 +205,8 @@ function generateStrainData(count = 500) {
         i < 100
           ? null
           : Math.random() > 0.3
-          ? `Y${String(faker.number.int({ min: 1, max: i })).padStart(5, "0")}`
-          : null,
+            ? `Y${String(faker.number.int({ min: 1, max: i })).padStart(5, "0")}`
+            : null,
       storage: getRandomElement(storageValues),
       description: faker.lorem.sentence({ min: 4, max: 12 }),
       project: getRandomElement(projectValues),
@@ -292,13 +300,17 @@ function generateStrainData(count = 500) {
         .toISOString()
         .split("T")[0],
       density: parseFloat(
-        faker.number.float({ min: 0.8, max: 1.5, multipleOf: 0.001 }).toFixed(3),
+        faker.number
+          .float({ min: 0.8, max: 1.5, multipleOf: 0.001 })
+          .toFixed(3),
       ),
       viscosity: parseFloat(
         faker.number.float({ min: 1.0, max: 50.0, multipleOf: 0.1 }).toFixed(1),
       ),
       turbidity: parseFloat(
-        faker.number.float({ min: 0.5, max: 100.0, multipleOf: 0.1 }).toFixed(1),
+        faker.number
+          .float({ min: 0.5, max: 100.0, multipleOf: 0.1 })
+          .toFixed(1),
       ),
       colorValue: faker.number.int({ min: 1, max: 100 }),
       clarityIndex: parseFloat(
@@ -309,21 +321,31 @@ function generateStrainData(count = 500) {
       ),
       foamStability: faker.number.int({ min: 10, max: 300 }),
       yieldRate: parseFloat(
-        faker.number.float({ min: 50.0, max: 99.0, multipleOf: 0.1 }).toFixed(1),
+        faker.number
+          .float({ min: 50.0, max: 99.0, multipleOf: 0.1 })
+          .toFixed(1),
       ),
       efficiency: parseFloat(
-        faker.number.float({ min: 70.0, max: 99.0, multipleOf: 0.1 }).toFixed(1),
+        faker.number
+          .float({ min: 70.0, max: 99.0, multipleOf: 0.1 })
+          .toFixed(1),
       ),
       potency: parseFloat(
-        faker.number.float({ min: 1.0, max: 100.0, multipleOf: 0.01 }).toFixed(2),
+        faker.number
+          .float({ min: 1.0, max: 100.0, multipleOf: 0.01 })
+          .toFixed(2),
       ),
       concentration: parseFloat(
-        faker.number.float({ min: 0.5, max: 500.0, multipleOf: 0.1 }).toFixed(1),
+        faker.number
+          .float({ min: 0.5, max: 500.0, multipleOf: 0.1 })
+          .toFixed(1),
       ),
       dilutionFactor: faker.number.int({ min: 1, max: 1000 }),
       volumeMl: faker.number.int({ min: 1, max: 5000 }),
       weightGrams: parseFloat(
-        faker.number.float({ min: 0.1, max: 1000.0, multipleOf: 0.01 }).toFixed(2),
+        faker.number
+          .float({ min: 0.1, max: 1000.0, multipleOf: 0.01 })
+          .toFixed(2),
       ),
       moistureContent: parseFloat(
         faker.number.float({ min: 0.5, max: 15.0, multipleOf: 0.1 }).toFixed(1),
@@ -335,7 +357,9 @@ function generateStrainData(count = 500) {
         faker.number.float({ min: 5.0, max: 80.0, multipleOf: 0.1 }).toFixed(1),
       ),
       carbContent: parseFloat(
-        faker.number.float({ min: 10.0, max: 75.0, multipleOf: 0.1 }).toFixed(1),
+        faker.number
+          .float({ min: 10.0, max: 75.0, multipleOf: 0.1 })
+          .toFixed(1),
       ),
       fatContent: parseFloat(
         faker.number.float({ min: 0.5, max: 30.0, multipleOf: 0.1 }).toFixed(1),
@@ -347,7 +371,9 @@ function generateStrainData(count = 500) {
         faker.number.float({ min: 0.1, max: 50.0, multipleOf: 0.1 }).toFixed(1),
       ),
       sugarContent: parseFloat(
-        faker.number.float({ min: 0.5, max: 200.0, multipleOf: 0.1 }).toFixed(1),
+        faker.number
+          .float({ min: 0.5, max: 200.0, multipleOf: 0.1 })
+          .toFixed(1),
       ),
       alcoholContent: parseFloat(
         faker.number.float({ min: 0.0, max: 20.0, multipleOf: 0.1 }).toFixed(1),
@@ -375,7 +401,10 @@ function generateStrainData(count = 500) {
       approvalStatus: getRandomElement(approvals),
       reviewStatus: getRandomElement(reviews),
       auditDate: faker.date.recent({ days: 180 }).toISOString().split("T")[0],
-      inspectionDate: faker.date.recent({ days: 60 }).toISOString().split("T")[0],
+      inspectionDate: faker.date
+        .recent({ days: 60 })
+        .toISOString()
+        .split("T")[0],
       ...generateAdditionalStrainMetrics(),
     };
   });

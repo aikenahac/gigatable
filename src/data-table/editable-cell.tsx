@@ -122,11 +122,14 @@ function EditableCellComponent<TData, TValue>({
   );
 }
 
-export const EditableCell = React.memo(EditableCellComponent, (prevProps, nextProps) => {
-  // Custom comparison to prevent re-renders when value hasn't changed
-  return (
-    prevProps.getValue() === nextProps.getValue() &&
-    prevProps.row.index === nextProps.row.index &&
-    prevProps.column.id === nextProps.column.id
-  );
-}) as typeof EditableCellComponent;
+export const EditableCell = React.memo(
+  EditableCellComponent,
+  (prevProps, nextProps) => {
+    // Custom comparison to prevent re-renders when value hasn't changed
+    return (
+      prevProps.getValue() === nextProps.getValue() &&
+      prevProps.row.index === nextProps.row.index &&
+      prevProps.column.id === nextProps.column.id
+    );
+  },
+) as typeof EditableCellComponent;

@@ -1,5 +1,9 @@
 import { clsx } from "clsx";
-import type { Cell, Row, Table as TanStackTableType } from "@tanstack/react-table";
+import type {
+  Cell,
+  Row,
+  Table as TanStackTableType,
+} from "@tanstack/react-table";
 import { flexRender } from "@tanstack/react-table";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Table } from "../table";
@@ -77,9 +81,13 @@ const TableCell = React.memo(
         ) : undefined
       }
     >
-      {isFillRange && !isFillSource && fillPreviewValue !== undefined
-        ? <span className="text-[#6b8ccd] italic truncate">{String(fillPreviewValue)}</span>
-        : flexRender(cell.column.columnDef.cell, cell.getContext())}
+      {isFillRange && !isFillSource && fillPreviewValue !== undefined ? (
+        <span className="text-[#6b8ccd] italic truncate">
+          {String(fillPreviewValue)}
+        </span>
+      ) : (
+        flexRender(cell.column.columnDef.cell, cell.getContext())
+      )}
     </Table.Data>
   ),
   (prevProps, nextProps) =>
@@ -131,22 +139,25 @@ export function DataTable<TData>({
     (
       rowIndex: number,
       colIndex: number,
-      behavior: 'auto' | 'smooth',
-      rowAlign: 'start' | 'end' | 'auto' = 'auto',
-      colAlign: 'start' | 'end' | 'auto' = 'auto',
+      behavior: "auto" | "smooth",
+      rowAlign: "start" | "end" | "auto" = "auto",
+      colAlign: "start" | "end" | "auto" = "auto",
     ) => {
       const container = tableContainerRef.current;
       // Use scrollHeight/scrollWidth for 'end' alignment — virtualizer estimates row heights
       // from a fixed 30px guess, so getOffsetForIndex undershoots for taller actual rows.
-      if (rowAlign === 'end' && container) {
+      if (rowAlign === "end" && container) {
         container.scrollTop = container.scrollHeight;
       } else {
         rowVirtualizer.scrollToIndex(rowIndex, { behavior, align: rowAlign });
       }
-      if (colAlign === 'end' && container) {
+      if (colAlign === "end" && container) {
         container.scrollLeft = container.scrollWidth;
       } else {
-        columnVirtualizer.scrollToIndex(colIndex, { behavior, align: colAlign });
+        columnVirtualizer.scrollToIndex(colIndex, {
+          behavior,
+          align: colAlign,
+        });
       }
     },
     [rowVirtualizer, columnVirtualizer],
@@ -173,7 +184,13 @@ export function DataTable<TData>({
     [leafColumns],
   );
 
-  const { isAnchorCell, isFillRangeCell, isFillSourceCell, fillPreviewValue, fillHandleMouseDown } = useFillHandle({
+  const {
+    isAnchorCell,
+    isFillRangeCell,
+    isFillSourceCell,
+    fillPreviewValue,
+    fillHandleMouseDown,
+  } = useFillHandle({
     selectedCell,
     selection: selectedRange,
     rows: rows as Array<Row<unknown>>,
@@ -187,11 +204,15 @@ export function DataTable<TData>({
 
   const handleBodyClick = useCallback(
     (e: React.MouseEvent) => {
-      if (!allowCellSelection) return;
+      if (!allowCellSelection) {
+        return;
+      }
       const td = (e.target as Element).closest(
         "td[data-row-id]",
       ) as HTMLTableCellElement | null;
-      if (!td) return;
+      if (!td) {
+        return;
+      }
       handleClick(td.dataset.rowId!, td.dataset.columnId!);
     },
     [allowCellSelection, handleClick],
@@ -199,11 +220,15 @@ export function DataTable<TData>({
 
   const handleBodyMouseDown = useCallback(
     (e: React.MouseEvent) => {
-      if (!allowRangeSelection) return;
+      if (!allowRangeSelection) {
+        return;
+      }
       const td = (e.target as Element).closest(
         "td[data-row-id]",
       ) as HTMLTableCellElement | null;
-      if (!td) return;
+      if (!td) {
+        return;
+      }
       lastMouseOverCellRef.current = null;
       handleMouseDown(td.dataset.rowId!, td.dataset.columnId!, e.shiftKey);
     },
@@ -212,13 +237,19 @@ export function DataTable<TData>({
 
   const handleBodyMouseOver = useCallback(
     (e: React.MouseEvent) => {
-      if (!allowRangeSelection || !isSelectingRef.current) return;
+      if (!allowRangeSelection || !isSelectingRef.current) {
+        return;
+      }
       const td = (e.target as Element).closest(
         "td[data-row-id]",
       ) as HTMLTableCellElement | null;
-      if (!td) return;
+      if (!td) {
+        return;
+      }
       const key = `${td.dataset.rowId}-${td.dataset.columnId}`;
-      if (key === lastMouseOverCellRef.current) return;
+      if (key === lastMouseOverCellRef.current) {
+        return;
+      }
       lastMouseOverCellRef.current = key;
       handleMouseEnter(td.dataset.rowId!, td.dataset.columnId!);
     },
@@ -227,13 +258,17 @@ export function DataTable<TData>({
 
   const handleContainerKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
-      if (!allowCellSelection) return;
+      if (!allowCellSelection) {
+        return;
+      }
       const td = (e.target as Element).closest(
         "td[data-row-id]",
       ) as HTMLTableCellElement | null;
       const rowId = td?.dataset.rowId ?? selectedCell?.rowId;
       const columnId = td?.dataset.columnId ?? selectedCell?.columnId;
-      if (!rowId || !columnId) return;
+      if (!rowId || !columnId) {
+        return;
+      }
       handleKeyDown(e as React.KeyboardEvent<HTMLDivElement>, rowId, columnId);
       if (e.key === "Enter") {
         const editableCell = td?.querySelector("[data-editable-cell-viewing]");
@@ -272,8 +307,11 @@ export function DataTable<TData>({
         event.key === "z"
       ) {
         event.preventDefault();
-        if (event.shiftKey) redo?.();
-        else undo?.();
+        if (event.shiftKey) {
+          redo?.();
+        } else {
+          undo?.();
+        }
       }
     };
     document.addEventListener("keydown", handler);
@@ -310,7 +348,11 @@ export function DataTable<TData>({
       )}
       onKeyDown={handleContainerKeyDown}
     >
-      <div ref={tableContainerRef} className="h-[90vh] overflow-auto outline-none" tabIndex={-1}>
+      <div
+        ref={tableContainerRef}
+        className="h-[90vh] overflow-auto outline-none"
+        tabIndex={-1}
+      >
         <Table style={{ width: `${totalColumnsWidth}px` }}>
           <Table.Header>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -349,9 +391,7 @@ export function DataTable<TData>({
           >
             {rows.length > 0 ? (
               <>
-                <tr
-                  style={{ height: `${virtualRows[0]?.start ?? 0}px` }}
-                />
+                <tr style={{ height: `${virtualRows[0]?.start ?? 0}px` }} />
                 {virtualRows.map((virtualRow) => {
                   const row = rows[virtualRow.index];
                   const visibleCells = row.getVisibleCells();
@@ -376,9 +416,18 @@ export function DataTable<TData>({
                             isEditable={
                               cell.column.columnDef.meta?.editable ?? false
                             }
-                            isFillAnchor={isAnchorCell(cell.row.id, cell.column.id)}
-                            isFillRange={isFillRangeCell(cell.row.id, cell.column.id)}
-                            isFillSource={isFillSourceCell(cell.row.id, cell.column.id)}
+                            isFillAnchor={isAnchorCell(
+                              cell.row.id,
+                              cell.column.id,
+                            )}
+                            isFillRange={isFillRangeCell(
+                              cell.row.id,
+                              cell.column.id,
+                            )}
+                            isFillSource={isFillSourceCell(
+                              cell.row.id,
+                              cell.column.id,
+                            )}
                             fillPreviewValue={fillPreviewValue}
                             fillHandleMouseDown={fillHandleMouseDown}
                           />

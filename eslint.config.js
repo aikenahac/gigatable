@@ -53,7 +53,7 @@ export default defineConfig(
       "react-hooks": reactHooksPlugin,
     },
     rules: {
-      // "curly": ["error", "all"],
+      curly: ["error", "all"],
       "no-console": "off",
       "no-unexpected-multiline": "warn",
       "prefer-arrow-callback": "error",

@@ -92,7 +92,9 @@ export function useCellSelection<TData>(
   // Iterates only the union bounding box; skips cells not in the DOM (virtual window).
   const updateSelectionDOM = useCallback(
     (prev: Selection | null, next: Selection | null) => {
-      if (!prev && !next) return;
+      if (!prev && !next) {
+        return;
+      }
 
       const rIdx = (s: Selection, k: "start" | "end") =>
         rowIndexMapRef.current[s[k].rowId] ?? -1;
@@ -142,19 +144,27 @@ export function useCellSelection<TData>(
         next ? nextCMax : -Infinity,
       );
 
-      if (minRow > maxRow || minCol > maxCol) return;
+      if (minRow > maxRow || minCol > maxCol) {
+        return;
+      }
 
       const rowIds = rowIdsRef.current;
       const colIds = columnIdsRef.current;
 
       for (let r = minRow; r <= maxRow; r++) {
         const rowId = rowIds[r];
-        if (!rowId) continue;
+        if (!rowId) {
+          continue;
+        }
         for (let c = minCol; c <= maxCol; c++) {
           const colId = colIds[c];
-          if (!colId) continue;
+          if (!colId) {
+            continue;
+          }
           const el = cellRefsMap.current.get(`${rowId}-${colId}`);
-          if (!el) continue;
+          if (!el) {
+            continue;
+          }
           const inNext =
             next !== null &&
             r >= nextRMin &&
@@ -258,8 +268,9 @@ export function useCellSelection<TData>(
     columnId: string,
   ) => {
     const { key } = e;
-    if (!["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(key))
+    if (!["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(key)) {
       return;
+    }
     e.preventDefault();
 
     const isCtrl = e.ctrlKey || e.metaKey;
@@ -298,10 +309,15 @@ export function useCellSelection<TData>(
     let rowAlign: "start" | "end" | "auto" = "auto";
     let colAlign: "start" | "end" | "auto" = "auto";
     if (isCtrl) {
-      if (key === "ArrowDown") rowAlign = "end";
-      else if (key === "ArrowUp") rowAlign = "start";
-      else if (key === "ArrowRight") colAlign = "end";
-      else if (key === "ArrowLeft") colAlign = "start";
+      if (key === "ArrowDown") {
+        rowAlign = "end";
+      } else if (key === "ArrowUp") {
+        rowAlign = "start";
+      } else if (key === "ArrowRight") {
+        colAlign = "end";
+      } else if (key === "ArrowLeft") {
+        colAlign = "start";
+      }
     }
 
     if (e.shiftKey && selectedCell) {
@@ -360,9 +376,13 @@ export function useCellSelection<TData>(
   // DOM-only during drag — zero React state updates, zero re-renders.
   const handleMouseEnter = useCallback(
     (rowId: string, columnId: string) => {
-      if (!isSelectingRef.current) return;
+      if (!isSelectingRef.current) {
+        return;
+      }
       const prev = liveSelectionRef.current;
-      if (!prev) return;
+      if (!prev) {
+        return;
+      }
       const next: Selection = { start: prev.start, end: { rowId, columnId } };
       liveSelectionRef.current = next;
       updateSelectionDOM(prev, next);
@@ -405,14 +425,17 @@ export function useCellSelection<TData>(
   // Scroll selected cell into view
   useLayoutEffect(() => {
     selectedCellRef.current = selectedCell;
-    if (!selectedCell) return;
+    if (!selectedCell) {
+      return;
+    }
     const el = cellRefsMap.current.get(
       `${selectedCell.rowId}-${selectedCell.columnId}`,
     );
     if (el) {
       const activeElement = document.activeElement;
-      if (el.contains(activeElement) && isEditableElement(activeElement))
+      if (el.contains(activeElement) && isEditableElement(activeElement)) {
         return;
+      }
       el.focus();
       el.scrollIntoView({
         behavior: "smooth",
@@ -429,10 +452,14 @@ export function useCellSelection<TData>(
 
   // Auto-scroll at viewport edges during drag
   useEffect(() => {
-    if (!isSelecting || !containerRef?.current) return;
+    if (!isSelecting || !containerRef?.current) {
+      return;
+    }
     let animationFrameId: number;
     const autoScroll = () => {
-      if (!containerRef.current || !isSelectingRef.current) return;
+      if (!containerRef.current || !isSelectingRef.current) {
+        return;
+      }
       const container = containerRef.current;
       const rect = container.getBoundingClientRect();
       const { x: mouseX, y: mouseY } = mousePositionRef.current;
@@ -497,7 +524,9 @@ export function useCellSelection<TData>(
     };
     animationFrameId = requestAnimationFrame(autoScroll);
     return () => {
-      if (animationFrameId) cancelAnimationFrame(animationFrameId);
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
     };
   }, [isSelecting, containerRef]);
 
