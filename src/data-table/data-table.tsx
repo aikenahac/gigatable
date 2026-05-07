@@ -13,7 +13,11 @@ import { useCellSelection } from "./use-cell-selection";
 import { useCopyToClipboard } from "./use-copy-to-clipboard";
 import { useFillHandle } from "./use-fill-handle";
 import { parseCopyData } from "./parse-copy-data";
-import React, { useCallback, useEffect, useRef } from "react";
+import type { CopyBuffer } from "./parse-copy-data";
+import { parsePasteData } from "./parse-paste-data";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+
+const PASTE_HIGHLIGHT_TIMEOUT_DURATION = 5000;
 
 export interface DataTableProps<TData> {
   table: TanStackTableType<TData>;
@@ -25,6 +29,7 @@ export interface DataTableProps<TData> {
   paste?: (
     selectedCell: CellCoordinates,
     clipboardData?: string,
+    copyBuffer?: CopyBuffer | null,
   ) => PasteResult;
   onPasteComplete?: (result: PasteResult) => void;
   applyFill?: (
@@ -34,6 +39,62 @@ export interface DataTableProps<TData> {
   ) => void;
   undo?: () => void;
   redo?: () => void;
+}
+
+interface PasteHighlight {
+  rowIds: Array<string>;
+  columnIds: Array<string>;
+  phase: "active" | "fading";
+}
+
+function computePasteCellStyle(
+  rowId: string,
+  columnId: string,
+  highlight: PasteHighlight | null,
+): {
+  pasteBackground: string;
+  pasteShadow: string;
+  pasteTransition: boolean;
+} {
+  if (!highlight) {
+    return { pasteBackground: "", pasteShadow: "", pasteTransition: false };
+  }
+
+  const rowIdx = highlight.rowIds.indexOf(rowId);
+  const colIdx = highlight.columnIds.indexOf(columnId);
+
+  if (rowIdx === -1 || colIdx === -1) {
+    return { pasteBackground: "", pasteShadow: "", pasteTransition: false };
+  }
+
+  if (highlight.phase === "fading") {
+    return {
+      pasteBackground: "transparent",
+      pasteShadow: "",
+      pasteTransition: true,
+    };
+  }
+
+  const color = "#3d5aa9";
+  const shadows: Array<string> = [];
+  if (rowIdx === 0) {
+    shadows.push(`inset 0 1.5px 0 ${color}`);
+  }
+  if (rowIdx === highlight.rowIds.length - 1) {
+    shadows.push(`inset 0 -1.5px 0 ${color}`);
+  }
+  if (colIdx === 0) {
+    shadows.push(`inset 1.5px 0 0 ${color}`);
+  }
+  if (colIdx === highlight.columnIds.length - 1) {
+    shadows.push(`inset -1.5px 0 0 ${color}`);
+  }
+
+  return {
+    pasteBackground: "rgba(134, 239, 172, 0.25)",
+    pasteShadow: shadows.join(", "),
+    pasteTransition: false,
+  };
 }
 
 const TableCell = React.memo(
@@ -47,6 +108,9 @@ const TableCell = React.memo(
     isFillSource,
     fillPreviewValue,
     fillHandleMouseDown,
+    pasteBackground,
+    pasteShadow,
+    pasteTransition,
   }: {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TableCell is defined outside DataTable<TData>, so the generic row type is unavailable here
     cell: Cell<any, unknown>;
@@ -58,11 +122,21 @@ const TableCell = React.memo(
     isFillSource: boolean;
     fillPreviewValue: unknown;
     fillHandleMouseDown: (e: React.MouseEvent) => void;
+    pasteBackground: string;
+    pasteShadow: string;
+    pasteTransition: boolean;
   }) => (
     <Table.Data
       ref={cellRef}
       tabIndex={0}
-      style={{ width: `${cell.column.getSize()}px` }}
+      style={{
+        width: `${cell.column.getSize()}px`,
+        backgroundColor: pasteBackground || undefined,
+        boxShadow: pasteShadow || undefined,
+        transition: pasteTransition
+          ? "background-color 3000ms ease"
+          : undefined,
+      }}
       data-row-id={cell.row.id}
       data-column-id={cell.column.id}
       className={clsx({
@@ -98,7 +172,10 @@ const TableCell = React.memo(
     prevProps.fillPreviewValue === nextProps.fillPreviewValue &&
     prevProps.cell.getValue() === nextProps.cell.getValue() &&
     prevProps.cell.row.id === nextProps.cell.row.id &&
-    prevProps.cell.column.id === nextProps.cell.column.id,
+    prevProps.cell.column.id === nextProps.cell.column.id &&
+    prevProps.pasteBackground === nextProps.pasteBackground &&
+    prevProps.pasteShadow === nextProps.pasteShadow &&
+    prevProps.pasteTransition === nextProps.pasteTransition,
 );
 TableCell.displayName = "TableCell";
 
@@ -119,6 +196,22 @@ export function DataTable<TData>({
   const rows = table.getRowModel().rows;
   const leafColumns = table.getVisibleLeafColumns();
   const lastMouseOverCellRef = useRef<string | null>(null);
+  const copyBufferRef = useRef<CopyBuffer | null>(null);
+  const tableRef = useRef(table);
+  tableRef.current = table;
+
+  const [pasteHighlight, setPasteHighlight] = useState<PasteHighlight | null>(
+    null,
+  );
+  const fadeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (fadeTimerRef.current) {
+        clearTimeout(fadeTimerRef.current);
+      }
+    };
+  }, []);
 
   const rowVirtualizer = useVirtualizer({
     count: rows.length,
@@ -202,6 +295,25 @@ export function DataTable<TData>({
   });
 
   const [, copy] = useCopyToClipboard();
+
+  // Trigger fade when the user moves selection away after a paste
+  const prevSelectedCellKeyRef = useRef<string>("");
+  useEffect(() => {
+    const key = selectedCell
+      ? `${selectedCell.rowId}:${selectedCell.columnId}`
+      : "";
+    if (
+      pasteHighlight?.phase === "active" &&
+      key !== prevSelectedCellKeyRef.current
+    ) {
+      if (fadeTimerRef.current) {
+        clearTimeout(fadeTimerRef.current);
+      }
+      setPasteHighlight((prev) => (prev ? { ...prev, phase: "fading" } : null));
+      fadeTimerRef.current = setTimeout(() => setPasteHighlight(null), PASTE_HIGHLIGHT_TIMEOUT_DURATION);
+    }
+    prevSelectedCellKeyRef.current = key;
+  }, [selectedCell, pasteHighlight]);
 
   const handleBodyClick = useCallback(
     (e: React.MouseEvent) => {
@@ -295,12 +407,13 @@ export function DataTable<TData>({
         selectedRange
       ) {
         event.preventDefault();
-        const clipboardData = parseCopyData(
+        const copyBuffer = parseCopyData(
           selectedRange,
           table.getRowModel().rows,
           table.getAllColumns(),
         );
-        void copy(clipboardData);
+        copyBufferRef.current = copyBuffer;
+        void copy(copyBuffer.text);
       }
       if (
         allowHistory &&
@@ -322,8 +435,51 @@ export function DataTable<TData>({
   useEffect(() => {
     if (allowPaste && paste && selectedCell) {
       const pasteHandler = (event: ClipboardEvent) => {
-        const clipboardData = event.clipboardData?.getData("Text");
-        const result = paste(selectedCell, clipboardData);
+        const clipboardText = event.clipboardData?.getData("Text");
+        const result = paste(
+          selectedCell,
+          clipboardText,
+          copyBufferRef.current,
+        );
+
+        if (clipboardText && result.totalChanges > 0) {
+          const t = tableRef.current;
+          const parsedRows = parsePasteData(clipboardText);
+          const allRows = t.getRowModel().rows;
+          const startRowIdx = allRows.findIndex(
+            (r) => r.id === selectedCell.rowId,
+          );
+          const highlightRowIds = allRows
+            .slice(startRowIdx, startRowIdx + parsedRows.length)
+            .map((r) => r.id);
+
+          const isInternal =
+            copyBufferRef.current != null &&
+            clipboardText === copyBufferRef.current.text;
+
+          let highlightColumnIds: Array<string>;
+          if (isInternal && copyBufferRef.current) {
+            highlightColumnIds = copyBufferRef.current.columnIds;
+          } else {
+            const visibleCols = t.getVisibleFlatColumns();
+            const startColIdx = visibleCols.findIndex(
+              (c) => c.id === selectedCell.columnId,
+            );
+            highlightColumnIds = (parsedRows[0] ?? [])
+              .map((_, i) => visibleCols[startColIdx + i]?.id ?? "")
+              .filter(Boolean);
+          }
+
+          if (fadeTimerRef.current) {
+            clearTimeout(fadeTimerRef.current);
+          }
+          setPasteHighlight({
+            rowIds: highlightRowIds,
+            columnIds: highlightColumnIds,
+            phase: "active",
+          });
+        }
+
         if (onPasteComplete && result.totalChanges > 0) {
           onPasteComplete(result);
         }
@@ -405,6 +561,15 @@ export function DataTable<TData>({
                       <td style={{ width: `${leftColPad}px`, padding: 0 }} />
                       {virtualColumns.map((vc) => {
                         const cell = visibleCells[vc.index];
+                        const {
+                          pasteBackground,
+                          pasteShadow,
+                          pasteTransition,
+                        } = computePasteCellStyle(
+                          cell.row.id,
+                          cell.column.id,
+                          pasteHighlight,
+                        );
                         return (
                           <TableCell
                             key={cell.id}
@@ -431,6 +596,9 @@ export function DataTable<TData>({
                             )}
                             fillPreviewValue={fillPreviewValue}
                             fillHandleMouseDown={fillHandleMouseDown}
+                            pasteBackground={pasteBackground}
+                            pasteShadow={pasteShadow}
+                            pasteTransition={pasteTransition}
                           />
                         );
                       })}

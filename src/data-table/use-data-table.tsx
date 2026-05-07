@@ -2,6 +2,7 @@ import type { ColumnDef, RowData, TableOptions } from "@tanstack/react-table";
 import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import { useHistoryState } from "./use-history-state";
 import type { CellCoordinates } from "./use-cell-selection";
+import type { CopyBuffer } from "./parse-copy-data";
 import { parsePasteData } from "./parse-paste-data";
 import { useCallback, useEffect, useState } from "react";
 
@@ -89,6 +90,7 @@ export function useDataTable<TData extends Record<string, unknown>, TValue>({
     (
       selectedCell: CellCoordinates,
       clipboardData: string | undefined,
+      copyBuffer?: CopyBuffer | null,
     ): PasteResult => {
       if (!clipboardData) {
         return { changes: [], totalChanges: 0 };
@@ -105,24 +107,30 @@ export function useDataTable<TData extends Record<string, unknown>, TValue>({
         const startRowIndex = rows.findIndex(
           (row) => row.id === selectedCell.rowId,
         );
-        const startColIndex = columns.findIndex(
-          (col) => col.id === selectedCell.columnId,
-        );
 
-        parsedData.forEach((row, rowIndex) => {
-          const targetRowIndex = startRowIndex + rowIndex;
-          if (targetRowIndex >= rows.length) {
-            return;
-          }
+        const isInternalPaste =
+          copyBuffer != null && clipboardData === copyBuffer.text;
 
-          row.forEach((newValue, colIndex) => {
-            const targetColIndex = startColIndex + colIndex;
-            if (targetColIndex < columns.length) {
-              const columnId = columns[targetColIndex].id;
+        if (isInternalPaste) {
+          parsedData.forEach((rowData, rowIndex) => {
+            const targetRowIndex = startRowIndex + rowIndex;
+            if (targetRowIndex >= rows.length) {
+              return;
+            }
+
+            copyBuffer.columnIds.forEach((columnId, colIndex) => {
+              const column = columns.find((c) => c.id === columnId);
+              if (!column) {
+                return;
+              }
+
+              const newValue = rowData[colIndex];
+              if (newValue === undefined) {
+                return;
+              }
+
               const oldValue = newData[targetRowIndex][columnId];
-
               if (oldValue !== newValue) {
-                const column = columns[targetColIndex];
                 const columnHeader =
                   typeof column.columnDef.header === "string"
                     ? column.columnDef.header
@@ -140,9 +148,49 @@ export function useDataTable<TData extends Record<string, unknown>, TValue>({
                 (newData[targetRowIndex] as Record<string, unknown>)[columnId] =
                   newValue;
               }
-            }
+            });
           });
-        });
+        } else {
+          const startColIndex = columns.findIndex(
+            (col) => col.id === selectedCell.columnId,
+          );
+
+          parsedData.forEach((row, rowIndex) => {
+            const targetRowIndex = startRowIndex + rowIndex;
+            if (targetRowIndex >= rows.length) {
+              return;
+            }
+
+            row.forEach((newValue, colIndex) => {
+              const targetColIndex = startColIndex + colIndex;
+              if (targetColIndex < columns.length) {
+                const columnId = columns[targetColIndex].id;
+                const oldValue = newData[targetRowIndex][columnId];
+
+                if (oldValue !== newValue) {
+                  const column = columns[targetColIndex];
+                  const columnHeader =
+                    typeof column.columnDef.header === "string"
+                      ? column.columnDef.header
+                      : columnId;
+
+                  changes.push({
+                    rowIndex: targetRowIndex,
+                    rowId: rows[targetRowIndex].id,
+                    columnId,
+                    columnHeader,
+                    oldValue,
+                    newValue,
+                  });
+
+                  (newData[targetRowIndex] as Record<string, unknown>)[
+                    columnId
+                  ] = newValue;
+                }
+              }
+            });
+          });
+        }
 
         return newData;
       });

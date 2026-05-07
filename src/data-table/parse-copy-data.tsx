@@ -1,11 +1,16 @@
 import type { Selection } from "./use-cell-selection";
 import type { Column, Row } from "@tanstack/react-table";
 
+export interface CopyBuffer {
+  text: string;
+  columnIds: Array<string>;
+}
+
 export function parseCopyData<TData>(
   selection: Selection,
   rows: Array<Row<TData>>,
   columns: Array<Column<TData>>,
-) {
+): CopyBuffer {
   const { start, end } = selection;
 
   const startRowIndex = rows.findIndex((row) => row.id === start.rowId);
@@ -13,7 +18,12 @@ export function parseCopyData<TData>(
   const startColIndex = columns.findIndex((col) => col.id === start.columnId);
   const endColIndex = columns.findIndex((col) => col.id === end.columnId);
 
-  return rows
+  const colStart = Math.min(startColIndex, endColIndex);
+  const colEnd = Math.max(startColIndex, endColIndex) + 1;
+
+  const columnIds = columns.slice(colStart, colEnd).map((col) => col.id);
+
+  const text = rows
     .slice(
       Math.min(startRowIndex, endRowIndex),
       Math.max(startRowIndex, endRowIndex) + 1,
@@ -21,12 +31,11 @@ export function parseCopyData<TData>(
     .map((row) =>
       row
         .getVisibleCells()
-        .slice(
-          Math.min(startColIndex, endColIndex),
-          Math.max(startColIndex, endColIndex) + 1,
-        )
+        .slice(colStart, colEnd)
         .map((cell) => cell.getValue())
         .join("\t"),
     )
     .join("\n");
+
+  return { text, columnIds };
 }
