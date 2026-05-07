@@ -198,6 +198,7 @@ export function DataTable<TData>({
     applyFill: applyFill ?? (() => {}),
     onFillComplete: setRangeSelection,
     enabled: allowFillHandle && !!applyFill,
+    containerRef: tableContainerRef,
   });
 
   const [, copy] = useCopyToClipboard();

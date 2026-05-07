@@ -305,7 +305,8 @@ export function useCellSelection<TData>(
       rowId: rows[nextRowIndex].id,
       columnId: columns[nextColIndex].id,
     };
-    const scrollBehavior: "auto" | "smooth" = isCtrl ? "auto" : "smooth";
+    const scrollBehavior: "auto" | "smooth" =
+      isCtrl || e.shiftKey ? "auto" : "smooth";
     let rowAlign: "start" | "end" | "auto" = "auto";
     let colAlign: "start" | "end" | "auto" = "auto";
     if (isCtrl) {
@@ -323,13 +324,59 @@ export function useCellSelection<TData>(
     if (e.shiftKey && selectedCell) {
       const start = liveSelectionRef.current?.start ?? selectedCell;
       commitSelection({ start, end: nextCoord });
-      scrollToIndex?.(
-        nextRowIndex,
-        nextColIndex,
-        scrollBehavior,
-        rowAlign,
-        colAlign,
+      // Scroll based on the cell's actual viewport position rather than the virtualizer's
+      // virtual coordinates — the virtualizer treats overscan-rendered cells as in-view.
+      const endEl = cellRefsMap.current.get(
+        `${nextCoord.rowId}-${nextCoord.columnId}`,
       );
+      if (endEl && containerRef?.current) {
+        const container = containerRef.current;
+        const el = endEl.getBoundingClientRect();
+        const ct = container.getBoundingClientRect();
+        // Use the cell's own size as a one-cell lookahead buffer.
+        if (key === "ArrowDown") {
+          const edge = el.bottom + el.height;
+          if (edge > ct.bottom) {
+            container.scrollTop += edge - ct.bottom;
+          }
+        } else if (key === "ArrowUp") {
+          const edge = el.top - el.height;
+          if (edge < ct.top) {
+            container.scrollTop -= ct.top - edge;
+          }
+        } else if (key === "ArrowRight") {
+          const edge = el.right + el.width;
+          if (edge > ct.right) {
+            container.scrollLeft += edge - ct.right;
+          }
+        } else if (key === "ArrowLeft") {
+          const edge = el.left - el.width;
+          if (edge < ct.left) {
+            container.scrollLeft -= ct.left - edge;
+          }
+        }
+      } else {
+        // Cell not rendered yet (beyond overscan) — fall back to virtualizer scroll.
+        const scrollRowIndex =
+          key === "ArrowDown"
+            ? Math.min(nextRowIndex + 1, rows.length - 1)
+            : key === "ArrowUp"
+              ? Math.max(nextRowIndex - 1, 0)
+              : nextRowIndex;
+        const scrollColIndex =
+          key === "ArrowRight"
+            ? Math.min(nextColIndex + 1, columns.length - 1)
+            : key === "ArrowLeft"
+              ? Math.max(nextColIndex - 1, 0)
+              : nextColIndex;
+        scrollToIndex?.(
+          scrollRowIndex,
+          scrollColIndex,
+          scrollBehavior,
+          rowAlign,
+          colAlign,
+        );
+      }
       // selectedCell (the anchor) didn't change, so useLayoutEffect won't fire.
       // After the scroll, the anchor cell may be virtualized off-screen and lose focus.
       // Re-focus the container in the next frame so keyboard events keep working.

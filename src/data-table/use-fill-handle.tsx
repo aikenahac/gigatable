@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type React from "react";
 import type { Row } from "@tanstack/react-table";
 import type { CellCoordinates, Selection } from "./use-cell-selection";
 
@@ -21,6 +22,7 @@ export interface UseFillHandleProps {
   ) => void;
   onFillComplete?: (start: CellCoordinates, end: CellCoordinates) => void;
   enabled: boolean;
+  containerRef?: React.RefObject<HTMLDivElement | null>;
 }
 
 export interface UseFillHandleReturn {
@@ -39,6 +41,7 @@ export function useFillHandle({
   applyFill,
   onFillComplete,
   enabled,
+  containerRef,
 }: UseFillHandleProps): UseFillHandleReturn {
   const rowIndexMapRef = useRef<Record<string, number>>({});
   const rowsRef = useRef<Array<Row<unknown>>>(rows);
@@ -58,6 +61,8 @@ export function useFillHandle({
 
   const [dragState, setDragState] = useState<DragState | null>(null);
   const dragStateRef = useRef<DragState | null>(null);
+  const mousePositionRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  const isDraggingRef = useRef(false);
 
   // During drag: handle follows hover row. At rest: handle at bottommost row of selection.
   const anchorCellKey = useMemo(() => {
@@ -166,6 +171,7 @@ export function useFillHandle({
   }, [dragState, rows]);
 
   const handleGlobalMouseMove = useCallback((e: MouseEvent) => {
+    mousePositionRef.current = { x: e.clientX, y: e.clientY };
     const state = dragStateRef.current;
     if (!state) {
       return;
@@ -226,6 +232,7 @@ export function useFillHandle({
       }
     }
 
+    isDraggingRef.current = false;
     dragStateRef.current = null;
     setDragState(null);
   }, [applyFill, onFillComplete]);
@@ -241,6 +248,68 @@ export function useFillHandle({
       document.removeEventListener("mouseup", handleGlobalMouseUp);
     };
   }, [dragState, handleGlobalMouseMove, handleGlobalMouseUp]);
+
+  // Auto-scroll at viewport edges during fill drag
+  useEffect(() => {
+    if (!dragState || !containerRef?.current) {
+      return;
+    }
+    let animationFrameId: number;
+    const autoScroll = () => {
+      if (!containerRef.current || !isDraggingRef.current) {
+        return;
+      }
+      const container = containerRef.current;
+      const rect = container.getBoundingClientRect();
+      const { x: mouseX, y: mouseY } = mousePositionRef.current;
+      const edgeThreshold = 80;
+      const maxScrollSpeed = 15;
+      let scrollY = 0;
+      const distBottom = rect.bottom - mouseY;
+      const distTop = mouseY - rect.top;
+      if (distBottom < edgeThreshold) {
+        scrollY =
+          maxScrollSpeed * (1 - Math.max(0, distBottom) / edgeThreshold);
+      } else if (distTop < edgeThreshold) {
+        scrollY = -maxScrollSpeed * (1 - Math.max(0, distTop) / edgeThreshold);
+      }
+      if (scrollY !== 0) {
+        container.scrollTop += scrollY;
+        // After scrolling, find the cell now under the clamped edge point and update hover
+        const contentBottom = rect.top + container.clientHeight;
+        const clampedY = Math.max(
+          rect.top + 2,
+          Math.min(contentBottom - 2, mouseY),
+        );
+        const clampedX = Math.max(
+          rect.left + 2,
+          Math.min(rect.left + container.clientWidth - 2, mouseX),
+        );
+        const el = document.elementFromPoint(clampedX, clampedY);
+        const td = el?.closest(
+          "td[data-row-id]",
+        ) as HTMLTableCellElement | null;
+        const state = dragStateRef.current;
+        if (td && state && td.dataset.columnId === state.columnId) {
+          const rowIdx = rowIndexMapRef.current[td.dataset.rowId!] ?? -1;
+          if (rowIdx !== -1 && rowIdx !== state.hoverRowIdx) {
+            const nextState = { ...state, hoverRowIdx: rowIdx };
+            dragStateRef.current = nextState;
+            setDragState(nextState);
+          }
+        }
+      }
+      if (isDraggingRef.current) {
+        animationFrameId = requestAnimationFrame(autoScroll);
+      }
+    };
+    animationFrameId = requestAnimationFrame(autoScroll);
+    return () => {
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
+    };
+  }, [dragState, containerRef]);
 
   const fillHandleMouseDown = useCallback(
     (e: React.MouseEvent) => {
@@ -272,6 +341,7 @@ export function useFillHandle({
         selBotIdx,
         hoverRowIdx: selBotIdx,
       };
+      isDraggingRef.current = true;
       dragStateRef.current = state;
       setDragState(state);
     },
