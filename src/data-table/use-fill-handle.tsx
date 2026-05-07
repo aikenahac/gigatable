@@ -12,7 +12,7 @@ interface DragState {
 export interface UseFillHandleProps {
   selectedCell: CellCoordinates | null;
   selection: Selection | null;
-  rows: Array<Row<any>>;
+  rows: Array<Row<unknown>>;
   isColumnEditable: (columnId: string) => boolean;
   applyFill: (columnId: string, targetRowIndices: Array<number>, value: unknown) => void;
   onFillComplete?: (start: CellCoordinates, end: CellCoordinates) => void;
@@ -37,7 +37,7 @@ export function useFillHandle({
   enabled,
 }: UseFillHandleProps): UseFillHandleReturn {
   const rowIndexMapRef = useRef<Record<string, number>>({});
-  const rowsRef = useRef<Array<Row<any>>>(rows);
+  const rowsRef = useRef<Array<Row<unknown>>>(rows);
 
   const rowIndexMap = useMemo(() => {
     const map: Record<string, number> = {};
@@ -117,8 +117,8 @@ export function useFillHandle({
   const fillPreviewValue = useMemo(() => {
     if (!dragState) return undefined;
     const { columnId, selTopIdx, selBotIdx, hoverRowIdx } = dragState;
-    if (hoverRowIdx > selBotIdx) return rows[selTopIdx]?.original[columnId];
-    if (hoverRowIdx < selBotIdx) return rows[selBotIdx]?.original[columnId];
+    if (hoverRowIdx > selBotIdx) return (rows[selTopIdx]?.original as Record<string, unknown>)?.[columnId];
+    if (hoverRowIdx < selBotIdx) return (rows[selBotIdx]?.original as Record<string, unknown>)?.[columnId];
     return undefined;
   }, [dragState, rows]);
 
@@ -140,17 +140,17 @@ export function useFillHandle({
     if (!state) return;
     const { columnId, selTopIdx, selBotIdx, hoverRowIdx } = state;
     const currentRows = rowsRef.current;
-    let targetIndices: Array<number> = [];
+    const targetIndices: Array<number> = [];
     let sourceValue: unknown;
     let newSelTopIdx = selTopIdx;
     let newSelBotIdx = selBotIdx;
 
     if (hoverRowIdx > selBotIdx) {
-      sourceValue = currentRows[selTopIdx]?.original[columnId];
+      sourceValue = (currentRows[selTopIdx]?.original as Record<string, unknown>)?.[columnId];
       for (let i = selTopIdx + 1; i <= hoverRowIdx; i++) targetIndices.push(i);
       newSelBotIdx = hoverRowIdx;
     } else if (hoverRowIdx < selBotIdx) {
-      sourceValue = currentRows[selBotIdx]?.original[columnId];
+      sourceValue = (currentRows[selBotIdx]?.original as Record<string, unknown>)?.[columnId];
       for (let i = hoverRowIdx; i <= selBotIdx - 1; i++) targetIndices.push(i);
       newSelTopIdx = hoverRowIdx;
     }

@@ -6,7 +6,7 @@ export interface TableMeta<TData> extends TableMetaTS<TData> {
   updateCellData?: (rowId: number, colId: string, value: unknown) => void;
 }
 
-interface EditableCellInputProps<TValue> {
+export interface EditableCellInputProps<TValue> {
   value: TValue;
   onChange: (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,

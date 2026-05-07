@@ -1,11 +1,12 @@
 import { EditableCell } from "./data-table";
+import type { EditableCellInputProps } from "./data-table/editable-cell";
 import { Strain } from "./strains";
 import { ColumnDef } from "@tanstack/react-table";
 import "./types/react-table";
 import React from "react";
 
 // Memoized input components to prevent re-renders
-const TextInput = React.memo(({ value, onChange, onBlur, onKeyDown }: any) => (
+const TextInput = React.memo(({ value, onChange, onBlur, onKeyDown }: EditableCellInputProps<unknown>) => (
   <input
     type="text"
     autoFocus
@@ -17,7 +18,7 @@ const TextInput = React.memo(({ value, onChange, onBlur, onKeyDown }: any) => (
 ));
 TextInput.displayName = "TextInput";
 
-const NumberInput = React.memo(({ value, onChange, onBlur, onKeyDown, step }: any) => (
+const NumberInput = React.memo(({ value, onChange, onBlur, onKeyDown, step }: EditableCellInputProps<unknown> & { step?: string | number }) => (
   <input
     type="number"
     autoFocus
@@ -32,7 +33,7 @@ NumberInput.displayName = "NumberInput";
 
 // Wrapper to pass step prop
 const createNumberInput = (step?: string | number) => {
-  const SteppedNumberInput = React.memo((props: any) => (
+  const SteppedNumberInput = React.memo((props: EditableCellInputProps<unknown>) => (
     <NumberInput {...props} step={step} />
   ));
   SteppedNumberInput.displayName = `NumberInput_${step}`;

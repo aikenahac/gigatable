@@ -27,7 +27,7 @@ export interface UseDataTableProps<TData extends RowData, TValue>
   maxHistorySize?: number;
 }
 
-export function useDataTable<TData extends Record<string, any>, TValue>({
+export function useDataTable<TData extends Record<string, unknown>, TValue>({
   columns,
   data: initialData,
   history = false,
@@ -133,7 +133,7 @@ export function useDataTable<TData extends Record<string, any>, TValue>({
                   newValue,
                 });
 
-                (newData[targetRowIndex] as Record<string, any>)[columnId] =
+                (newData[targetRowIndex] as Record<string, unknown>)[columnId] =
                   newValue;
               }
             }

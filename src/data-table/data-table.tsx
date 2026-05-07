@@ -1,5 +1,5 @@
 import { clsx } from "clsx";
-import type { Row, Table as TanStackTableType } from "@tanstack/react-table";
+import type { Cell, Row, Table as TanStackTableType } from "@tanstack/react-table";
 import { flexRender } from "@tanstack/react-table";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Table } from "../table";
@@ -44,7 +44,8 @@ const TableCell = React.memo(
     fillPreviewValue,
     fillHandleMouseDown,
   }: {
-    cell: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TableCell is defined outside DataTable<TData>, so the generic row type is unavailable here
+    cell: Cell<any, unknown>;
     cellRef: (el: HTMLTableCellElement | null) => void;
     isSelected: boolean;
     isEditable: boolean;
@@ -175,7 +176,7 @@ export function DataTable<TData>({
   const { isAnchorCell, isFillRangeCell, isFillSourceCell, fillPreviewValue, fillHandleMouseDown } = useFillHandle({
     selectedCell,
     selection: selectedRange,
-    rows: rows as Array<Row<any>>,
+    rows: rows as Array<Row<unknown>>,
     isColumnEditable,
     applyFill: applyFill ?? (() => {}),
     onFillComplete: setRangeSelection,
@@ -251,7 +252,7 @@ export function DataTable<TData>({
   );
 
   useEffect(() => {
-    const handler = async (event: KeyboardEvent) => {
+    const handler = (event: KeyboardEvent) => {
       if (
         (event.ctrlKey || event.metaKey) &&
         event.key === "c" &&
@@ -263,7 +264,7 @@ export function DataTable<TData>({
           table.getRowModel().rows,
           table.getAllColumns(),
         );
-        await copy(clipboardData);
+        void copy(clipboardData);
       }
       if (
         allowHistory &&
@@ -284,7 +285,9 @@ export function DataTable<TData>({
       const pasteHandler = (event: ClipboardEvent) => {
         const clipboardData = event.clipboardData?.getData("Text");
         const result = paste(selectedCell, clipboardData);
-        if (onPasteComplete && result.totalChanges > 0) onPasteComplete(result);
+        if (onPasteComplete && result.totalChanges > 0) {
+          onPasteComplete(result);
+        }
       };
       document.addEventListener("paste", pasteHandler);
       return () => document.removeEventListener("paste", pasteHandler);
