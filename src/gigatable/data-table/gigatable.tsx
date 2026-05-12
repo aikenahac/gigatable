@@ -9,13 +9,22 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { Table } from "../table";
 import type { CellCoordinates } from "./use-cell-selection";
 import type { PasteResult } from "./use-gigatable";
-import { useCellSelection } from "./use-cell-selection";
+import {
+  isCellWithinSelection,
+  useCellSelection,
+} from "./use-cell-selection";
 import { useCopyToClipboard } from "./use-copy-to-clipboard";
 import { useFillHandle } from "./use-fill-handle";
 import { parseCopyData } from "./parse-copy-data";
 import type { CopyBuffer } from "./parse-copy-data";
 import { parsePasteData } from "./parse-paste-data";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import type { GigatableTheme } from "../theme/types";
 import { resolveTheme } from "../theme/utils";
 import { EditableCell } from "./editable-cell";
@@ -132,6 +141,7 @@ const TableCell = React.memo(
     cell,
     cellRef,
     isSelected,
+    isInRange,
     isEditable,
     isFillAnchor,
     isFillRange,
@@ -147,6 +157,7 @@ const TableCell = React.memo(
     cell: Cell<any, unknown>;
     cellRef: (el: HTMLTableCellElement | null) => void;
     isSelected: boolean;
+    isInRange: boolean;
     isEditable: boolean;
     isFillAnchor: boolean;
     isFillRange: boolean;
@@ -163,7 +174,13 @@ const TableCell = React.memo(
       tabIndex={0}
       style={{
         width: `${cell.column.getSize()}px`,
-        backgroundColor: pasteBackground || undefined,
+        backgroundColor:
+          pasteBackground ||
+          (isFillRange
+            ? "var(--gt-fill-preview-bg)"
+            : isInRange
+              ? "var(--gt-range-bg)"
+              : undefined),
         boxShadow: pasteShadow || undefined,
         transition: pasteTransition
           ? "background-color 3000ms ease"
@@ -176,6 +193,7 @@ const TableCell = React.memo(
           isSelected,
         "cursor-text": isEditable,
         relative: isFillAnchor,
+        "is-in-range": isInRange,
         "is-fill-range": isFillRange,
       })}
       overlay={
@@ -203,6 +221,7 @@ const TableCell = React.memo(
   ),
   (prevProps, nextProps) =>
     prevProps.isSelected === nextProps.isSelected &&
+    prevProps.isInRange === nextProps.isInRange &&
     prevProps.isFillAnchor === nextProps.isFillAnchor &&
     prevProps.isFillRange === nextProps.isFillRange &&
     prevProps.isFillSource === nextProps.isFillSource &&
@@ -322,6 +341,11 @@ export function Gigatable<TData>({
     handleMouseEnter,
     setRangeSelection,
   } = useCellSelection(rows, leafColumns, tableContainerRef, scrollToCell);
+  const selectedRangeRowIds = useMemo(() => rows.map((row) => row.id), [rows]);
+  const selectedRangeColumnIds = useMemo(
+    () => leafColumns.map((column) => column.id),
+    [leafColumns],
+  );
 
   const isColumnEditable = useCallback(
     (columnId: string) => {
@@ -643,8 +667,16 @@ export function Gigatable<TData>({
                               cell.row.id,
                               cell.column.id,
                             )}
+                            isInRange={isCellWithinSelection(
+                              cell.row.id,
+                              cell.column.id,
+                              selectedRange,
+                              selectedRangeRowIds,
+                              selectedRangeColumnIds,
+                            )}
                             isEditable={
-                              allColumnsEditable || (cell.column.columnDef.meta?.editable ?? false)
+                              allColumnsEditable ||
+                              (cell.column.columnDef.meta?.editable ?? false)
                             }
                             isFillAnchor={isAnchorCell(
                               cell.row.id,

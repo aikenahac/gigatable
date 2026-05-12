@@ -19,6 +19,43 @@ export interface Selection {
   end: CellCoordinates;
 }
 
+export const isCellWithinSelection = (
+  rowId: string,
+  columnId: string,
+  selection: Selection | null,
+  rowIds: Array<string>,
+  columnIds: Array<string>,
+) => {
+  if (!selection) {
+    return false;
+  }
+
+  const rowIndex = rowIds.indexOf(rowId);
+  const columnIndex = columnIds.indexOf(columnId);
+  const startRowIndex = rowIds.indexOf(selection.start.rowId);
+  const endRowIndex = rowIds.indexOf(selection.end.rowId);
+  const startColumnIndex = columnIds.indexOf(selection.start.columnId);
+  const endColumnIndex = columnIds.indexOf(selection.end.columnId);
+
+  if (
+    rowIndex === -1 ||
+    columnIndex === -1 ||
+    startRowIndex === -1 ||
+    endRowIndex === -1 ||
+    startColumnIndex === -1 ||
+    endColumnIndex === -1
+  ) {
+    return false;
+  }
+
+  return (
+    rowIndex >= Math.min(startRowIndex, endRowIndex) &&
+    rowIndex <= Math.max(startRowIndex, endRowIndex) &&
+    columnIndex >= Math.min(startColumnIndex, endColumnIndex) &&
+    columnIndex <= Math.max(startColumnIndex, endColumnIndex)
+  );
+};
+
 const isSameCell = (cell: CellCoordinates | null, nextCell: CellCoordinates) =>
   cell?.rowId === nextCell.rowId && cell.columnId === nextCell.columnId;
 
