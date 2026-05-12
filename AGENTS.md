@@ -1,10 +1,12 @@
 # AGENTS.md
 
-This file provides guidance to Codex (Codex.ai/code) when working with code in this repository.
+This file provides guidance to AI agents when working with code in this repository.
 
 ## Project Overview
 
-This is a React TypeScript application demonstrating an Excel-like data table with advanced features including cell selection, range selection, inline editing, copy/paste functionality, row virtualization, and undo/redo history.
+This is a React TypeScript application demonstrating an Excel-like data table with advanced features including cell selection, range selection, inline editing, copy/paste functionality, fill handle, row virtualization, and undo/redo history.
+
+The datatable component lives in `src/gigatable/` and is also distributed as a shadcn-style npm package via the `gigatable/` CLI package.
 
 Built with:
 - React 19.2.1 with TypeScript 5.9.3
@@ -36,149 +38,182 @@ pnpm generate-data 250
 pnpm format
 ```
 
+## Project Structure
+
+```
+src/
+├── gigatable/               # Gigatable component — source of truth for the npm package
+│   ├── data-table/          # Core datatable implementation
+│   │   ├── gigatable.tsx        # Main component (virtualization, selection, keyboard nav)
+│   │   ├── use-gigatable.tsx    # State hook (data, history, paste, fill)
+│   │   ├── editable-cell.tsx    # Inline editing component
+│   │   ├── use-cell-selection.tsx   # Cell/range selection logic
+│   │   ├── use-copy-to-clipboard.tsx
+│   │   ├── use-history-state.tsx    # Undo/redo stack
+│   │   ├── use-fill-handle.tsx      # Excel-style fill handle
+│   │   ├── parse-copy-data.tsx      # TSV copy formatter
+│   │   ├── parse-paste-data.tsx     # TSV paste parser
+│   │   └── index.ts                 # Internal barrel
+│   ├── table/               # HTML table primitive components
+│   │   ├── table.tsx        # Table, Table.Header, Table.Body, Table.Row, Table.Head, Table.Data
+│   │   └── index.ts
+│   ├── theme/               # Theming API
+│   │   ├── types.ts         # GigatableTheme interface
+│   │   ├── presets.ts       # themes.light, themes.dark, themes.minimal
+│   │   └── utils.ts         # resolveTheme() — merges theme into CSS variable map
+│   ├── types/
+│   │   └── react-table.ts   # TanStack Table ColumnMeta augmentation (meta.editable)
+│   ├── index.ts             # Public barrel export — consumers import from here
+│   └── USAGE.md             # Cheatsheet (copied into user projects by CLI)
+├── data/
+│   └── strains.json         # Generated biological strain data (100+ fields)
+├── types/
+│   └── react-table.d.ts     # Additional ambient type declarations
+├── app.tsx                  # Demo app — wires up gigatable with strain data
+├── columns.tsx              # 100+ column definitions for the demo
+├── strains.tsx              # Loads strains.json
+├── index.tsx                # Entry point
+└── styles.css               # Global styles (Tailwind directives)
+
+gigatable/                   # npm package — CLI tool only, no React code
+├── src/
+│   ├── cli/index.ts         # Entry point: npx gigatable init
+│   ├── commands/init.ts     # Init flow: validate, copy, install deps
+│   └── utils/
+│       ├── detect-pm.ts     # Detect npm/yarn/pnpm/bun from lockfiles
+│       ├── detect-ts.ts     # Check for tsconfig.json
+│       └── detect-tw.ts     # Check for tailwindcss in package.json deps
+├── scripts/deploy.ts        # Sync templates + build + npm publish
+├── package.json
+├── tsconfig.json            # CommonJS output to dist/
+└── vitest.config.mjs
+
+scripts/
+└── generateStrainData.js    # Faker-based data generator
+```
+
 ## Architecture
 
 ### Core Components
 
-**DataTable System** (`src/data-table/`):
-- `data-table.tsx`: Main table component that renders TanStack Table with custom cell selection, keyboard navigation, and row virtualization using `@tanstack/react-virtual`
-- `use-data-table.tsx`: Custom hook that manages table state, data updates, integrates history functionality, and provides paste functionality with change tracking
-- `editable-cell.tsx`: Component enabling inline cell editing with view/edit modes, keyboard shortcuts (Enter to edit, Escape to cancel, Tab/Enter to save)
-- `use-cell-selection.tsx`: Hook managing cell selection state, range selection with mouse drag, and arrow key navigation
-- `use-copy-to-clipboard.tsx`: Handles copying selected cell ranges to clipboard
-- `use-history-state.tsx`: Implements undo/redo functionality for data changes with configurable history size
-- `parse-copy-data.tsx` / `parse-paste-data.tsx`: Utilities for clipboard data transformation (TSV format)
-- `index.ts`: Barrel export for clean imports
+**`src/gigatable/`** is the canonical source for the datatable. The demo app imports from it, and the `gigatable/` CLI copies it into user projects.
 
-**Table Primitives** (`src/table/`):
-- `table.tsx`: Reusable HTML table wrapper components (Table, Table.Header, Table.Body, Table.Row, Table.Head, Table.Data) with Tailwind CSS styling
-- `index.ts`: Barrel export
-
-**Data Layer**:
-- `src/strains.tsx`: Exports strain data array loaded from JSON file
-- `src/data/strains.json`: Generated JSON data file with 100+ fields of biological strain information
-- `src/columns.tsx`: Column definitions (100+ columns) including which fields are editable (via `meta: { editable: true }` property)
-
-**Main Application**:
-- `src/app.tsx`: Main App component that initializes the DataTable with configuration
-- `src/index.tsx`: Application entry point
+**Public API** (what consumers import from `./gigatable`):
+- `Gigatable` — main table component
+- `useGigatable` — state hook
+- `EditableCell` — editable cell wrapper
+- `themes` — built-in theme presets (`themes.light`, `themes.dark`, `themes.minimal`)
+- Types: `GigatableProps`, `UseGigatableProps`, `CellChange`, `PasteResult`, `CellCoordinates`, `CopyBuffer`, `EditableCellInputProps`, `GigatableTheme`
 
 ### Naming Conventions
 
-- **Files**: kebab-case (e.g., `data-table.tsx`, `use-cell-selection.tsx`)
-- **Components**: PascalCase (e.g., `DataTable`, `EditableCell`)
-- **Hooks**: camelCase with `use` prefix (e.g., `useDataTable`, `useCellSelection`)
-- **Types/Interfaces**: PascalCase (e.g., `DataTableProps`, `CellCoordinates`)
+- **Files**: kebab-case (`gigatable.tsx`, `use-cell-selection.tsx`)
+- **Components**: PascalCase (`Gigatable`, `EditableCell`)
+- **Hooks**: camelCase with `use` prefix (`useGigatable`, `useCellSelection`)
+- **Types/Interfaces**: PascalCase (`GigatableProps`, `CellCoordinates`)
 
-### Key Features Implementation
+### Key Features
 
-**Cell Selection**:
-- Single cell selection via click (enabled with `allowCellSelection={true}`)
-- Range selection via mouse drag (enabled with `allowRangeSelection={true}`)
-- Arrow key navigation between cells
-- Visual feedback with outline for selected cell and background highlight for range
-- Configurable styling with Tailwind CSS classes
+**Cell Selection** — `allowCellSelection`, `allowRangeSelection`:
+- Click to select, drag to extend range, Shift+Arrow to extend
+- Arrow key navigation, Ctrl+Home/End to jump
+- Visual: outline on selected cell, `.is-in-range` class on range cells
 
-**Inline Editing**:
-- Double-click or press Enter on editable cells to activate edit mode
-- Escape to cancel changes, Enter/Tab to save and exit edit mode
-- Column definitions mark editable fields with `meta: { editable: true }`
-- Custom input renderers per column (text inputs, number inputs with step values)
-- EditableCell component handles view/edit state transitions
+**Inline Editing** — columns with `meta: { editable: true }`:
+- Double-click or Enter to enter edit mode
+- Escape to cancel, Tab/Enter to save
+- `EditableCell` wraps the cell; `renderInput` prop provides the input component
 
-**Copy/Paste**:
-- Ctrl/Cmd+C to copy selected range to clipboard (TSV format)
-- Ctrl/Cmd+V to paste data starting from selected cell
-- Paste returns a `PasteResult` with detailed change tracking (`changes` array and `totalChanges` count)
-- Optional `onPasteComplete` callback for handling paste events
-- Data parsed/formatted for Excel-like behavior
+**Copy/Paste** — `allowPaste`, `allowCellSelection` required:
+- Ctrl/Cmd+C copies TSV, Ctrl/Cmd+V pastes from cursor cell
+- `onPasteComplete` callback receives `PasteResult` with change details
 
-**History (Undo/Redo)**:
-- Undo: Ctrl/Cmd+Z
-- Redo: Ctrl/Cmd+Shift+Z
-- History managed through `useHistoryState` hook with configurable `maxHistorySize`
-- Enabled with `history={true}` prop in `useDataTable`
-- History state tracks all data mutations
+**Fill Handle** — `allowFillHandle`, `applyFill`, editable columns required:
+- 5×5px handle at bottom-right of anchor cell
+- Drag down to fill a column value across rows
 
-**Row Virtualization**:
-- Implemented using `@tanstack/react-virtual` for efficient rendering of large datasets
-- Only visible rows are rendered to the DOM
-- Configurable overscan (default: 50 rows) for smooth scrolling
-- Fixed row height estimation (30px) for optimal performance
-- Handles datasets with thousands of rows efficiently
+**Undo/Redo** — `allowHistory`, `history: true` in `useGigatable`:
+- Ctrl/Cmd+Z / Ctrl/Cmd+Shift+Z
+- `useHistoryState` stack, configurable `maxHistorySize` (default 20)
+
+**Row Virtualization** — always on:
+- `@tanstack/react-virtual`, row height derived from `theme.row.height` (default 30px), overscan 3–5 rows
+- Only visible rows in DOM
+
+### Gigatable Props
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `table` | `Table<TData>` | required | From `useGigatable` |
+| `allowCellSelection` | `boolean` | `false` | Click selection + arrow keys |
+| `allowRangeSelection` | `boolean` | `false` | Drag + Shift+Arrow range |
+| `allowHistory` | `boolean` | `false` | Ctrl/Cmd+Z/Shift+Z shortcuts |
+| `allowPaste` | `boolean` | `false` | Ctrl/Cmd+V paste |
+| `allowFillHandle` | `boolean` | `false` | Drag-fill down a column |
+| `paste` | `Function` | — | From `useGigatable`. Required when `allowPaste`. |
+| `applyFill` | `Function` | — | From `useGigatable`. Required when `allowFillHandle`. |
+| `undo` | `() => void` | — | From `useGigatable`. Required when `allowHistory`. |
+| `redo` | `() => void` | — | From `useGigatable`. Required when `allowHistory`. |
+| `onPasteComplete` | `(result: PasteResult) => void` | — | Callback after paste |
+| `theme` | `GigatableTheme` | `themes.light` | Customise visual appearance |
+| `allColumnsEditable` | `boolean` | `false` | Make every column editable with a default text input. Columns with `meta: { editable: true }` keep their own `renderInput`. |
+
+### useGigatable Options
+
+Extends all TanStack `TableOptions<TData>` except `getCoreRowModel`.
+
+| Option | Default | Description |
+|---|---|---|
+| `columns` | required | TanStack `ColumnDef[]` |
+| `data` | required | Row array |
+| `history` | `false` | Enable undo/redo |
+| `maxHistorySize` | `20` | Max undo steps |
+
+Returns: `{ table, paste, applyFill, undo, redo, clear, canUndo, canRedo }`
+
+### Column Definition Pattern
+
+```typescript
+// Read-only column
+{ accessorKey: "id", header: "ID", size: 80 }
+
+// Editable column
+{
+  accessorKey: "name",
+  header: "Name",
+  size: 200,
+  cell: (cell) => <EditableCell {...cell} renderInput={TextInput} />,
+  meta: { editable: true },
+}
+```
+
+`renderInput` receives `EditableCellInputProps<TValue>`: `{ value, onChange, onBlur, onValueChange, onKeyDown, cancelEditing, className }`.
 
 ### TypeScript Configuration
 
-- Path alias: `@root/*` maps to `src/*` (configured in both `tsconfig.json` and `vite.config.ts`)
-- Strict mode enabled with `noImplicitReturns` and `noUnusedLocals`
-- Custom type declarations in `src/types/react-table.ts` for extending TanStack Table's meta types
-- CSS type declarations in `css.d.ts`
-
-### State Management
-
-Data flow:
-1. Initial data loaded from `src/strains.tsx` (imports from `src/data/strains.json`)
-2. `useDataTable` hook manages current state, history, and provides:
-   - `table`: TanStack Table instance
-   - `paste`: Function to handle paste operations with change tracking
-   - `undo`: Function to undo last change
-   - `redo`: Function to redo last undone change
-   - `canUndo`/`canRedo`: Boolean flags for UI state
-3. Cell updates trigger `updateCellData` via TanStack Table's meta API
-4. Changes captured by history system when `history={true}` prop is set
-5. TanStack Table re-renders only affected cells (optimized)
-6. Row virtualization ensures only visible rows are in the DOM
-
-### DataTable Props
-
-The `DataTable` component accepts these props:
-- `table`: TanStack Table instance (required)
-- `allowCellSelection`: Enable single cell selection (default: false)
-- `allowRangeSelection`: Enable range selection with mouse drag (default: false)
-- `allowHistory`: Enable undo/redo keyboard shortcuts (default: false)
-- `allowPaste`: Enable paste functionality (default: false)
-- `paste`: Function returned from `useDataTable` for handling paste operations
-- `onPasteComplete`: Optional callback receiving `PasteResult` after paste
-- `undo`: Function for undo operation
-- `redo`: Function for redo operation
+- Root `tsconfig.json` excludes `gigatable/` (separate package with its own tsconfig)
+- Path alias `@root/*` → `src/*` in root tsconfig and `vite.config.ts`
+- `src/gigatable/types/react-table.ts` augments `ColumnMeta` with `editable?: boolean`
+- Include `src/gigatable/types/react-table.ts` in `tsconfig.json` `include` array to enable `meta.editable` without type errors
 
 ### Customization Points
 
-To modify table behavior:
-- **Add columns**: Edit `src/columns.tsx`, add column definitions with appropriate `accessorKey`
-- **Make column editable**: Set `meta: { editable: true }` and wrap cell renderer with `<EditableCell>` component with custom `renderInput` prop
-- **Change data**: Modify `src/strains.tsx` or regenerate with `npm run generate-data [count]`
-- **Adjust history size**: Pass `maxHistorySize` prop to `useDataTable` hook
-- **Customize keyboard shortcuts**: Modify event listeners in `data-table.tsx` or `use-cell-selection.tsx`
-- **Adjust virtualization**: Modify `estimateSize` (row height) or `overscan` (buffer rows) in `data-table.tsx`
-- **Styling**: Edit Tailwind classes in `data-table.tsx`, `table.tsx`, and `editable-cell.tsx`
+- **Add columns**: Edit `src/columns.tsx`
+- **Make column editable**: Add `meta: { editable: true }` + wrap cell with `<EditableCell renderInput={...}>`
+- **Change data**: Edit `src/strains.tsx` or run `pnpm generate-data [count]`
+- **Adjust history size**: Pass `maxHistorySize` to `useGigatable`
+- **Adjust virtualization**: Edit `overscan` in `src/gigatable/data-table/gigatable.tsx` (row height is derived from `theme.row.height`)
+- **Theming**: Pass a `theme` prop to `<Gigatable>`. Use a built-in preset (`themes.light`, `themes.dark`, `themes.minimal`), spread and override one, or build a partial `GigatableTheme`. All `--gt-*` CSS variables can also be overridden directly in CSS.
 
-### Data Generation
+### gigatable CLI Package
 
-The `scripts/generateStrainData.js` script uses @faker-js/faker to create biological strain data with 100+ fields including temperature, pH, viability, cell count, dates, quality metrics, and more.
+To publish a new version:
+1. Bump `version` in `gigatable/package.json`
+2. Run `pnpm deploy` from `gigatable/` — syncs `src/gigatable/` → `templates/`, builds, publishes
 
-Usage:
+Users install with:
 ```bash
-# Generate 500 entries (default)
-npm run generate-data
-
-# Generate custom number
-npm run generate-data 1000
+npx gigatable init
 ```
 
-Output written to `src/data/strains.json`.
-
-### Styling System
-
-- **Tailwind CSS v4.1.17**: Utility-first CSS framework
-- **Configuration**: `tailwind.config.js` and `postcss.config.js`
-- **Custom CSS**: `src/styles.css` includes Tailwind directives
-- **Class management**: `clsx` library for conditional class names
-- **Design tokens**: CSS variables for border radius (`--border-md`)
-
-### Build System
-
-- **Vite**: Fast development server with Hot Module Replacement (HMR)
-- **React Plugin**: `@vitejs/plugin-react` for React Fast Refresh
-- **Path Resolution**: Configured alias `@root` → `./src` in Vite config
-- **Build Output**: Optimized production bundle with code splitting
+Requirements for target projects: TypeScript, Tailwind CSS v4, React 19+.

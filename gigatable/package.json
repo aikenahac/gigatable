@@ -1,0 +1,35 @@
+{
+  "name": "gigatable",
+  "version": "0.1.0",
+  "description": "Excel-like datatable for React — add it to your codebase with npx gigatable init",
+  "bin": {
+    "gigatable": "./dist/cli/index.js"
+  },
+  "files": [
+    "dist",
+    "templates",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "deploy": "npx tsx scripts/deploy.ts",
+    "prepare": "npx tsx scripts/prepare.ts"
+  },
+  "dependencies": {
+    "fs-extra": "^11.2.0",
+    "picocolors": "^1.1.1",
+    "prompts": "^2.4.2"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "^11.0.4",
+    "@types/node": "^22.0.0",
+    "@types/prompts": "^2.4.9",
+    "tsx": "^4.19.0",
+    "typescript": "^5.9.3",
+    "vitest": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

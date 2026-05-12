@@ -1,8 +1,8 @@
-import { EditableCell } from "./data-table";
-import type { EditableCellInputProps } from "./data-table/editable-cell";
+import { EditableCell } from "./gigatable";
+import type { EditableCellInputProps } from "./gigatable/data-table/editable-cell";
 import { Strain } from "./strains";
 import { ColumnDef } from "@tanstack/react-table";
-import "./types/react-table";
+import "./gigatable/types/react-table";
 import React from "react";
 
 // Memoized input components to prevent re-renders

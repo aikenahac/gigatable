@@ -1,12 +1,12 @@
-export type { DataTableProps } from "./data-table";
+export type { GigatableProps } from "./gigatable";
 export type {
-  UseDataTableProps,
+  UseGigatableProps,
   CellChange,
   PasteResult,
-} from "./use-data-table";
+} from "./use-gigatable";
 export type { CellCoordinates } from "./use-cell-selection";
 export type { CopyBuffer } from "./parse-copy-data";
 
-export { DataTable } from "./data-table";
+export { Gigatable } from "./gigatable";
 export { EditableCell } from "./editable-cell";
-export { useDataTable } from "./use-data-table";
+export { useGigatable } from "./use-gigatable";

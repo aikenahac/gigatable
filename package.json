@@ -35,17 +35,18 @@
     "tailwindcss": "^4.1.17",
     "typescript": "^5.7.2",
     "typescript-eslint": "8.50.0",
-    "vite": "^7.2.7"
+    "vite": "^7.2.7",
+    "vitest": "^4.1.6"
   },
   "scripts": {
-    "dev": "vite",
     "start": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
-    "generate-data": "node scripts/generateStrainData.js",
-    "lint": "eslint . --fix",
-    "prettier:format": "prettier --ignore-path .gitignore --write \"./src/**/*.{ts,tsx,js,css,scss,html,json}\"",
-    "format": "pnpm prettier:format && pnpm lint --fix"
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "generate-data": "tsx src/scripts/generate-data.ts",
+    "format": "prettier --write .",
+    "test": "vitest run",
+    "cli:deploy": "npx tsx gigatable/scripts/deploy.ts",
+    "cli:prepare": "npx tsx gigatable/scripts/prepare.ts"
   },
   "browserslist": [
     ">0.2%",

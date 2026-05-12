@@ -1,9 +1,9 @@
-import { DataTable, useDataTable, PasteResult } from "./data-table";
+import { Gigatable, useGigatable, PasteResult, themes } from "./gigatable";
 import { columns } from "./columns";
 import { strains } from "./strains";
 
 export default function App() {
-  const { table, paste, applyFill, undo, redo } = useDataTable({
+  const { table, paste, applyFill, undo, redo } = useGigatable({
     columns,
     data: strains,
     history: true,
@@ -16,13 +16,15 @@ export default function App() {
 
   return (
     <div className="max-w-full mx-auto py-10">
-      <DataTable
+      <Gigatable
+        theme={themes.light}
         table={table}
-        allowCellSelection={true}
-        allowRangeSelection={true}
-        allowHistory={true}
-        allowPaste={true}
-        allowFillHandle={true}
+        allowCellSelection
+        allowRangeSelection
+        allowHistory
+        allowPaste
+        allowFillHandle
+        allColumnsEditable
         paste={paste}
         applyFill={applyFill}
         onPasteComplete={handlePasteComplete}

@@ -18,13 +18,13 @@ export interface TableComponent
 const Table: Partial<TableComponent> = React.forwardRef<
   HTMLTableElement,
   React.HTMLAttributes<HTMLTableElement>
->(({ className, ...props }, ref) => (
-  <div className="font-[ui-sans-serif,system-ui,sans-serif] relative w-full">
+>(({ className, style, ...props }, ref) => (
+  <div className="relative w-full" style={{ fontFamily: "var(--gt-cell-font-family)" }}>
     <table
       ref={ref}
+      style={{ fontSize: "var(--gt-cell-font-size)", ...style }}
       className={clsx(
-        "w-full text-[14px] leading-[20px] caption-bottom border-collapse border-0 border-solid border-[hsl(240_5.9%_90%)]",
-        "table-fixed",
+        "w-full leading-[20px] caption-bottom border-collapse table-fixed",
         className,
       )}
       {...props}
@@ -40,7 +40,7 @@ const TableHeader = React.forwardRef<
   <thead
     ref={ref}
     className={clsx(
-      "sticky top-0 z-10 bg-[#374151] [&_tr]:border-b [&_tr]:border-[#4b5563]",
+      "sticky top-0 z-10 bg-[var(--gt-header-bg)] [&_tr]:border-b [&_tr]:border-[color:var(--gt-header-border-color)]",
       className,
     )}
     {...props}
@@ -67,7 +67,7 @@ const TableFooter = React.forwardRef<
   <tfoot
     ref={ref}
     className={clsx(
-      "border-t bg-[hsl(240_4.8%_95.9%/0.5)] font-medium",
+      "border-t bg-[var(--gt-row-hover-bg)] font-medium",
       "[&_tr:last-child]:border-0",
       className,
     )}
@@ -83,9 +83,9 @@ const TableRow = React.forwardRef<
   <tr
     ref={ref}
     className={clsx(
-      "border-b h-[30px] max-h-[30px]",
-      "hover:bg-[hsl(240_4.8%_95.9%/0.5)]",
-      "data-[state=selected]:bg-[hsl(240_4.8%_95.9%)]",
+      "border-b h-[var(--gt-row-height)] max-h-[var(--gt-row-height)]",
+      "hover:bg-[var(--gt-row-hover-bg)]",
+      "data-[state=selected]:bg-[var(--gt-row-hover-bg)]",
       className,
     )}
     {...props}
@@ -96,13 +96,21 @@ TableRow.displayName = "TableRow";
 const TableHead = React.forwardRef<
   HTMLTableCellElement,
   React.ThHTMLAttributes<HTMLTableCellElement>
->(({ className, ...props }, ref) => (
+>(({ className, style, ...props }, ref) => (
   <th
     ref={ref}
+    style={{
+      color: "var(--gt-header-text-color)",
+      backgroundColor: "var(--gt-header-bg)",
+      borderRightColor: "var(--gt-header-border-color)",
+      fontSize: "var(--gt-header-font-size)",
+      fontFamily: "var(--gt-header-font-family)",
+      fontWeight: "var(--gt-header-font-weight)",
+      ...style,
+    }}
     className={clsx(
-      "h-[40px] px-[12px] py-[8px] font-[600] text-left align-middle",
-      "bg-[#374151] text-[#f9fafb] border-r border-[#4b5563]",
-      "has-[role=checkbox]:pr-0",
+      "h-[var(--gt-header-height)] px-[var(--gt-cell-padding-x)] py-[var(--gt-cell-padding-y)] text-left align-middle",
+      "border-r has-[role=checkbox]:pr-0",
       className,
     )}
     {...props}
@@ -113,16 +121,22 @@ TableHead.displayName = "TableHead";
 const TableData = React.forwardRef<
   HTMLTableCellElement,
   React.TdHTMLAttributes<HTMLTableCellElement> & { overlay?: React.ReactNode }
->(({ className, children, overlay, ...props }, ref) => (
+>(({ className, style, children, overlay, ...props }, ref) => (
   <td
     ref={ref}
+    style={{
+      borderRightColor: "var(--gt-cell-border-color)",
+      color: "var(--gt-cell-text-color)",
+      fontWeight: "var(--gt-cell-font-weight)",
+      ...style,
+    }}
     className={clsx(
-      "p-0 align-middle h-[30px] border-r border-[hsl(240_5.9%_90%)] has-[role=checkbox]:pr-0",
+      "p-0 align-middle h-[var(--gt-row-height)] border-r has-[role=checkbox]:pr-0",
       className,
     )}
     {...props}
   >
-    <div className="h-[30px] px-[12px] overflow-hidden text-ellipsis whitespace-nowrap flex items-center">
+    <div className="h-[var(--gt-row-height)] px-[var(--gt-cell-padding-x)] overflow-hidden text-ellipsis whitespace-nowrap flex items-center">
       {children}
     </div>
     {overlay}
