@@ -1,34 +1,40 @@
-import { DataTable, useDataTable, PasteResult } from "./data-table";
-import { columns } from "./columns";
-import { strains } from "./strains";
+import { Suspense, lazy } from "react";
+import { useSiteRouter } from "./site/use-site-router";
+
+const DemoPage = lazy(() =>
+  import("./pages/demo-page").then((module) => ({ default: module.DemoPage })),
+);
+const DocsPage = lazy(() =>
+  import("./pages/docs-page").then((module) => ({ default: module.DocsPage })),
+);
+const LandingPage = lazy(() =>
+  import("./pages/landing-page").then((module) => ({
+    default: module.LandingPage,
+  })),
+);
 
 export default function App() {
-  const { table, paste, applyFill, undo, redo } = useDataTable({
-    columns,
-    data: strains,
-    history: true,
-  });
+  const { route, navigate } = useSiteRouter();
 
-  const handlePasteComplete = (result: PasteResult) => {
-    console.log(`Paste completed: ${result.totalChanges} cells changed`);
-    console.log(JSON.stringify(result.changes));
-  };
+  if (route.name === "docs") {
+    return (
+      <Suspense fallback={<div className="site-loading">Loading docs...</div>}>
+        <DocsPage slug={route.slug} navigate={navigate} />
+      </Suspense>
+    );
+  }
+
+  if (route.name === "demo") {
+    return (
+      <Suspense fallback={<div className="site-loading">Loading demo...</div>}>
+        <DemoPage navigate={navigate} />
+      </Suspense>
+    );
+  }
 
   return (
-    <div className="max-w-full mx-auto py-10">
-      <DataTable
-        table={table}
-        allowCellSelection={true}
-        allowRangeSelection={true}
-        allowHistory={true}
-        allowPaste={true}
-        allowFillHandle={true}
-        paste={paste}
-        applyFill={applyFill}
-        onPasteComplete={handlePasteComplete}
-        undo={undo}
-        redo={redo}
-      />
-    </div>
+    <Suspense fallback={<div className="site-loading">Loading...</div>}>
+      <LandingPage navigate={navigate} />
+    </Suspense>
   );
 }

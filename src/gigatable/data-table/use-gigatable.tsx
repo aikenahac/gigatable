@@ -4,76 +4,121 @@ import { useHistoryState } from "./use-history-state";
 import type { CellCoordinates } from "./use-cell-selection";
 import type { CopyBuffer } from "./parse-copy-data";
 import { parsePasteData } from "./parse-paste-data";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
+/** A single cell modification — row, column, and before/after values. Appears in {@link PasteResult.changes}. */
 export interface CellChange {
+  /** Zero-based index of the row in the current data array. */
   rowIndex: number;
+  /** Stable row identifier assigned by TanStack Table. */
   rowId: string;
+  /** Column accessor key. */
   columnId: string;
+  /** Column header label, useful for displaying change summaries. */
   columnHeader: string;
+  /** Cell value before the change. */
   oldValue: unknown;
+  /** Cell value after the change. */
   newValue: unknown;
 }
 
+/** Summary returned by the `paste` handler after a Ctrl/Cmd+V operation. */
 export interface PasteResult {
+  /** Individual cell changes applied during the paste operation. */
   changes: Array<CellChange>;
+  /** Total number of cells changed. Equals `changes.length`. */
   totalChanges: number;
 }
 
-export interface UseDataTableProps<TData extends RowData, TValue>
+/**
+ * Configuration for {@link useGigatable}. Extends TanStack `TableOptions` — any option
+ * accepted by `useReactTable` can be passed alongside the Gigatable-specific fields.
+ */
+export interface UseGigatableProps<TData extends RowData, TValue>
   extends Omit<TableOptions<TData>, "getCoreRowModel"> {
+  /** TanStack column definitions. Set `meta: { editable: true }` on columns that support editing. */
   columns: Array<ColumnDef<TData, TValue>>;
+  /** Initial row data array. Synced to internal state when the reference changes. */
   data: Array<TData>;
+  /** Track all data mutations in an undo/redo history stack. Pairs with `allowHistory` on `Gigatable`. */
   history?: boolean;
+  /** Maximum number of undo steps to retain. Defaults to 20. */
   maxHistorySize?: number;
 }
 
-export function useDataTable<TData extends Record<string, unknown>, TValue>({
+/**
+ * Creates and manages a TanStack Table instance with built-in support for inline cell
+ * editing, undo/redo history, clipboard paste (TSV), and fill handle operations.
+ *
+ * Returns a `table` instance plus handlers (`paste`, `applyFill`, `undo`, `redo`) to
+ * wire directly into `<Gigatable>`.
+ */
+export function useGigatable<TData extends Record<string, unknown>, TValue>({
   columns,
   data: initialData,
   history = false,
   maxHistorySize,
   ...props
-}: UseDataTableProps<TData, TValue>) {
+}: UseGigatableProps<TData, TValue>) {
   const [data, setData] = useState<Array<TData>>(initialData);
+  const latestDataRef = useRef<Array<TData>>(initialData);
 
   const { presentState, setPresent, undo, redo, clear, canUndo, canRedo } =
     useHistoryState<Array<TData>>(initialData, maxHistorySize);
 
   const handleSetData = useCallback(
     (newData: Array<TData> | ((prevData: Array<TData>) => Array<TData>)) => {
-      setData((prevData) => {
-        const updatedData =
-          newData instanceof Function ? newData(prevData) : newData;
-        if (history) {
-          setPresent(updatedData);
-        }
-        return updatedData;
-      });
+      const previousData = latestDataRef.current;
+      const updatedData =
+        newData instanceof Function ? newData(previousData) : newData;
+
+      if (updatedData === previousData) {
+        return;
+      }
+
+      latestDataRef.current = updatedData;
+      setData(updatedData);
+
+      if (history) {
+        setPresent(updatedData);
+      }
     },
     [history, setPresent],
   );
 
   const updateCellData = useCallback(
     (rowIndex: number, columnId: string, value: unknown) => {
-      handleSetData((old) =>
-        old.map((row, index) =>
+      handleSetData((old) => {
+        const row = old[rowIndex];
+
+        if (!row || row[columnId] === value) {
+          return old;
+        }
+
+        return old.map((row, index) =>
           index === rowIndex ? { ...row, [columnId]: value } : row,
-        ),
-      );
+        );
+      });
     },
     [handleSetData],
   );
 
   const applyFill = useCallback(
     (columnId: string, targetRowIndices: Array<number>, value: unknown) => {
-      handleSetData((old) =>
-        old.map((row, index) =>
-          targetRowIndices.includes(index)
-            ? { ...row, [columnId]: value }
-            : row,
-        ),
-      );
+      handleSetData((old) => {
+        let didChange = false;
+        const targetRows = new Set(targetRowIndices);
+        const updated = old.map((row, index) => {
+          if (!targetRows.has(index) || row[columnId] === value) {
+            return row;
+          }
+
+          didChange = true;
+          return { ...row, [columnId]: value };
+        });
+
+        return didChange ? updated : old;
+      });
     },
     [handleSetData],
   );
@@ -192,7 +237,7 @@ export function useDataTable<TData extends Record<string, unknown>, TValue>({
           });
         }
 
-        return newData;
+        return changes.length > 0 ? newData : oldData;
       });
 
       return {
@@ -204,11 +249,13 @@ export function useDataTable<TData extends Record<string, unknown>, TValue>({
   );
 
   useEffect(() => {
+    latestDataRef.current = initialData;
     setData(initialData);
   }, [initialData]);
 
   useEffect(() => {
     if (history && presentState) {
+      latestDataRef.current = presentState;
       setData(presentState);
     }
   }, [presentState, history]);

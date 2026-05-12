@@ -6,15 +6,23 @@ export interface TableMeta<TData> extends TableMetaTS<TData> {
   updateCellData?: (rowId: number, colId: string, value: unknown) => void;
 }
 
+/** Props passed to the `renderInput` component inside {@link EditableCell}. */
 export interface EditableCellInputProps<TValue> {
+  /** The current cell value passed to the input. */
   value: TValue;
+  /** Standard React change handler — update local input state here. */
   onChange: (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => void;
+  /** Commits the current value and exits edit mode on blur. */
   onBlur: () => void;
+  /** Commits a value string directly without a DOM event — useful for select or custom inputs. */
   onValueChange: (value: string) => void;
+  /** Forward keydown events to handle Tab (save + move), Enter (save), Escape (cancel). */
   onKeyDown: (e: React.KeyboardEvent) => void;
+  /** Call to discard changes and return to view mode without saving. */
   cancelEditing: () => void;
+  /** Optional className applied to the input element. */
   className?: string;
 }
 
@@ -122,6 +130,11 @@ function EditableCellComponent<TData, TValue>({
   );
 }
 
+/**
+ * Wraps a cell with double-click-to-edit behaviour. Renders read-only by default; switches
+ * to `renderInput` on double-click or Enter. Wire `updateCellData` via `table.options.meta`
+ * (provided automatically by {@link useGigatable}) to persist changes.
+ */
 export const EditableCell = React.memo(
   EditableCellComponent,
   (prevProps, nextProps) => {

@@ -23,5 +23,5 @@
     }
   },
   "include": ["src", "src/types", "css.d.ts"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "gigatable"]
 }

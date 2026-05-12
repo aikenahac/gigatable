@@ -8,7 +8,7 @@ import { flexRender } from "@tanstack/react-table";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Table } from "../table";
 import type { CellCoordinates } from "./use-cell-selection";
-import type { PasteResult } from "./use-data-table";
+import type { PasteResult } from "./use-gigatable";
 import { useCellSelection } from "./use-cell-selection";
 import { useCopyToClipboard } from "./use-copy-to-clipboard";
 import { useFillHandle } from "./use-fill-handle";
@@ -16,29 +16,59 @@ import { parseCopyData } from "./parse-copy-data";
 import type { CopyBuffer } from "./parse-copy-data";
 import { parsePasteData } from "./parse-paste-data";
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import type { GigatableTheme } from "../theme/types";
+import { resolveTheme } from "../theme/utils";
+import { EditableCell } from "./editable-cell";
+import type { EditableCellInputProps } from "./editable-cell";
+
+const DefaultTextInput = ({
+  value,
+  onChange,
+  onBlur,
+  onKeyDown,
+}: EditableCellInputProps<unknown>) => (
+  <input autoFocus value={String(value ?? "")} onChange={onChange} onBlur={onBlur} onKeyDown={onKeyDown} />
+);
 
 const PASTE_HIGHLIGHT_TIMEOUT_DURATION = 5000;
 
-export interface DataTableProps<TData> {
+/** Props for the {@link Gigatable} component. */
+export interface GigatableProps<TData> {
+  /** TanStack Table instance returned by `useGigatable`. */
   table: TanStackTableType<TData>;
+  /** Enable single-cell click selection and arrow key navigation. */
   allowCellSelection?: boolean;
+  /** Enable multi-cell range selection via mouse drag or Shift+Arrow. Requires `allowCellSelection`. */
   allowRangeSelection?: boolean;
+  /** Enable Ctrl/Cmd+Z undo and Ctrl/Cmd+Shift+Z redo shortcuts. Requires `undo` and `redo` props. */
   allowHistory?: boolean;
+  /** Enable Ctrl/Cmd+V paste from clipboard (TSV format). Requires `paste` prop. */
   allowPaste?: boolean;
+  /** Enable Excel-style fill handle to drag-fill a value down a column. Requires `applyFill` prop and `meta: { editable: true }` on columns. */
   allowFillHandle?: boolean;
+  /** Paste handler from `useGigatable`. Required when `allowPaste` is true. */
   paste?: (
     selectedCell: CellCoordinates,
     clipboardData?: string,
     copyBuffer?: CopyBuffer | null,
   ) => PasteResult;
+  /** Called after each paste with a summary of all cell changes. */
   onPasteComplete?: (result: PasteResult) => void;
+  /** Fill handler from `useGigatable`. Required when `allowFillHandle` is true. */
   applyFill?: (
     columnId: string,
     targetRowIndices: Array<number>,
     value: unknown,
   ) => void;
+  /** Undo handler from `useGigatable`. Required when `allowHistory` is true. */
   undo?: () => void;
+  /** Redo handler from `useGigatable`. Required when `allowHistory` is true. */
   redo?: () => void;
+  /** Customise the visual appearance of the table. Defaults to themes.light when omitted. */
+  theme?: GigatableTheme;
+  /** When true, every column is treated as editable using a default text input.
+   *  Columns with explicit `meta: { editable: true }` keep their own renderInput. */
+  allColumnsEditable?: boolean;
 }
 
 interface PasteHighlight {
@@ -75,7 +105,7 @@ function computePasteCellStyle(
     };
   }
 
-  const color = "#3d5aa9";
+  const color = "var(--gt-paste-highlight-border)";
   const shadows: Array<string> = [];
   if (rowIdx === 0) {
     shadows.push(`inset 0 1.5px 0 ${color}`);
@@ -91,7 +121,7 @@ function computePasteCellStyle(
   }
 
   return {
-    pasteBackground: "rgba(134, 239, 172, 0.25)",
+    pasteBackground: "var(--gt-paste-highlight-bg)",
     pasteShadow: shadows.join(", "),
     pasteTransition: false,
   };
@@ -111,8 +141,9 @@ const TableCell = React.memo(
     pasteBackground,
     pasteShadow,
     pasteTransition,
+    allColumnsEditable,
   }: {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TableCell is defined outside DataTable<TData>, so the generic row type is unavailable here
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TableCell is defined outside Gigatable<TData>, so the generic row type is unavailable here
     cell: Cell<any, unknown>;
     cellRef: (el: HTMLTableCellElement | null) => void;
     isSelected: boolean;
@@ -125,6 +156,7 @@ const TableCell = React.memo(
     pasteBackground: string;
     pasteShadow: string;
     pasteTransition: boolean;
+    allColumnsEditable: boolean;
   }) => (
     <Table.Data
       ref={cellRef}
@@ -140,7 +172,7 @@ const TableCell = React.memo(
       data-row-id={cell.row.id}
       data-column-id={cell.column.id}
       className={clsx({
-        "outline outline-[1.5px] outline-[#3d5aa9] -outline-offset-[2px] rounded-[var(--border-md)] focus-visible:outline focus-visible:outline-[1.5px] focus-visible:outline-[#3d5aa9] focus-visible:-outline-offset-[2px] focus-visible:rounded-[var(--border-md)]":
+        "outline outline-[1.5px] outline-[color:var(--gt-selection-outline)] -outline-offset-[2px] rounded-[var(--border-md)] focus-visible:outline focus-visible:outline-[1.5px] focus-visible:outline-[color:var(--gt-selection-outline)] focus-visible:-outline-offset-[2px] focus-visible:rounded-[var(--border-md)]":
           isSelected,
         "cursor-text": isEditable,
         relative: isFillAnchor,
@@ -149,16 +181,21 @@ const TableCell = React.memo(
       overlay={
         isFillAnchor ? (
           <span
-            className="absolute bottom-[-3px] right-[-3px] w-[5px] h-[5px] bg-[#3d5aa9] border border-white cursor-crosshair z-10"
+            aria-hidden="true"
+            data-gigatable-fill-handle
+            className="absolute bottom-[-5px] right-[-5px] z-30 h-2 w-2 cursor-crosshair rounded-[2px] border border-[var(--gt-row-bg)] bg-[var(--gt-selection-outline)] shadow-[0_0_0_1px_var(--gt-cell-border-color),0_2px_5px_rgba(15,23,42,0.2)]"
             onMouseDown={fillHandleMouseDown}
           />
         ) : undefined
       }
     >
       {isFillRange && !isFillSource && fillPreviewValue !== undefined ? (
-        <span className="text-[#6b8ccd] italic truncate">
+        <span className="text-[color:var(--gt-fill-preview-text-color)] italic truncate">
           {String(fillPreviewValue)}
         </span>
+      ) : allColumnsEditable && !cell.column.columnDef.meta?.editable ? (
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        <EditableCell {...(cell.getContext() as any)} renderInput={DefaultTextInput} />
       ) : (
         flexRender(cell.column.columnDef.cell, cell.getContext())
       )}
@@ -175,11 +212,23 @@ const TableCell = React.memo(
     prevProps.cell.column.id === nextProps.cell.column.id &&
     prevProps.pasteBackground === nextProps.pasteBackground &&
     prevProps.pasteShadow === nextProps.pasteShadow &&
-    prevProps.pasteTransition === nextProps.pasteTransition,
+    prevProps.pasteTransition === nextProps.pasteTransition &&
+    prevProps.allColumnsEditable === nextProps.allColumnsEditable,
 );
 TableCell.displayName = "TableCell";
 
-export function DataTable<TData>({
+/**
+ * High-performance, Excel-like data table built on TanStack Table with virtual scrolling.
+ * Supports cell selection, range selection, keyboard navigation, undo/redo, clipboard
+ * copy/paste (TSV format), fill handle, and full theming.
+ *
+ * @example
+ * ```tsx
+ * const { table, paste, applyFill, undo, redo } = useGigatable({ columns, data });
+ * <Gigatable table={table} allowCellSelection allowPaste paste={paste} />
+ * ```
+ */
+export function Gigatable<TData>({
   table,
   allowCellSelection = false,
   allowRangeSelection = false,
@@ -191,7 +240,9 @@ export function DataTable<TData>({
   applyFill,
   undo,
   redo,
-}: DataTableProps<TData>) {
+  theme,
+  allColumnsEditable = false,
+}: GigatableProps<TData>) {
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const rows = table.getRowModel().rows;
   const leafColumns = table.getVisibleLeafColumns();
@@ -199,6 +250,9 @@ export function DataTable<TData>({
   const copyBufferRef = useRef<CopyBuffer | null>(null);
   const tableRef = useRef(table);
   tableRef.current = table;
+
+  const resolvedTheme = resolveTheme(theme);
+  const rowHeightPx = parseInt(resolvedTheme["--gt-row-height"], 10) || 30;
 
   const [pasteHighlight, setPasteHighlight] = useState<PasteHighlight | null>(
     null,
@@ -216,7 +270,7 @@ export function DataTable<TData>({
   const rowVirtualizer = useVirtualizer({
     count: rows.length,
     getScrollElement: () => tableContainerRef.current,
-    estimateSize: () => 30,
+    estimateSize: () => rowHeightPx,
     overscan: 5,
   });
 
@@ -271,10 +325,13 @@ export function DataTable<TData>({
 
   const isColumnEditable = useCallback(
     (columnId: string) => {
+      if (allColumnsEditable) {
+        return true;
+      }
       const col = leafColumns.find((c) => c.id === columnId);
       return col?.columnDef.meta?.editable ?? false;
     },
-    [leafColumns],
+    [leafColumns, allColumnsEditable],
   );
 
   const {
@@ -498,16 +555,23 @@ export function DataTable<TData>({
     totalColumnsWidth - (virtualColumns[virtualColumns.length - 1]?.end ?? 0);
 
   return (
+    <>
+      <style href="gigatable" precedence="default">{`
+        td.is-in-range { background-color: var(--gt-range-bg); }
+        td.is-fill-range { background-color: var(--gt-fill-preview-bg); }
+      `}</style>
     <div
       className={clsx(
-        "box-border border border-[hsl(240_5.9%_90%)] rounded-[var(--border-md)]",
+        "box-border border border-[color:var(--gt-cell-border-color)] rounded-[var(--border-md)]",
         { "select-none": allowRangeSelection },
       )}
+      style={{ ...resolvedTheme, backgroundColor: "var(--gt-row-bg)" }}
       onKeyDown={handleContainerKeyDown}
     >
       <div
         ref={tableContainerRef}
-        className="h-[90vh] overflow-auto outline-none"
+        className="overflow-auto outline-none"
+        style={{ height: "var(--gt-table-height, 90vh)" }}
         tabIndex={-1}
       >
         <Table style={{ width: `${totalColumnsWidth}px` }}>
@@ -515,8 +579,8 @@ export function DataTable<TData>({
             {table.getHeaderGroups().map((headerGroup) => (
               <Table.Row key={headerGroup.id}>
                 <th
-                  className="bg-[#374151] border-r border-[#4b5563]"
-                  style={{ width: `${leftColPad}px`, padding: 0 }}
+                  className="bg-[var(--gt-header-bg)] border-r"
+                  style={{ width: `${leftColPad}px`, padding: 0, borderRightColor: "var(--gt-header-border-color)" }}
                 />
                 {virtualColumns.map((vc) => {
                   const header = headerGroup.headers[vc.index];
@@ -535,7 +599,7 @@ export function DataTable<TData>({
                   );
                 })}
                 <th
-                  className="bg-[#374151]"
+                  className="bg-[var(--gt-header-bg)]"
                   style={{ width: `${rightColPad}px`, padding: 0 }}
                 />
               </Table.Row>
@@ -580,7 +644,7 @@ export function DataTable<TData>({
                               cell.column.id,
                             )}
                             isEditable={
-                              cell.column.columnDef.meta?.editable ?? false
+                              allColumnsEditable || (cell.column.columnDef.meta?.editable ?? false)
                             }
                             isFillAnchor={isAnchorCell(
                               cell.row.id,
@@ -599,6 +663,7 @@ export function DataTable<TData>({
                             pasteBackground={pasteBackground}
                             pasteShadow={pasteShadow}
                             pasteTransition={pasteTransition}
+                            allColumnsEditable={allColumnsEditable}
                           />
                         );
                       })}
@@ -619,7 +684,7 @@ export function DataTable<TData>({
               <tr>
                 <td
                   colSpan={leafColumns.length}
-                  className="h-24 text-center align-middle border-r border-[hsl(240_5.9%_90%)]"
+                  className="h-24 text-center align-middle border-r border-[color:var(--gt-cell-border-color)]"
                 >
                   No data.
                 </td>
@@ -629,5 +694,6 @@ export function DataTable<TData>({
         </Table>
       </div>
     </div>
+    </>
   );
 }
