@@ -4,6 +4,14 @@ A high-performance React TypeScript application featuring an Excel-like data tab
 
 The datatable component lives in `src/gigatable/` and is also distributed as a shadcn-style npm package via the `gigatable/` CLI package.
 
+## Sponsors
+
+Gigatable is supported by [Preskok ThinkTank](https://thinktank.preskok.si/en/).
+
+<a href="https://thinktank.preskok.si/en/" target="_blank" rel="noopener noreferrer">
+  <img src="public/preskok_thinktank.png" alt="Preskok Think Tank" width="220" />
+</a>
+
 ## Features
 
 ### Table Functionality
@@ -234,4 +242,4 @@ Modern browsers with ES2018+ support: Chrome/Edge 90+, Firefox 88+, Safari 14+.
 
 ## License
 
-[Your License Here]
+MIT
