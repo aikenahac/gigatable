@@ -17,7 +17,7 @@ export default defineConfig(
       "eslint.config.js",
       "postcss.config.js",
       "vite.config.ts",
-      "scripts/**",
+      "**/scripts/**",
       "**/*.d.ts",
     ],
   },

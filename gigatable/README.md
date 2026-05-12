@@ -1,5 +1,13 @@
 # gigatable-cli
 
+Documentation: [gigatable.aiken.si](https://gigatable.aiken.si)
+
+**Gigatable is supported by [Preskok ThinkTank](https://thinktank.preskok.si/en/).**
+
+<a href="https://thinktank.preskok.si/en/" target="_blank" rel="noopener noreferrer">
+  <img src="./preskok_thinktank.png" alt="Preskok Think Tank" width="220" />
+</a>
+
 Excel-like datatable for React with cell selection, range selection, inline editing, copy/paste, fill handle, and undo/redo — powered by TanStack Table and TanStack Virtual.
 
 > **Install:** `npx gigatable init` copies the source files directly into your project. You own the code.
