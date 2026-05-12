@@ -2,6 +2,7 @@ import { useState, type CSSProperties } from "react";
 import { EditableCell, Gigatable, themes, useGigatable } from "../gigatable";
 import type { EditableCellInputProps } from "../gigatable";
 import { ParticleField } from "../site/particle-field";
+import { GitHubLink } from "../site/github-link";
 import { SiteLink } from "../site/site-link";
 import type { ColumnDef } from "@tanstack/react-table";
 
@@ -197,6 +198,7 @@ export function LandingPage({ navigate }: LandingPageProps) {
             <span>Gigatable</span>
           </SiteLink>
           <nav className="flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] p-1 text-sm shadow-2xl shadow-black/20 backdrop-blur">
+            <GitHubLink className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-slate-300 transition-colors hover:bg-white/10 hover:text-white focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#05070d]" />
             <SiteLink
               href="/docs"
               navigate={navigate}
