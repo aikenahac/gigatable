@@ -24,7 +24,7 @@ const Table: Partial<TableComponent> = React.forwardRef<
       ref={ref}
       style={{ fontSize: "var(--gt-cell-font-size)", ...style }}
       className={clsx(
-        "w-full leading-[20px] caption-bottom border-collapse table-fixed",
+        "w-full leading-5 caption-bottom border-collapse table-fixed",
         className,
       )}
       {...props}
@@ -40,7 +40,7 @@ const TableHeader = React.forwardRef<
   <thead
     ref={ref}
     className={clsx(
-      "sticky top-0 z-10 bg-[var(--gt-header-bg)] [&_tr]:border-b [&_tr]:border-[color:var(--gt-header-border-color)]",
+      "sticky top-0 z-10 bg-(--gt-header-bg) [&_tr]:border-b [&_tr]:border-(--gt-header-border-color)",
       className,
     )}
     {...props}
@@ -67,7 +67,7 @@ const TableFooter = React.forwardRef<
   <tfoot
     ref={ref}
     className={clsx(
-      "border-t bg-[var(--gt-row-hover-bg)] font-medium",
+      "border-t bg-(--gt-row-hover-bg) font-medium",
       "[&_tr:last-child]:border-0",
       className,
     )}
@@ -83,9 +83,9 @@ const TableRow = React.forwardRef<
   <tr
     ref={ref}
     className={clsx(
-      "border-b h-[var(--gt-row-height)] max-h-[var(--gt-row-height)]",
-      "hover:bg-[var(--gt-row-hover-bg)]",
-      "data-[state=selected]:bg-[var(--gt-row-hover-bg)]",
+      "border-b h-(--gt-row-height) max-h-(--gt-row-height)",
+      "hover:bg-(--gt-row-hover-bg)",
+      "data-[state=selected]:bg-(--gt-row-hover-bg)",
       className,
     )}
     {...props}
@@ -109,7 +109,7 @@ const TableHead = React.forwardRef<
       ...style,
     }}
     className={clsx(
-      "h-[var(--gt-header-height)] px-[var(--gt-cell-padding-x)] py-[var(--gt-cell-padding-y)] text-left align-middle",
+      "h-(--gt-header-height) px-(--gt-cell-padding-x) py-(--gt-cell-padding-y) text-left align-middle",
       "border-r has-[role=checkbox]:pr-0",
       className,
     )}
@@ -131,12 +131,12 @@ const TableData = React.forwardRef<
       ...style,
     }}
     className={clsx(
-      "p-0 align-middle h-[var(--gt-row-height)] border-r has-[role=checkbox]:pr-0",
+      "p-0 align-middle h-(--gt-row-height) border-r has-[role=checkbox]:pr-0",
       className,
     )}
     {...props}
   >
-    <div className="h-[var(--gt-row-height)] px-[var(--gt-cell-padding-x)] overflow-hidden text-ellipsis whitespace-nowrap flex items-center">
+    <div className="h-(--gt-row-height) px-(--gt-cell-padding-x) overflow-hidden text-ellipsis whitespace-nowrap flex items-center">
       {children}
     </div>
     {overlay}

@@ -189,7 +189,7 @@ const TableCell = React.memo(
       data-row-id={cell.row.id}
       data-column-id={cell.column.id}
       className={clsx({
-        "outline outline-[1.5px] outline-[color:var(--gt-selection-outline)] -outline-offset-[2px] rounded-[var(--border-md)] focus-visible:outline focus-visible:outline-[1.5px] focus-visible:outline-[color:var(--gt-selection-outline)] focus-visible:-outline-offset-[2px] focus-visible:rounded-[var(--border-md)]":
+        "outline-[1.5px] outline-(--gt-selection-outline) -outline-offset-2 rounded-(--border-md) focus-visible:outline focus-visible:outline-(--gt-selection-outline) focus-visible:-outline-offset-2 focus-visible:rounded-(--border-md)":
           isSelected,
         "cursor-text": isEditable,
         relative: isFillAnchor,
@@ -201,14 +201,14 @@ const TableCell = React.memo(
           <span
             aria-hidden="true"
             data-gigatable-fill-handle
-            className="absolute bottom-[-5px] right-[-5px] z-30 h-2 w-2 cursor-crosshair rounded-[2px] border border-[var(--gt-row-bg)] bg-[var(--gt-selection-outline)] shadow-[0_0_0_1px_var(--gt-cell-border-color),0_2px_5px_rgba(15,23,42,0.2)]"
+            className="absolute bottom-[-5px] right-[-5px] z-30 h-2 w-2 cursor-crosshair rounded-xs border border-(--gt-row-bg) bg-(--gt-selection-outline) shadow-[0_0_0_1px_var(--gt-cell-border-color),0_2px_5px_rgba(15,23,42,0.2)]"
             onMouseDown={fillHandleMouseDown}
           />
         ) : undefined
       }
     >
       {isFillRange && !isFillSource && fillPreviewValue !== undefined ? (
-        <span className="text-[color:var(--gt-fill-preview-text-color)] italic truncate">
+        <span className="text-(--gt-fill-preview-text-color) italic truncate">
           {String(fillPreviewValue)}
         </span>
       ) : allColumnsEditable && !cell.column.columnDef.meta?.editable ? (
@@ -586,7 +586,7 @@ export function Gigatable<TData>({
       `}</style>
     <div
       className={clsx(
-        "box-border border border-[color:var(--gt-cell-border-color)] rounded-[var(--border-md)]",
+        "box-border border border-(--gt-cell-border-color) rounded-(--border-md)",
         { "select-none": allowRangeSelection },
       )}
       style={{ ...resolvedTheme, backgroundColor: "var(--gt-row-bg)" }}
@@ -603,7 +603,7 @@ export function Gigatable<TData>({
             {table.getHeaderGroups().map((headerGroup) => (
               <Table.Row key={headerGroup.id}>
                 <th
-                  className="bg-[var(--gt-header-bg)] border-r"
+                  className="bg-(--gt-header-bg) border-r"
                   style={{ width: `${leftColPad}px`, padding: 0, borderRightColor: "var(--gt-header-border-color)" }}
                 />
                 {virtualColumns.map((vc) => {
@@ -623,7 +623,7 @@ export function Gigatable<TData>({
                   );
                 })}
                 <th
-                  className="bg-[var(--gt-header-bg)]"
+                  className="bg-(--gt-header-bg)"
                   style={{ width: `${rightColPad}px`, padding: 0 }}
                 />
               </Table.Row>
@@ -716,7 +716,7 @@ export function Gigatable<TData>({
               <tr>
                 <td
                   colSpan={leafColumns.length}
-                  className="h-24 text-center align-middle border-r border-[color:var(--gt-cell-border-color)]"
+                  className="h-24 text-center align-middle border-r border-(--gt-cell-border-color)"
                 >
                   No data.
                 </td>

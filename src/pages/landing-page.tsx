@@ -197,7 +197,7 @@ export function LandingPage({ navigate }: LandingPageProps) {
             <span className="h-2 w-2 rounded-full bg-emerald-300 shadow-[0_0_18px_rgba(110,231,183,0.9)]" />
             <span>Gigatable</span>
           </SiteLink>
-          <nav className="flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] p-1 text-sm shadow-2xl shadow-black/20 backdrop-blur">
+          <nav className="flex items-center gap-2 rounded-full border border-white/10 bg-white/4 p-1 text-sm shadow-2xl shadow-black/20 backdrop-blur">
             <GitHubLink className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-slate-300 transition-colors hover:bg-white/10 hover:text-white focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#05070d]" />
             <SiteLink
               href="/docs"
@@ -240,7 +240,7 @@ export function LandingPage({ navigate }: LandingPageProps) {
               <SiteLink
                 href="/demo"
                 navigate={navigate}
-                className="inline-flex h-12 items-center justify-center rounded-md border border-white/15 bg-white/[0.04] px-5 text-sm font-bold text-slate-100 backdrop-blur transition-transform hover:-translate-y-0.5 hover:border-cyan-300/60 hover:bg-white/[0.08] focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#05070d]"
+                className="inline-flex h-12 items-center justify-center rounded-md border border-white/15 bg-white/4 px-5 text-sm font-bold text-slate-100 backdrop-blur transition-transform hover:-translate-y-0.5 hover:border-cyan-300/60 hover:bg-white/8 focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#05070d]"
               >
                 Open Demo
               </SiteLink>
@@ -317,13 +317,13 @@ export function LandingPage({ navigate }: LandingPageProps) {
               />
             </div>
             <div className="mt-3 grid gap-2 text-xs text-slate-400 sm:grid-cols-3">
-              <div className="rounded-md border border-white/10 bg-white/[0.03] px-3 py-2">
+              <div className="rounded-md border border-white/10 bg-white/3 px-3 py-2">
                 Select cells
               </div>
-              <div className="rounded-md border border-white/10 bg-white/[0.03] px-3 py-2">
+              <div className="rounded-md border border-white/10 bg-white/3 px-3 py-2">
                 Paste TSV
               </div>
-              <div className="rounded-md border border-white/10 bg-white/[0.03] px-3 py-2">
+              <div className="rounded-md border border-white/10 bg-white/3 px-3 py-2">
                 Fill down
               </div>
             </div>

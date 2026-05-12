@@ -37,7 +37,7 @@ export function DocsPage({ navigate, slug }: DocsPageProps) {
   const headings = extractMarkdownHeadings(doc.content);
 
   return (
-    <main className="min-h-screen bg-[#05070d] text-slate-100 [color-scheme:dark]">
+    <main className="min-h-screen bg-[#05070d] text-slate-100 scheme-dark">
       <header className="sticky top-0 z-30 border-b border-white/10 bg-[#05070d]/90 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-5 sm:px-8 lg:px-10">
           <div className="flex min-w-0 items-center gap-6">
@@ -49,7 +49,7 @@ export function DocsPage({ navigate, slug }: DocsPageProps) {
               <span className="h-2 w-2 rounded-full bg-emerald-300 shadow-[0_0_16px_rgba(110,231,183,0.75)]" />
               <span>Gigatable</span>
             </SiteLink>
-            <nav className="hidden items-center gap-1 rounded-md border border-white/10 bg-white/[0.04] p-1 text-sm shadow-2xl shadow-black/20 md:flex">
+            <nav className="hidden items-center gap-1 rounded-md border border-white/10 bg-white/4 p-1 text-sm shadow-2xl shadow-black/20 md:flex">
               <SiteLink
                 href="/docs"
                 navigate={navigate}
@@ -70,7 +70,7 @@ export function DocsPage({ navigate, slug }: DocsPageProps) {
             <code className="hidden rounded-md border border-white/10 bg-slate-950/80 px-3 py-2 text-xs font-semibold text-cyan-100 shadow-sm sm:block">
               npx gigatable init
             </code>
-            <GitHubLink className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-white/10 bg-white/[0.04] text-slate-300 transition-colors hover:bg-white/10 hover:text-white focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#05070d]" />
+            <GitHubLink className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-white/10 bg-white/4 text-slate-300 transition-colors hover:bg-white/10 hover:text-white focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#05070d]" />
           </div>
         </div>
       </header>
@@ -92,7 +92,7 @@ export function DocsPage({ navigate, slug }: DocsPageProps) {
                   className={
                     isActive
                       ? "block min-w-fit rounded-md border border-cyan-300/20 bg-cyan-300/10 px-3 py-2 text-sm font-bold text-cyan-100 shadow-sm shadow-cyan-950/20"
-                      : "block min-w-fit rounded-md px-3 py-2 text-sm font-semibold text-slate-400 transition-colors hover:bg-white/[0.06] hover:text-slate-100 hover:shadow-sm"
+                      : "block min-w-fit rounded-md px-3 py-2 text-sm font-semibold text-slate-400 transition-colors hover:bg-white/6 hover:text-slate-100 hover:shadow-sm"
                   }
                 >
                   {item.title}
@@ -169,8 +169,8 @@ export function DocsPage({ navigate, slug }: DocsPageProps) {
                 href={`#${heading.id}`}
                 className={
                   heading.level === 3
-                    ? "block rounded-md py-1 pl-5 pr-2 text-sm font-medium text-slate-500 transition-colors hover:bg-white/[0.06] hover:text-cyan-100"
-                    : "block rounded-md px-2 py-1 text-sm font-semibold text-slate-400 transition-colors hover:bg-white/[0.06] hover:text-cyan-100"
+                    ? "block rounded-md py-1 pl-5 pr-2 text-sm font-medium text-slate-500 transition-colors hover:bg-white/6 hover:text-cyan-100"
+                    : "block rounded-md px-2 py-1 text-sm font-semibold text-slate-400 transition-colors hover:bg-white/6 hover:text-cyan-100"
                 }
               >
                 {heading.title}
