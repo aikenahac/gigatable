@@ -1,6 +1,6 @@
 {
   "name": "gigatable",
-  "version": "0.1.1",
+  "version": "1.0.0",
   "description": "Excel-like datatable for React — add it to your codebase with npx gigatable init",
   "bin": {
     "gigatable": "./dist/cli/index.js"
