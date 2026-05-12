@@ -181,7 +181,9 @@ const TableCell = React.memo(
       overlay={
         isFillAnchor ? (
           <span
-            className="absolute bottom-[-3px] right-[-3px] w-[5px] h-[5px] bg-[var(--gt-selection-outline)] border border-white cursor-crosshair z-10"
+            aria-hidden="true"
+            data-gigatable-fill-handle
+            className="absolute bottom-[-5px] right-[-5px] z-30 h-2 w-2 cursor-crosshair rounded-[2px] border border-[var(--gt-row-bg)] bg-[var(--gt-selection-outline)] shadow-[0_0_0_1px_var(--gt-cell-border-color),0_2px_5px_rgba(15,23,42,0.2)]"
             onMouseDown={fillHandleMouseDown}
           />
         ) : undefined
@@ -568,7 +570,8 @@ export function Gigatable<TData>({
     >
       <div
         ref={tableContainerRef}
-        className="h-[90vh] overflow-auto outline-none"
+        className="overflow-auto outline-none"
+        style={{ height: "var(--gt-table-height, 90vh)" }}
         tabIndex={-1}
       >
         <Table style={{ width: `${totalColumnsWidth}px` }}>

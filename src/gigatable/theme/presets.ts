@@ -12,7 +12,7 @@ const light: GigatableTheme = {
   },
   row: {
     height: "30px",
-    background: "transparent",
+    background: "#ffffff",
     hoverBackground: "hsl(240 4.8% 95.9% / 0.5)",
   },
   cell: {
@@ -114,4 +114,42 @@ const minimal: GigatableTheme = {
   },
 };
 
-export const themes = { light, dark, minimal };
+const giga: GigatableTheme = {
+  header: {
+    background: "#101827",
+    textColor: "#e0f2fe",
+    borderColor: "#243244",
+    height: "38px",
+    fontSize: "13px",
+    fontFamily: "ui-sans-serif, system-ui, sans-serif",
+    fontWeight: 650,
+  },
+  row: {
+    height: "32px",
+    background: "#050812",
+    hoverBackground: "#0b1220",
+  },
+  cell: {
+    borderColor: "#1e293b",
+    fontSize: "13px",
+    fontFamily: "ui-sans-serif, system-ui, sans-serif",
+    fontWeight: 500,
+    textColor: "#dbeafe",
+    paddingX: "12px",
+    paddingY: "7px",
+  },
+  selection: {
+    outline: "#22d3ee",
+    rangeBackground: "rgba(34, 211, 238, 0.16)",
+  },
+  paste: {
+    highlightBackground: "rgba(74, 222, 128, 0.18)",
+    highlightBorderColor: "#4ade80",
+  },
+  fill: {
+    previewBackground: "rgba(20, 184, 166, 0.18)",
+    previewTextColor: "#99f6e4",
+  },
+};
+
+export const themes = { light, dark, minimal, giga };

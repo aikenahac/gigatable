@@ -4,7 +4,7 @@ import { useHistoryState } from "./use-history-state";
 import type { CellCoordinates } from "./use-cell-selection";
 import type { CopyBuffer } from "./parse-copy-data";
 import { parsePasteData } from "./parse-paste-data";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 /** A single cell modification — row, column, and before/after values. Appears in {@link PasteResult.changes}. */
 export interface CellChange {
@@ -61,44 +61,64 @@ export function useGigatable<TData extends Record<string, unknown>, TValue>({
   ...props
 }: UseGigatableProps<TData, TValue>) {
   const [data, setData] = useState<Array<TData>>(initialData);
+  const latestDataRef = useRef<Array<TData>>(initialData);
 
   const { presentState, setPresent, undo, redo, clear, canUndo, canRedo } =
     useHistoryState<Array<TData>>(initialData, maxHistorySize);
 
   const handleSetData = useCallback(
     (newData: Array<TData> | ((prevData: Array<TData>) => Array<TData>)) => {
-      setData((prevData) => {
-        const updatedData =
-          newData instanceof Function ? newData(prevData) : newData;
-        if (history) {
-          setPresent(updatedData);
-        }
-        return updatedData;
-      });
+      const previousData = latestDataRef.current;
+      const updatedData =
+        newData instanceof Function ? newData(previousData) : newData;
+
+      if (updatedData === previousData) {
+        return;
+      }
+
+      latestDataRef.current = updatedData;
+      setData(updatedData);
+
+      if (history) {
+        setPresent(updatedData);
+      }
     },
     [history, setPresent],
   );
 
   const updateCellData = useCallback(
     (rowIndex: number, columnId: string, value: unknown) => {
-      handleSetData((old) =>
-        old.map((row, index) =>
+      handleSetData((old) => {
+        const row = old[rowIndex];
+
+        if (!row || row[columnId] === value) {
+          return old;
+        }
+
+        return old.map((row, index) =>
           index === rowIndex ? { ...row, [columnId]: value } : row,
-        ),
-      );
+        );
+      });
     },
     [handleSetData],
   );
 
   const applyFill = useCallback(
     (columnId: string, targetRowIndices: Array<number>, value: unknown) => {
-      handleSetData((old) =>
-        old.map((row, index) =>
-          targetRowIndices.includes(index)
-            ? { ...row, [columnId]: value }
-            : row,
-        ),
-      );
+      handleSetData((old) => {
+        let didChange = false;
+        const targetRows = new Set(targetRowIndices);
+        const updated = old.map((row, index) => {
+          if (!targetRows.has(index) || row[columnId] === value) {
+            return row;
+          }
+
+          didChange = true;
+          return { ...row, [columnId]: value };
+        });
+
+        return didChange ? updated : old;
+      });
     },
     [handleSetData],
   );
@@ -217,7 +237,7 @@ export function useGigatable<TData extends Record<string, unknown>, TValue>({
           });
         }
 
-        return newData;
+        return changes.length > 0 ? newData : oldData;
       });
 
       return {
@@ -229,11 +249,13 @@ export function useGigatable<TData extends Record<string, unknown>, TValue>({
   );
 
   useEffect(() => {
+    latestDataRef.current = initialData;
     setData(initialData);
   }, [initialData]);
 
   useEffect(() => {
     if (history && presentState) {
+      latestDataRef.current = presentState;
       setData(presentState);
     }
   }, [presentState, history]);
