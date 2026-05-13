@@ -167,6 +167,7 @@ Wraps TanStack Table's `useReactTable`. Accepts all standard `TableOptions<TData
 | `applyFill` | `Function` | — | From `useGigatable`. Required when `allowFillHandle`. |
 | `undo` | `() => void` | — | From `useGigatable`. Required when `allowHistory`. |
 | `redo` | `() => void` | — | From `useGigatable`. Required when `allowHistory`. |
+| `allColumnsEditable` | `boolean` | `false` | Make every column editable with a default text input. Columns with `meta: { editable: true }` keep their own `renderInput`. |
 | `onPasteComplete` | `(result: PasteResult) => void` | — | Called after each paste with change details. |
 | `theme` | `GigatableTheme` | `themes.light` | Customise visual appearance. |
 

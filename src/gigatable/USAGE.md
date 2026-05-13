@@ -85,6 +85,7 @@ Add `src/gigatable/types/react-table.ts` to the `include` array in your `tsconfi
 | `allowHistory` | Ctrl/Cmd+Z / Ctrl/Cmd+Shift+Z | `undo`, `redo` props + `history: true` in `useGigatable` |
 | `allowPaste` | Ctrl/Cmd+V paste (TSV) | `paste` prop |
 | `allowFillHandle` | Drag-fill down a column | `applyFill` prop + `meta: { editable: true }` on columns |
+| `allColumnsEditable` | Make every column editable with a default text input | — |
 
 ## Theming
 

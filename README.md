@@ -67,7 +67,7 @@ Gigatable is supported by [Preskok ThinkTank](https://thinktank.preskok.si/en/).
 
 ```bash
 git clone <repository-url>
-cd tanstack-excel-like-dt
+cd gigatable
 pnpm install
 ```
 
@@ -218,6 +218,7 @@ const { table, paste, applyFill, undo, redo, canUndo, canRedo } = useGigatable({
 | `undo` | `() => void` | — | From `useGigatable`. Required when `allowHistory`. |
 | `redo` | `() => void` | — | From `useGigatable`. Required when `allowHistory`. |
 | `onPasteComplete` | `(result: PasteResult) => void` | — | Callback after paste |
+| `allColumnsEditable` | `boolean` | `false` | Make every column editable with a default text input. Columns with `meta: { editable: true }` keep their own `renderInput`. |
 | `theme` | `GigatableTheme` | `themes.light` | Customise visual appearance |
 
 ## Keyboard Shortcuts
