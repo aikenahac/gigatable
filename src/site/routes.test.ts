@@ -24,6 +24,13 @@ describe("getRouteForPath", () => {
     });
   });
 
+  it("maps contributor docs article paths to docs routes", () => {
+    expect(getRouteForPath("/docs/contributor-architecture")).toEqual({
+      name: "docs",
+      slug: "contributor-architecture",
+    });
+  });
+
   it("falls back unknown docs article paths to the first docs article", () => {
     expect(getRouteForPath("/docs/not-real")).toEqual({
       name: "docs",
