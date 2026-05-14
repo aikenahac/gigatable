@@ -82,6 +82,7 @@ Add `src/gigatable/types/react-table.ts` to the `include` array in your `tsconfi
 |---|---|---|
 | `allowCellSelection` | Click to select, arrow key navigation | — |
 | `allowRangeSelection` | Drag + Shift+Arrow range selection | `allowCellSelection` |
+| `singleColumnCellSelection` | Drag + Shift+Arrow range selection down one column | `allowCellSelection`; overrides `allowRangeSelection={false}` for this constrained mode |
 | `allowHistory` | Ctrl/Cmd+Z / Ctrl/Cmd+Shift+Z | `undo`, `redo` props + `history: true` in `useGigatable` |
 | `allowPaste` | Ctrl/Cmd+V paste (TSV) | `paste` prop |
 | `allowFillHandle` | Drag-fill down a column | `applyFill` prop + `meta: { editable: true }` on columns |

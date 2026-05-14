@@ -32,6 +32,8 @@ graph TD
 
 `use-cell-selection.tsx` owns `selectedCell`, `selection`, drag selection, keyboard navigation, and a map of currently mounted cell DOM nodes. The selection model uses `{ rowId, columnId }`, not row or column indexes, because visible rows can change as the virtualizer scrolls.
 
+`Gigatable` decides whether range selection is enabled from `allowRangeSelection || singleColumnCellSelection`. When `singleColumnCellSelection` is true, `use-cell-selection.tsx` clamps range ends back to the anchor column for drag, Shift+Click, and Shift+Arrow while leaving plain click selection and normal arrow navigation unchanged.
+
 During drag selection, the hook keeps live state in refs and toggles `.is-in-range` on mounted cells directly. This avoids re-rendering the full table on every pointer movement. React state is committed for stable transitions such as click start, keyboard navigation, or drag end.
 
 Change this hook when arrow keys, shift ranges, drag selection, focus movement, or range membership are wrong.

@@ -49,6 +49,8 @@ export interface GigatableProps<TData> {
   allowCellSelection?: boolean;
   /** Enable multi-cell range selection via mouse drag or Shift+Arrow. Requires `allowCellSelection`. */
   allowRangeSelection?: boolean;
+  /** Enable single-column range selection via mouse drag or Shift+Arrow. Requires `allowCellSelection`. */
+  singleColumnCellSelection?: boolean;
   /** Enable Ctrl/Cmd+Z undo and Ctrl/Cmd+Shift+Z redo shortcuts. Requires `undo` and `redo` props. */
   allowHistory?: boolean;
   /** Enable Ctrl/Cmd+V paste from clipboard (TSV format). Requires `paste` prop. */
@@ -251,6 +253,7 @@ export function Gigatable<TData>({
   table,
   allowCellSelection = false,
   allowRangeSelection = false,
+  singleColumnCellSelection = false,
   allowHistory = false,
   allowPaste = false,
   allowFillHandle = false,
@@ -265,6 +268,8 @@ export function Gigatable<TData>({
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const rows = table.getRowModel().rows;
   const leafColumns = table.getVisibleLeafColumns();
+  const isRangeSelectionEnabled =
+    allowRangeSelection || singleColumnCellSelection;
   const lastMouseOverCellRef = useRef<string | null>(null);
   const copyBufferRef = useRef<CopyBuffer | null>(null);
   const tableRef = useRef(table);
@@ -340,7 +345,14 @@ export function Gigatable<TData>({
     handleMouseDown,
     handleMouseEnter,
     setRangeSelection,
-  } = useCellSelection(rows, leafColumns, tableContainerRef, scrollToCell);
+  } = useCellSelection(
+    rows,
+    leafColumns,
+    tableContainerRef,
+    scrollToCell,
+    isRangeSelectionEnabled,
+    singleColumnCellSelection,
+  );
   const selectedRangeRowIds = useMemo(() => rows.map((row) => row.id), [rows]);
   const selectedRangeColumnIds = useMemo(
     () => leafColumns.map((column) => column.id),
@@ -414,7 +426,7 @@ export function Gigatable<TData>({
 
   const handleBodyMouseDown = useCallback(
     (e: React.MouseEvent) => {
-      if (!allowRangeSelection) {
+      if (!allowCellSelection || !isRangeSelectionEnabled) {
         return;
       }
       const td = (e.target as Element).closest(
@@ -426,12 +438,16 @@ export function Gigatable<TData>({
       lastMouseOverCellRef.current = null;
       handleMouseDown(td.dataset.rowId!, td.dataset.columnId!, e.shiftKey);
     },
-    [allowRangeSelection, handleMouseDown],
+    [allowCellSelection, isRangeSelectionEnabled, handleMouseDown],
   );
 
   const handleBodyMouseOver = useCallback(
     (e: React.MouseEvent) => {
-      if (!allowRangeSelection || !isSelectingRef.current) {
+      if (
+        !allowCellSelection ||
+        !isRangeSelectionEnabled ||
+        !isSelectingRef.current
+      ) {
         return;
       }
       const td = (e.target as Element).closest(
@@ -447,7 +463,12 @@ export function Gigatable<TData>({
       lastMouseOverCellRef.current = key;
       handleMouseEnter(td.dataset.rowId!, td.dataset.columnId!);
     },
-    [allowRangeSelection, isSelectingRef, handleMouseEnter],
+    [
+      allowCellSelection,
+      isRangeSelectionEnabled,
+      isSelectingRef,
+      handleMouseEnter,
+    ],
   );
 
   const handleContainerKeyDown = useCallback(
@@ -587,7 +608,7 @@ export function Gigatable<TData>({
     <div
       className={clsx(
         "box-border border border-(--gt-cell-border-color) rounded-(--border-md)",
-        { "select-none": allowRangeSelection },
+        { "select-none": isRangeSelectionEnabled },
       )}
       style={{ ...resolvedTheme, backgroundColor: "var(--gt-row-bg)" }}
       onKeyDown={handleContainerKeyDown}

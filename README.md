@@ -210,6 +210,7 @@ const { table, paste, applyFill, undo, redo, canUndo, canRedo } = useGigatable({
 | `table` | `Table<TData>` | required | From `useGigatable` |
 | `allowCellSelection` | `boolean` | `false` | Click selection + arrow keys |
 | `allowRangeSelection` | `boolean` | `false` | Drag + Shift+Arrow range |
+| `singleColumnCellSelection` | `boolean` | `false` | Drag + Shift+Arrow range down one column. Requires `allowCellSelection`; works when `allowRangeSelection` is false. |
 | `allowHistory` | `boolean` | `false` | Ctrl/Cmd+Z/Shift+Z shortcuts |
 | `allowPaste` | `boolean` | `false` | Ctrl/Cmd+V paste |
 | `allowFillHandle` | `boolean` | `false` | Drag-fill down a column |

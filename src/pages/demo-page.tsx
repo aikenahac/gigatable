@@ -102,6 +102,7 @@ export function DemoPage({ navigate }: DemoPageProps) {
             allowPaste
             allowFillHandle
             allColumnsEditable
+            singleColumnCellSelection
             paste={paste}
             applyFill={applyFill}
             onPasteComplete={handlePasteComplete}

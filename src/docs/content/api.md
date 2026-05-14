@@ -32,6 +32,7 @@ Renders the virtualized table UI.
 | `table` | `Table<TData>` | required | Table instance returned by `useGigatable` |
 | `allowCellSelection` | `boolean` | `false` | Enables click selection and arrow-key navigation |
 | `allowRangeSelection` | `boolean` | `false` | Enables drag and Shift+Arrow range selection |
+| `singleColumnCellSelection` | `boolean` | `false` | Enables drag and Shift+Arrow range selection down one column. Requires `allowCellSelection` and works when `allowRangeSelection` is false |
 | `allowHistory` | `boolean` | `false` | Enables undo and redo keyboard shortcuts |
 | `allowPaste` | `boolean` | `false` | Enables TSV paste from the clipboard |
 | `allowFillHandle` | `boolean` | `false` | Enables drag-fill behavior for editable columns |

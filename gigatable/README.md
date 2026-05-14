@@ -160,6 +160,7 @@ Wraps TanStack Table's `useReactTable`. Accepts all standard `TableOptions<TData
 | `table` | `Table<TData>` | required | Instance from `useGigatable` |
 | `allowCellSelection` | `boolean` | `false` | Click selection + arrow key navigation |
 | `allowRangeSelection` | `boolean` | `false` | Drag + Shift+Arrow range. Requires `allowCellSelection`. |
+| `singleColumnCellSelection` | `boolean` | `false` | Drag + Shift+Arrow range down one column. Requires `allowCellSelection`; works when `allowRangeSelection` is false. |
 | `allowHistory` | `boolean` | `false` | Ctrl/Cmd+Z / Ctrl/Cmd+Shift+Z. Requires `undo` + `redo`. |
 | `allowPaste` | `boolean` | `false` | Ctrl/Cmd+V paste (TSV). Requires `paste`. |
 | `allowFillHandle` | `boolean` | `false` | Drag-fill down. Requires `applyFill` + `meta: { editable: true }` columns. |

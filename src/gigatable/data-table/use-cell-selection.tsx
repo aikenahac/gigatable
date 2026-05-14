@@ -19,6 +19,23 @@ export interface Selection {
   end: CellCoordinates;
 }
 
+export const constrainSelectionToColumn = (
+  selection: Selection | null,
+  singleColumnCellSelection: boolean,
+) => {
+  if (!selection || !singleColumnCellSelection) {
+    return selection;
+  }
+
+  return {
+    start: selection.start,
+    end: {
+      ...selection.end,
+      columnId: selection.start.columnId,
+    },
+  };
+};
+
 export const isCellWithinSelection = (
   rowId: string,
   columnId: string,
@@ -76,6 +93,8 @@ export function useCellSelection<TData>(
     rowAlign?: "start" | "end" | "auto",
     colAlign?: "start" | "end" | "auto",
   ) => void,
+  rangeSelectionEnabled = false,
+  singleColumnCellSelection = false,
 ) {
   const [selectedCell, setSelectedCell] = useState<CellCoordinates | null>(
     null,
@@ -219,11 +238,15 @@ export function useCellSelection<TData>(
   // Use for keyboard navigation and initial mousedown — not during drag mousemove.
   const commitSelection = useCallback(
     (next: Selection | null) => {
-      updateSelectionDOM(liveSelectionRef.current, next);
-      liveSelectionRef.current = next;
-      setSelection(next);
+      const constrainedNext = constrainSelectionToColumn(
+        next,
+        singleColumnCellSelection,
+      );
+      updateSelectionDOM(liveSelectionRef.current, constrainedNext);
+      liveSelectionRef.current = constrainedNext;
+      setSelection(constrainedNext);
     },
-    [updateSelectionDOM],
+    [singleColumnCellSelection, updateSelectionDOM],
   );
 
   // Returns a stable callback ref for a cell.
@@ -358,13 +381,21 @@ export function useCellSelection<TData>(
       }
     }
 
-    if (e.shiftKey && selectedCell) {
+    if (e.shiftKey && selectedCell && rangeSelectionEnabled) {
       const start = liveSelectionRef.current?.start ?? selectedCell;
-      commitSelection({ start, end: nextCoord });
+      const nextSelection = constrainSelectionToColumn(
+        { start, end: nextCoord },
+        singleColumnCellSelection,
+      );
+      const nextEndCoord = nextSelection?.end ?? nextCoord;
+      const nextEndRowIndex = rowIndexMap[nextEndCoord.rowId] ?? nextRowIndex;
+      const nextEndColIndex =
+        columnIndexMap[nextEndCoord.columnId] ?? nextColIndex;
+      commitSelection(nextSelection);
       // Scroll based on the cell's actual viewport position rather than the virtualizer's
       // virtual coordinates — the virtualizer treats overscan-rendered cells as in-view.
       const endEl = cellRefsMap.current.get(
-        `${nextCoord.rowId}-${nextCoord.columnId}`,
+        `${nextEndCoord.rowId}-${nextEndCoord.columnId}`,
       );
       if (endEl && containerRef?.current) {
         const container = containerRef.current;
@@ -396,16 +427,16 @@ export function useCellSelection<TData>(
         // Cell not rendered yet (beyond overscan) — fall back to virtualizer scroll.
         const scrollRowIndex =
           key === "ArrowDown"
-            ? Math.min(nextRowIndex + 1, rows.length - 1)
+            ? Math.min(nextEndRowIndex + 1, rows.length - 1)
             : key === "ArrowUp"
-              ? Math.max(nextRowIndex - 1, 0)
-              : nextRowIndex;
+              ? Math.max(nextEndRowIndex - 1, 0)
+              : nextEndRowIndex;
         const scrollColIndex =
           key === "ArrowRight"
-            ? Math.min(nextColIndex + 1, columns.length - 1)
+            ? Math.min(nextEndColIndex + 1, columns.length - 1)
             : key === "ArrowLeft"
-              ? Math.max(nextColIndex - 1, 0)
-              : nextColIndex;
+              ? Math.max(nextEndColIndex - 1, 0)
+              : nextEndColIndex;
         scrollToIndex?.(
           scrollRowIndex,
           scrollColIndex,
@@ -440,7 +471,7 @@ export function useCellSelection<TData>(
 
   const handleMouseDown = useCallback(
     (rowId: string, columnId: string, shiftKey?: boolean) => {
-      if (shiftKey && selectedCellRef.current) {
+      if (shiftKey && selectedCellRef.current && rangeSelectionEnabled) {
         const start =
           liveSelectionRef.current?.start ?? selectedCellRef.current;
         commitSelection({ start, end: { rowId, columnId } });
@@ -460,18 +491,21 @@ export function useCellSelection<TData>(
   // DOM-only during drag — zero React state updates, zero re-renders.
   const handleMouseEnter = useCallback(
     (rowId: string, columnId: string) => {
-      if (!isSelectingRef.current) {
+      if (!rangeSelectionEnabled || !isSelectingRef.current) {
         return;
       }
       const prev = liveSelectionRef.current;
       if (!prev) {
         return;
       }
-      const next: Selection = { start: prev.start, end: { rowId, columnId } };
+      const next = constrainSelectionToColumn(
+        { start: prev.start, end: { rowId, columnId } },
+        singleColumnCellSelection,
+      );
       liveSelectionRef.current = next;
       updateSelectionDOM(prev, next);
     },
-    [updateSelectionDOM],
+    [rangeSelectionEnabled, singleColumnCellSelection, updateSelectionDOM],
   );
   useEffect(() => {
     handleMouseEnterRef.current = handleMouseEnter;

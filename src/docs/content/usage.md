@@ -82,6 +82,7 @@ export const columns: Array<ColumnDef<Row>> = [
 | --- | --- | --- |
 | `allowCellSelection` | Click selection and arrow-key navigation | none |
 | `allowRangeSelection` | Drag and Shift+Arrow range selection | `allowCellSelection` |
+| `singleColumnCellSelection` | Drag and Shift+Arrow range selection down one column | `allowCellSelection`; overrides `allowRangeSelection={false}` for this constrained mode |
 | `allowHistory` | Ctrl/Cmd+Z and Ctrl/Cmd+Shift+Z | `history: true`, `undo`, `redo` |
 | `allowPaste` | Ctrl/Cmd+V TSV paste | `paste` |
 | `allowFillHandle` | Excel-style drag fill | `applyFill`, editable columns |
