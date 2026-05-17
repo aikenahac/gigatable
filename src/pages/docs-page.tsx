@@ -7,6 +7,7 @@ import {
   getDocBySlug,
   getMarkdownHeadingId,
 } from "../docs/docs";
+import { copyMarkdownToClipboard } from "../docs/copy-markdown";
 import type { DocsSlug } from "../docs/docs";
 import {
   applyViewBoxToSvg,
@@ -294,6 +295,24 @@ function MermaidBlock({ chart }: { chart: string }) {
 export function DocsPage({ navigate, slug }: DocsPageProps) {
   const doc = getDocBySlug(slug);
   const headings = extractMarkdownHeadings(doc.content);
+  const [copyStatus, setCopyStatus] = React.useState<
+    "idle" | "copied" | "error"
+  >("idle");
+
+  React.useEffect(() => {
+    setCopyStatus("idle");
+  }, [doc.slug]);
+
+  const handleCopyMarkdown = React.useCallback(async () => {
+    try {
+      await copyMarkdownToClipboard(doc.content);
+      setCopyStatus("copied");
+      window.setTimeout(() => setCopyStatus("idle"), 1400);
+    } catch {
+      setCopyStatus("error");
+      window.setTimeout(() => setCopyStatus("idle"), 2200);
+    }
+  }, [doc.content]);
 
   return (
     <main className="min-h-screen bg-[#05070d] text-slate-100 scheme-dark">
@@ -372,12 +391,29 @@ export function DocsPage({ navigate, slug }: DocsPageProps) {
 
         <article className="min-w-0 border-x border-white/10 bg-[#080d18] px-5 py-8 shadow-[0_0_120px_rgba(0,0,0,0.28)] sm:px-8 md:py-12 lg:px-12">
           <div className="mb-10 border-b border-white/10 pb-8">
-            <div className="text-sm font-bold text-cyan-200">
-              Gigatable docs
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0">
+                <div className="text-sm font-bold text-cyan-200">
+                  Gigatable docs
+                </div>
+                <h1 className="mt-3 text-balance text-4xl font-bold tracking-[-0.025em] text-white sm:text-5xl">
+                  {doc.title}
+                </h1>
+              </div>
+              <button
+                type="button"
+                onClick={handleCopyMarkdown}
+                className="inline-flex h-10 shrink-0 items-center justify-center rounded-md border border-cyan-300/20 bg-cyan-300/10 px-3 text-sm font-bold text-cyan-100 transition-colors hover:border-cyan-200/60 hover:bg-cyan-300/20 focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#080d18]"
+                aria-label={`Copy ${doc.title} markdown`}
+                aria-live="polite"
+              >
+                {copyStatus === "copied"
+                  ? "Copied"
+                  : copyStatus === "error"
+                    ? "Copy failed"
+                    : "Copy Markdown"}
+              </button>
             </div>
-            <h1 className="mt-3 text-balance text-4xl font-bold tracking-[-0.025em] text-white sm:text-5xl">
-              {doc.title}
-            </h1>
             <p className="mt-4 max-w-2xl text-pretty text-base leading-7 text-slate-400">
               {doc.description}
             </p>
