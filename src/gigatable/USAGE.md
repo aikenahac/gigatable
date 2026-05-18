@@ -12,6 +12,8 @@ export function App() {
   const { table, paste, applyFill, undo, redo } = useGigatable({
     columns,
     data: myData,
+    enableColumnResizing: true,
+    columnResizeMode: "onChange",
     history: true,
   });
 
@@ -23,6 +25,7 @@ export function App() {
       allowHistory
       allowPaste
       allowFillHandle
+      allowColumnResizing
       paste={paste}
       applyFill={applyFill}
       undo={undo}
@@ -87,6 +90,24 @@ Add `src/gigatable/types/react-table.ts` to the `include` array in your `tsconfi
 | `allowPaste` | Ctrl/Cmd+V paste (TSV) | `paste` prop |
 | `allowFillHandle` | Drag-fill down a column | `applyFill` prop + `meta: { editable: true }` on columns |
 | `allColumnsEditable` | Make every column editable with a default text input | — |
+| `allowColumnResizing` | Header-border drag resizing | `enableColumnResizing: true` in `useGigatable` |
+
+## Column resizing
+
+Column resizing uses TanStack Table sizing state. Enable TanStack resizing in `useGigatable`, then show Gigatable's header handles with `allowColumnResizing`:
+
+```tsx
+const { table } = useGigatable({
+  columns,
+  data,
+  enableColumnResizing: true,
+  columnResizeMode: "onChange",
+});
+
+<Gigatable table={table} allowColumnResizing />;
+```
+
+Double-click a resize handle to reset a column width. To persist widths, control TanStack state with `state: { columnSizing }` and `onColumnSizingChange`.
 
 ## Theming
 

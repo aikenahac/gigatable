@@ -4,7 +4,16 @@ Gigatable exports the public types needed to wire custom tables, inputs, themes,
 
 ## `GigatableProps<TData>`
 
-Props accepted by `<Gigatable>`. The only required prop is the TanStack `table` instance from `useGigatable`; optional feature props enable selection, paste, fill, history, theming, and callbacks.
+Props accepted by `<Gigatable>`. The only required prop is the TanStack `table` instance from `useGigatable`; optional feature props enable selection, paste, fill, column resizing, history, theming, and callbacks.
+
+```ts
+interface GigatableProps<TData> {
+  table: Table<TData>;
+  allowColumnResizing?: boolean;
+}
+```
+
+`allowColumnResizing` only controls whether Gigatable renders header resize handles. Enable TanStack resizing through `useGigatable` with options such as `enableColumnResizing`, `columnResizeMode`, `state.columnSizing`, and `onColumnSizingChange`.
 
 ## `UseGigatableProps<TData, TValue>`
 

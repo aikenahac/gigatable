@@ -12,6 +12,8 @@ export function DemoPage({ navigate }: DemoPageProps) {
   const { table, paste, applyFill, undo, redo, canUndo, canRedo } = useGigatable({
     columns,
     data: strains,
+    enableColumnResizing: true,
+    columnResizeMode: "onChange",
     history: true,
   });
 
@@ -101,6 +103,7 @@ export function DemoPage({ navigate }: DemoPageProps) {
             allowHistory
             allowPaste
             allowFillHandle
+            allowColumnResizing
             allColumnsEditable
             paste={paste}
             applyFill={applyFill}

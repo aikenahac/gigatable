@@ -39,6 +39,11 @@ Gigatable is supported by [Preskok ThinkTank](https://thinktank.preskok.si/en/).
   - Excel-style drag handle at bottom-right of anchor cell
   - Drag down to fill a column value across rows
 
+- **Column Resizing**
+  - Hover over a header border to reveal the resize handle
+  - Drag to resize a column, double-click to reset its width
+  - Width state can be persisted with TanStack `columnSizing` options
+
 - **Undo/Redo History**
   - Full undo/redo support with Ctrl/Cmd+Z / Ctrl/Cmd+Shift+Z
   - Configurable history size
@@ -180,6 +185,8 @@ import type { GigatableProps, UseGigatableProps, CellChange, PasteResult, Gigata
 const { table, paste, applyFill, undo, redo, canUndo, canRedo } = useGigatable({
   columns,
   data,
+  enableColumnResizing: true,
+  columnResizeMode: "onChange",
   history: true,
   maxHistorySize: 50,
 });
@@ -214,6 +221,7 @@ const { table, paste, applyFill, undo, redo, canUndo, canRedo } = useGigatable({
 | `allowHistory` | `boolean` | `false` | Ctrl/Cmd+Z/Shift+Z shortcuts |
 | `allowPaste` | `boolean` | `false` | Ctrl/Cmd+V paste |
 | `allowFillHandle` | `boolean` | `false` | Drag-fill down a column |
+| `allowColumnResizing` | `boolean` | `false` | Header-border drag resizing. Requires `enableColumnResizing` in `useGigatable`. |
 | `paste` | `Function` | — | From `useGigatable`. Required when `allowPaste`. |
 | `applyFill` | `Function` | — | From `useGigatable`. Required when `allowFillHandle`. |
 | `undo` | `() => void` | — | From `useGigatable`. Required when `allowHistory`. |
@@ -237,6 +245,25 @@ const { table, paste, applyFill, undo, redo, canUndo, canRedo } = useGigatable({
 | Ctrl/Cmd + V | Paste data |
 | Ctrl/Cmd + Z | Undo last change |
 | Ctrl/Cmd + Shift + Z | Redo last undone change |
+| Drag header border | Resize column |
+| Double-click header border | Reset column width |
+
+## Column Resizing
+
+Column resizing uses TanStack Table sizing state. Enable it in `useGigatable`, then opt in to the resize handles on `<Gigatable>`:
+
+```tsx
+const { table } = useGigatable({
+  columns,
+  data,
+  enableColumnResizing: true,
+  columnResizeMode: "onChange",
+});
+
+<Gigatable table={table} allowColumnResizing />;
+```
+
+To persist widths, pass controlled TanStack state such as `state: { columnSizing }` and `onColumnSizingChange`.
 
 ## Browser Support
 

@@ -11,12 +11,14 @@ graph TD
   User --> Edit["Inline editing"]
   User --> Clipboard["Copy and paste"]
   User --> Fill["Fill handle"]
+  User --> Resize["Column resizing"]
   User --> History["Undo and redo"]
 
   Select --> SelectionHook["use-cell-selection.tsx"]
   Edit --> EditableCell["editable-cell.tsx"]
   Clipboard --> CopyPaste["parse-copy-data / parse-paste-data"]
   Fill --> FillHook["use-fill-handle.tsx"]
+  Resize --> TanStackSizing["TanStack column sizing"]
   History --> HistoryHook["use-history-state.tsx"]
 
   EditableCell --> Mutation["updateCellData"]
@@ -82,6 +84,12 @@ sequenceDiagram
 `use-fill-handle.tsx` owns the drag lifecycle for the small handle rendered by `Gigatable`. The source cell must be editable, and fill writes down a single column. During drag, the hook exposes which cells are the source and target range, plus the preview value. On mouse up, `Gigatable` calls `applyFill(columnId, targetRowIndices, value)`.
 
 If a fill preview looks wrong, inspect `use-fill-handle.tsx`. If the preview is correct but data is not written, inspect `applyFill` in `use-gigatable.tsx`.
+
+## Column resizing
+
+Column resizing is delegated to TanStack Table. Consumers enable sizing on `useGigatable` with options such as `enableColumnResizing`, `columnResizeMode`, `state.columnSizing`, and `onColumnSizingChange`. `Gigatable` renders the header resize handle only when `allowColumnResizing` is true and the column reports `getCanResize()`.
+
+The resize handle calls `header.getResizeHandler()` for mouse and touch input, stops propagation so drag selection does not start, and double-clicks call `header.column.resetSize()`. Width persistence belongs to the consuming app through TanStack `columnSizing` state.
 
 ## Undo and redo
 

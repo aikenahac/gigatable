@@ -8,7 +8,7 @@ Documentation: [gigatable.aiken.si](https://gigatable.aiken.si)
   <img src="https://raw.githubusercontent.com/aikenahac/gigatable/refs/heads/master/public/preskok_thinktank.png" alt="Preskok Think Tank" width="220" />
 </a>
 
-Excel-like datatable for React with cell selection, range selection, inline editing, copy/paste, fill handle, and undo/redo — powered by TanStack Table and TanStack Virtual.
+Excel-like datatable for React with cell selection, range selection, inline editing, copy/paste, fill handle, column resizing, and undo/redo — powered by TanStack Table and TanStack Virtual.
 
 > **Install:** `npx gigatable init` copies the source files directly into your project. You own the code.
 
@@ -43,6 +43,8 @@ export function App() {
   const { table, paste, applyFill, undo, redo } = useGigatable({
     columns,
     data: myData,
+    enableColumnResizing: true,
+    columnResizeMode: "onChange",
     history: true,
   });
 
@@ -54,6 +56,7 @@ export function App() {
       allowHistory
       allowPaste
       allowFillHandle
+      allowColumnResizing
       paste={paste}
       applyFill={applyFill}
       undo={undo}
@@ -150,6 +153,8 @@ Wraps TanStack Table's `useReactTable`. Accepts all standard `TableOptions<TData
 | `data` | `TData[]` | required | Row data. Synced to internal state when the array reference changes. |
 | `history` | `boolean` | `false` | Enable undo/redo tracking |
 | `maxHistorySize` | `number` | `20` | Max undo steps retained |
+| `enableColumnResizing` | `boolean` | TanStack default | Enable TanStack column resizing state and handlers |
+| `columnResizeMode` | `"onChange"` or `"onEnd"` | TanStack default | Use `"onChange"` for live width updates while dragging |
 
 **Returns:** `{ table, paste, applyFill, undo, redo, clear, canUndo, canRedo }`
 
@@ -164,6 +169,7 @@ Wraps TanStack Table's `useReactTable`. Accepts all standard `TableOptions<TData
 | `allowHistory` | `boolean` | `false` | Ctrl/Cmd+Z / Ctrl/Cmd+Shift+Z. Requires `undo` + `redo`. |
 | `allowPaste` | `boolean` | `false` | Ctrl/Cmd+V paste (TSV). Requires `paste`. |
 | `allowFillHandle` | `boolean` | `false` | Drag-fill down. Requires `applyFill` + `meta: { editable: true }` columns. |
+| `allowColumnResizing` | `boolean` | `false` | Header-border drag resizing. Requires `enableColumnResizing` in `useGigatable`. |
 | `paste` | `Function` | — | From `useGigatable`. Required when `allowPaste`. |
 | `applyFill` | `Function` | — | From `useGigatable`. Required when `allowFillHandle`. |
 | `undo` | `() => void` | — | From `useGigatable`. Required when `allowHistory`. |
@@ -231,6 +237,38 @@ interface CellChange {
 | Ctrl/Cmd+V | Paste from clipboard |
 | Ctrl/Cmd+Z | Undo |
 | Ctrl/Cmd+Shift+Z | Redo |
+| Drag header border | Resize column |
+| Double-click header border | Reset column width |
+
+## Column Resizing
+
+Column resizing is opt-in at both the TanStack state layer and the Gigatable render layer:
+
+```tsx
+const { table } = useGigatable({
+  columns,
+  data,
+  enableColumnResizing: true,
+  columnResizeMode: "onChange",
+});
+
+<Gigatable table={table} allowColumnResizing />;
+```
+
+Persist widths by controlling TanStack sizing state:
+
+```tsx
+const [columnSizing, setColumnSizing] = useState({});
+
+const { table } = useGigatable({
+  columns,
+  data,
+  enableColumnResizing: true,
+  columnResizeMode: "onChange",
+  state: { columnSizing },
+  onColumnSizingChange: setColumnSizing,
+});
+```
 
 ## Theming
 

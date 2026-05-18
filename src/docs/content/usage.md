@@ -13,6 +13,8 @@ export function App() {
   const { table, paste, applyFill, undo, redo } = useGigatable({
     columns,
     data: myData,
+    enableColumnResizing: true,
+    columnResizeMode: "onChange",
     history: true,
   });
 
@@ -24,6 +26,7 @@ export function App() {
       allowHistory
       allowPaste
       allowFillHandle
+      allowColumnResizing
       paste={paste}
       applyFill={applyFill}
       undo={undo}
@@ -86,6 +89,24 @@ export const columns: Array<ColumnDef<Row>> = [
 | `allowHistory` | Ctrl/Cmd+Z and Ctrl/Cmd+Shift+Z | `history: true`, `undo`, `redo` |
 | `allowPaste` | Ctrl/Cmd+V TSV paste | `paste` |
 | `allowFillHandle` | Excel-style drag fill | `applyFill`, editable columns |
+| `allowColumnResizing` | Header-border drag resizing | `enableColumnResizing: true` in `useGigatable` |
+
+## Column resizing
+
+Column resizing uses TanStack Table sizing state. Enable it in `useGigatable`, then opt into the resize handles on `<Gigatable>`.
+
+```tsx
+const { table } = useGigatable({
+  columns,
+  data,
+  enableColumnResizing: true,
+  columnResizeMode: "onChange",
+});
+
+<Gigatable table={table} allowColumnResizing />;
+```
+
+Users drag the header border to resize a column and double-click the handle to reset the width. Persist widths by controlling TanStack's `columnSizing` state with `state: { columnSizing }` and `onColumnSizingChange`.
 
 ## Editing behavior
 
@@ -93,4 +114,4 @@ Double-click an editable cell or press Enter on a selected editable cell to edit
 
 ## Full demo
 
-The demo route in this repo shows a wide biological strain dataset with virtualization, editable cells, copy/paste, fill handle, and history enabled.
+The demo route in this repo shows a wide biological strain dataset with virtualization, editable cells, copy/paste, fill handle, column resizing, and history enabled.

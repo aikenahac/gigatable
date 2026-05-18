@@ -11,6 +11,8 @@ const { table, paste, applyFill, undo, redo, clear, canUndo, canRedo } =
   useGigatable({
     columns,
     data,
+    enableColumnResizing: true,
+    columnResizeMode: "onChange",
     history: true,
     maxHistorySize: 50,
   });
@@ -22,6 +24,10 @@ const { table, paste, applyFill, undo, redo, clear, canUndo, canRedo } =
 | `data` | `Array<TData>` | required | Initial row data, synced when the array reference changes |
 | `history` | `boolean` | `false` | Enables undo/redo state tracking |
 | `maxHistorySize` | `number` | `20` | Maximum undo steps retained |
+| `enableColumnResizing` | `boolean` | TanStack default | Enables TanStack column resize handlers and sizing state |
+| `columnResizeMode` | `"onChange"` or `"onEnd"` | TanStack default | Use `"onChange"` for live width updates while dragging |
+| `state.columnSizing` | `ColumnSizingState` | TanStack default | Optional controlled sizing state for persisted widths |
+| `onColumnSizingChange` | `OnChangeFn<ColumnSizingState>` | TanStack default | Optional callback for saving resized widths |
 
 ## `<Gigatable>`
 
@@ -36,6 +42,7 @@ Renders the virtualized table UI.
 | `allowHistory` | `boolean` | `false` | Enables undo and redo keyboard shortcuts |
 | `allowPaste` | `boolean` | `false` | Enables TSV paste from the clipboard |
 | `allowFillHandle` | `boolean` | `false` | Enables drag-fill behavior for editable columns |
+| `allowColumnResizing` | `boolean` | `false` | Shows header-border resize handles. Requires `enableColumnResizing` in `useGigatable` |
 | `paste` | `Function` | none | Handler returned by `useGigatable` |
 | `applyFill` | `Function` | none | Handler returned by `useGigatable` |
 | `undo` | `() => void` | none | Undo handler returned by `useGigatable` |
@@ -71,3 +78,5 @@ cell: (cell) => <EditableCell {...cell} renderInput={TextInput} />
 | Escape | Cancel edit |
 | Ctrl/Cmd+Z | Undo |
 | Ctrl/Cmd+Shift+Z | Redo |
+| Drag header border | Resize column |
+| Double-click header border | Reset column width |

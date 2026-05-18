@@ -18,7 +18,7 @@ graph TD
   MetaUpdate --> Hook
 ```
 
-`useGigatable` receives columns and initial data. It stores the current data array, creates `updateCellData`, `paste`, and `applyFill`, and passes `updateCellData` into TanStack Table metadata. `Gigatable` receives the table instance and feature handlers, then renders only the visible row window.
+`useGigatable` receives columns and initial data. It stores the current data array, creates `updateCellData`, `paste`, and `applyFill`, and passes `updateCellData` into TanStack Table metadata. It also forwards standard TanStack options such as column sizing state. `Gigatable` receives the table instance and feature handlers, then renders only the visible row window.
 
 ## useGigatable
 
@@ -61,6 +61,8 @@ Use this file when the question is "how does the table respond to an interaction
 Rows are always virtualized. `Gigatable` passes the scroll element to `useVirtualizer`, derives row height from the resolved theme, and renders only virtual rows with an overscan buffer. Cell selection uses stable row ids and column ids instead of DOM position so it can survive virtualization.
 
 This means not every selected cell has a DOM node. Selection and fill logic must tolerate missing refs and update cells when they enter the virtual window.
+
+Columns are also horizontally virtualized. Column widths come from TanStack `column.getSize()`. When column sizing state changes during a resize drag, `Gigatable` asks the column virtualizer to remeasure so the table width, left/right virtual padding, headers, and cells stay aligned.
 
 ## Metadata contract
 

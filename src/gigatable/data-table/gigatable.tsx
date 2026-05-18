@@ -1,6 +1,7 @@
 import { clsx } from "clsx";
 import type {
   Cell,
+  ColumnResizeDirection,
   Row,
   Table as TanStackTableType,
 } from "@tanstack/react-table";
@@ -41,6 +42,25 @@ const DefaultTextInput = ({
 
 const PASTE_HIGHLIGHT_TIMEOUT_DURATION = 5000;
 
+export function shouldRenderColumnResizer(
+  allowColumnResizing: boolean,
+  canResize: boolean,
+) {
+  return allowColumnResizing && canResize;
+}
+
+export function getColumnResizerClassName(
+  direction: ColumnResizeDirection | undefined,
+  isResizing: boolean,
+) {
+  const resolvedDirection = direction ?? "ltr";
+  return clsx(
+    "gt-column-resizer",
+    `gt-column-resizer-${resolvedDirection}`,
+    { "is-resizing": isResizing },
+  );
+}
+
 /** Props for the {@link Gigatable} component. */
 export interface GigatableProps<TData> {
   /** TanStack Table instance returned by `useGigatable`. */
@@ -57,6 +77,8 @@ export interface GigatableProps<TData> {
   allowPaste?: boolean;
   /** Enable Excel-style fill handle to drag-fill a value down a column. Requires `applyFill` prop and `meta: { editable: true }` on columns. */
   allowFillHandle?: boolean;
+  /** Enable header-border drag handles for TanStack column resizing. Requires `enableColumnResizing` in `useGigatable`. */
+  allowColumnResizing?: boolean;
   /** Paste handler from `useGigatable`. Required when `allowPaste` is true. */
   paste?: (
     selectedCell: CellCoordinates,
@@ -257,6 +279,7 @@ export function Gigatable<TData>({
   allowHistory = false,
   allowPaste = false,
   allowFillHandle = false,
+  allowColumnResizing = false,
   paste,
   onPasteComplete,
   applyFill,
@@ -305,6 +328,12 @@ export function Gigatable<TData>({
     horizontal: true,
     overscan: 3,
   });
+  const columnSizing = table.getState().columnSizing;
+  const columnSizingInfo = table.getState().columnSizingInfo;
+
+  useEffect(() => {
+    columnVirtualizer.measure();
+  }, [columnVirtualizer, columnSizing, columnSizingInfo]);
 
   const scrollToCell = useCallback(
     (
@@ -604,11 +633,36 @@ export function Gigatable<TData>({
       <style href="gigatable" precedence="default">{`
         td.is-in-range { background-color: var(--gt-range-bg); }
         td.is-fill-range { background-color: var(--gt-fill-preview-bg); }
+        .gt-column-resizer {
+          position: absolute;
+          top: 0;
+          z-index: 20;
+          width: 5px;
+          height: 100%;
+          background: var(--gt-header-border-color);
+          cursor: col-resize;
+          touch-action: none;
+          user-select: none;
+        }
+        .gt-column-resizer-ltr { right: -2.5px; }
+        .gt-column-resizer-rtl { left: -2.5px; }
+        .gt-column-resizer.is-resizing {
+          background: var(--gt-selection-outline);
+          opacity: 1;
+        }
+        @media (hover: hover) {
+          .gt-column-resizer { opacity: 0; }
+          th:hover > .gt-column-resizer,
+          .gt-column-resizer.is-resizing { opacity: 1; }
+        }
       `}</style>
     <div
       className={clsx(
         "box-border border border-(--gt-cell-border-color) rounded-(--border-md)",
-        { "select-none": isRangeSelectionEnabled },
+        {
+          "select-none":
+            isRangeSelectionEnabled || !!columnSizingInfo.isResizingColumn,
+        },
       )}
       style={{ ...resolvedTheme, backgroundColor: "var(--gt-row-bg)" }}
       onKeyDown={handleContainerKeyDown}
@@ -629,10 +683,15 @@ export function Gigatable<TData>({
                 />
                 {virtualColumns.map((vc) => {
                   const header = headerGroup.headers[vc.index];
+                  const canResize = shouldRenderColumnResizer(
+                    allowColumnResizing,
+                    !header.isPlaceholder && header.column.getCanResize(),
+                  );
                   return (
                     <Table.Head
                       key={header.id}
                       style={{ width: `${vc.size}px` }}
+                      className={clsx({ relative: canResize })}
                     >
                       {header.isPlaceholder
                         ? null
@@ -640,6 +699,28 @@ export function Gigatable<TData>({
                             header.column.columnDef.header,
                             header.getContext(),
                           )}
+                      {canResize ? (
+                        <span
+                          aria-hidden="true"
+                          data-gigatable-column-resizer
+                          className={getColumnResizerClassName(
+                            table.options.columnResizeDirection,
+                            header.column.getIsResizing(),
+                          )}
+                          onDoubleClick={(event) => {
+                            event.stopPropagation();
+                            header.column.resetSize();
+                          }}
+                          onMouseDown={(event) => {
+                            event.stopPropagation();
+                            header.getResizeHandler()(event);
+                          }}
+                          onTouchStart={(event) => {
+                            event.stopPropagation();
+                            header.getResizeHandler()(event);
+                          }}
+                        />
+                      ) : null}
                     </Table.Head>
                   );
                 })}
