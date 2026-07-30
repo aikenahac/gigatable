@@ -1,6 +1,6 @@
 {
   "name": "gigatable",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "Open-source, source-installed React data grid with editable cells, range selection, Excel-compatible copy/paste, fill, virtualization and undo/redo.",
   "keywords": [
     "react",
