@@ -19,6 +19,7 @@ import {
 } from "../docs/mermaid-pan-zoom";
 import { GitHubLink } from "../site/github-link";
 import { SiteLink } from "../site/site-link";
+import { SupportLink } from "../site/support-link";
 import { ThemeSelector } from "../site/theme";
 import { CodeBlock, PackageManagerTabs } from "../docs/code-block";
 import { DocsNavigation, DocsSearchButton } from "../docs/docs-navigation";
@@ -563,6 +564,7 @@ export function DocsPage({ navigate, slug }: DocsPageProps) {
           </div>
           <div className="docs-header-actions">
             <DocsSearchButton onClick={() => setSearchOpen(true)} />
+            <SupportLink className="site-support-link" />
             <ThemeSelector compact />
             <GitHubLink className="site-icon-button" />
           </div>

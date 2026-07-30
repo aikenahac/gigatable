@@ -2,6 +2,7 @@ import { Gigatable, PasteResult, themes, useGigatable } from "../gigatable";
 import { columns } from "../columns";
 import { strains } from "../strains";
 import { SiteLink } from "../site/site-link";
+import { SupportLink } from "../site/support-link";
 import { useState, type CSSProperties } from "react";
 import { AdvancedDemoTable } from "./advanced-demo-table";
 
@@ -48,6 +49,7 @@ export function DemoPage({ navigate }: DemoPageProps) {
             <h1 className="mt-1 text-2xl font-semibold">Interactive demo</h1>
           </div>
           <nav className="flex items-center gap-3 text-sm">
+            <SupportLink className="demo-support-link" />
             <SiteLink
               href="/docs"
               navigate={navigate}

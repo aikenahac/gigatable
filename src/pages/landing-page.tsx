@@ -6,6 +6,7 @@ import { PackageManagerTabs } from "../docs/code-block";
 import { GitHubLink } from "../site/github-link";
 import { ParticleField } from "../site/particle-field";
 import { SiteLink } from "../site/site-link";
+import { SupportLink } from "../site/support-link";
 import { ThemeSelector } from "../site/theme";
 
 interface LandingPageProps {
@@ -239,6 +240,7 @@ export function LandingPage({ navigate }: LandingPageProps) {
           <SiteLink href="/demo" navigate={navigate}>
             Demo
           </SiteLink>
+          <SupportLink className="site-support-link" />
           <ThemeSelector compact />
           <GitHubLink className="site-icon-button" />
         </nav>
