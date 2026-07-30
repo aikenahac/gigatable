@@ -85,11 +85,12 @@ for (const { route, url } of canonicalUrls) {
   descriptions.add(description);
 }
 
-if (canonicalUrls.length !== 30) {
-  errors.push(`sitemap has ${canonicalUrls.length} routes, expected 30`);
+if (canonicalUrls.length !== 31) {
+  errors.push(`sitemap has ${canonicalUrls.length} routes, expected 31`);
 }
 if (
-  (sitemap.match(/<lastmod>\d{4}-\d{2}-\d{2}<\/lastmod>/g) ?? []).length !== 30
+  (sitemap.match(/<lastmod>\d{4}-\d{2}-\d{2}<\/lastmod>/g) ?? []).length !==
+  canonicalUrls.length
 ) {
   errors.push("sitemap does not have a file-derived lastmod for every route");
 }

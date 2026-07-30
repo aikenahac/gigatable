@@ -8,13 +8,13 @@ import {
 } from "./seo";
 
 describe("SEO registry", () => {
-  it("owns 30 unique canonical routes", () => {
+  it("owns 31 unique canonical routes", () => {
     const canonicals = canonicalRoutes.map(
       (route) => getSeoForRoute(route).canonicalPath,
     );
 
-    expect(canonicals).toHaveLength(30);
-    expect(new Set(canonicals).size).toBe(30);
+    expect(canonicals).toHaveLength(31);
+    expect(new Set(canonicals).size).toBe(31);
     expect(canonicals).toContain("/");
     expect(canonicals).toContain("/docs/");
     expect(canonicals).toContain("/features/excel-copy-paste/");

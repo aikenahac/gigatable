@@ -6,6 +6,49 @@ Gigatable adds editable cells, range selection, Excel-compatible copy/paste, fil
 
 [Website](https://gigatable.dev/) · [Interactive demo](https://gigatable.dev/demo/) · [Documentation](https://gigatable.dev/docs/)
 
+## Agent Skill
+
+Install the `gigatable` skill to help compatible coding agents build, customize,
+optimize, and troubleshoot Gigatable applications.
+
+With the open skills CLI:
+
+```bash
+npx skills add aikenahac/gigatable --skill gigatable
+```
+
+With the reviewed macOS/Linux installer:
+
+```bash
+curl -fsSL https://github.com/aikenahac/gigatable/releases/latest/download/install-gigatable-skill.sh | sh
+```
+
+With PowerShell on Windows:
+
+```powershell
+irm "https://github.com/aikenahac/gigatable/releases/latest/download/install-gigatable-skill.ps1" | iex
+```
+
+Or download
+[`gigatable-skill.zip`](https://github.com/aikenahac/gigatable/releases/latest/download/gigatable-skill.zip)
+and place its `gigatable/` folder under the local or global skills directory for
+your agent.
+
+The fallback installers prompt for agents and local/global scope. Download them
+first to use non-interactive options:
+
+```bash
+sh install-gigatable-skill.sh --scope global --agents codex,claude-code --yes
+```
+
+```powershell
+.\install-gigatable-skill.ps1 -Scope Global -Agents "codex","claude-code" -Yes
+```
+
+See the [Agent Skill guide](https://gigatable.dev/docs/agent-skill/) for
+supported paths, version pinning, checksum verification, and manual
+installation.
+
 ## Sponsors
 
 Gigatable is supported by [Preskok ThinkTank](https://thinktank.preskok.si/en/).

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Gigatable"
+  short_description: "Build fast, editable React data grids"
+  default_prompt: "Use $gigatable to build or improve a Gigatable data grid in this React application."

@@ -70,6 +70,11 @@
     "generate-data": "tsx src/scripts/generate-data.ts",
     "format": "prettier --write .",
     "test": "vitest run",
+    "skills:sync-agents": "node scripts/skills/sync-agent-registry.mjs",
+    "skills:generate-installers": "node scripts/skills/generate-installers.mjs",
+    "skills:validate": "node scripts/skills/validate.mjs",
+    "skills:package": "node scripts/skills/package.mjs",
+    "skills:test": "node --test scripts/skills/test-installers.mjs",
     "cli:deploy": "npx tsx gigatable/scripts/deploy.ts",
     "cli:prepare": "npx tsx gigatable/scripts/prepare.ts"
   },

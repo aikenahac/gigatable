@@ -55,6 +55,17 @@ describe("documentation structure", () => {
     expect(installation.content).toContain("bunx gigatable init");
   });
 
+  it("documents every agent skill installation route", () => {
+    const agentSkill = getDocBySlug("agent-skill");
+
+    expect(agentSkill.content).toContain(
+      "npx skills add aikenahac/gigatable --skill gigatable",
+    );
+    expect(agentSkill.content).toContain("install-gigatable-skill.sh | sh");
+    expect(agentSkill.content).toContain("install-gigatable-skill.ps1");
+    expect(agentSkill.content).toContain("gigatable-skill.zip");
+  });
+
   it("uses the packaged default editor in the quickstart", () => {
     const quickstart = getDocBySlug("quickstart");
 
@@ -83,7 +94,8 @@ describe("documentation structure", () => {
 
   it("returns adjacent pages for pagination", () => {
     expect(getAdjacentDocs("installation").previous?.slug).toBe("overview");
-    expect(getAdjacentDocs("installation").next?.slug).toBe("quickstart");
+    expect(getAdjacentDocs("installation").next?.slug).toBe("agent-skill");
+    expect(getAdjacentDocs("agent-skill").next?.slug).toBe("quickstart");
   });
 });
 

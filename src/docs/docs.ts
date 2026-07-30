@@ -1,5 +1,6 @@
 import overviewContent from "./content/overview.md?raw";
 import installationContent from "./content/installation.md?raw";
+import agentSkillContent from "./content/agent-skill.md?raw";
 import quickstartContent from "./content/quickstart.md?raw";
 import columnsEditingContent from "./content/columns-editing.md?raw";
 import selectionNavigationContent from "./content/selection-navigation.md?raw";
@@ -43,6 +44,7 @@ export {
 const contentBySlug: Record<DocsSlug, string> = {
   overview: overviewContent,
   installation: installationContent,
+  "agent-skill": agentSkillContent,
   quickstart: quickstartContent,
   "columns-editing": columnsEditingContent,
   "selection-navigation": selectionNavigationContent,

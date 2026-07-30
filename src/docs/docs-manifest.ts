@@ -29,6 +29,27 @@ export const docsManifest = [
   {
     section: "start",
     sectionTitle: "Start",
+    slug: "agent-skill",
+    title: "Agent Skill",
+    description:
+      "Install Gigatable development guidance in Codex, Claude Code, Cursor, and other compatible agents.",
+    seoTitle: "Install the Gigatable Agent Skill | Gigatable",
+    seoDescription:
+      "Install the Gigatable agent skill with npx, shell, PowerShell, or a manual ZIP for project-local or global use.",
+    sourceFile: "agent-skill.md",
+    keywords: [
+      "agent skill",
+      "skills cli",
+      "codex",
+      "claude code",
+      "cursor",
+      "install",
+    ],
+    audience: "consumer",
+  },
+  {
+    section: "start",
+    sectionTitle: "Start",
     slug: "quickstart",
     title: "Quickstart",
     description: "Render an editable, selectable table in a few minutes.",
