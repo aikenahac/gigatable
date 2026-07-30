@@ -7,7 +7,7 @@ import { GitHubLink } from "../site/github-link";
 import { ParticleField } from "../site/particle-field";
 import { SiteLink } from "../site/site-link";
 import { SupportLink } from "../site/support-link";
-import { ThemeSelector } from "../site/theme";
+import { ThemeSelector, useSiteTheme } from "../site/theme";
 
 interface LandingPageProps {
   navigate: (href: string) => void;
@@ -210,6 +210,7 @@ const architecture = [
 ];
 
 export function LandingPage({ navigate }: LandingPageProps) {
+  const { resolvedTheme } = useSiteTheme();
   const { table, paste, applyFill, applyHorizontalFill, undo, redo } =
     useGigatable({
       columns: previewColumns,
@@ -328,7 +329,9 @@ export function LandingPage({ navigate }: LandingPageProps) {
               style={{ "--gt-table-height": "390px" } as CSSProperties}
             >
               <Gigatable
-                theme={themes.giga}
+                theme={
+                  resolvedTheme === "dark" ? themes.giga : themes.light
+                }
                 table={table}
                 allowCellSelection
                 allowRangeSelection
