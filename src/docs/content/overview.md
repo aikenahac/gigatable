@@ -1,6 +1,6 @@
 # Overview
 
-Gigatable is an Excel-grade data grid for React. It combines TanStack Table state, row virtualization, editable cells, spreadsheet selection, TSV clipboard support, directional fill, column resizing, and undo/redo in source code you own.
+Gigatable is an open-source React data grid with Excel-like interactions and TanStack control. It combines TanStack Table state, row and column virtualization, editable cells, spreadsheet selection, TSV clipboard support, directional fill, column resizing, and undo/redo in source code you own.
 
 ## Why Gigatable
 
@@ -18,11 +18,13 @@ Most grids force you to choose between a small composable table and a large spre
 
 ## Choose a Path
 
-- Start with [Installation](/docs/installation) and [Quickstart](/docs/quickstart) for your first table.
+- Start with [Installation](/docs/installation/) and [Quickstart](/docs/quickstart/) for your first table.
 - Read [Columns & Editing](/docs/columns-editing) to add domain-specific inputs.
 - Use [Clipboard & Paste](/docs/clipboard-paste) and [Fill Handle](/docs/fill-handle) for spreadsheet workflows.
 - Explore [Theming](/docs/theming) and [Compound Composition](/docs/composition) when the default renderer is not enough.
 - Keep the [Gigatable reference](/docs/gigatable-api) nearby while wiring feature props.
+
+For deeper implementation guidance, read [how to build an editable TanStack Table grid](/guides/editable-tanstack-table/) or explore [Excel-compatible copy and paste](/features/excel-copy-paste/).
 
 ## Design Principles
 
@@ -39,8 +41,8 @@ Spreadsheet behaviors are opt-in. A read-only virtualized table needs only `tabl
 Filtering, sorting, visibility, sizing, and controlled state continue to use TanStack Table options. Gigatable adds mutation helpers and interaction rendering around that model.
 
 > [!TIP]
-> The [full demo](/demo) is a useful behavior reference. The docs focus on the smallest configuration required for each capability.
+> The [full demo](/demo/) is a useful behavior reference. The docs focus on the smallest configuration required for each capability.
 
 ## Requirements at a Glance
 
-Gigatable targets React 19+, TypeScript, Tailwind CSS v4, and modern browsers. See [Installation](/docs/installation) for exact setup and generated files.
+Gigatable targets React 19+, TypeScript, Tailwind CSS v4, and modern browsers. See [Installation](/docs/installation/) for exact setup and generated files.

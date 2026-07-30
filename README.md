@@ -1,8 +1,10 @@
 # Gigatable
 
-A high-performance React TypeScript application featuring an Excel-like data table with advanced functionality including cell selection, inline editing, copy/paste, fill handle, virtualization, and undo/redo history.
+**The open-source, source-installed React data grid with Excel-like interactions and TanStack control.**
 
-The datatable component lives in `src/gigatable/` and is also distributed as a shadcn-style npm package via the `gigatable/` CLI package.
+Gigatable adds editable cells, range selection, Excel-compatible copy/paste, fill handles, resizing, virtualization, and undo/redo to TanStack Table. Run `npx gigatable init` to install the TypeScript source directly in your app.
+
+[Website](https://gigatable.dev/) · [Interactive demo](https://gigatable.dev/demo/) · [Documentation](https://gigatable.dev/docs/)
 
 ## Sponsors
 
@@ -80,7 +82,7 @@ Gigatable is supported by [Preskok ThinkTank](https://thinktank.preskok.si/en/).
 ### Installation
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/aikenahac/gigatable.git
 cd gigatable
 pnpm install
 ```

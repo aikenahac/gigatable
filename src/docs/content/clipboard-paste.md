@@ -2,6 +2,8 @@
 
 Gigatable copies and pastes tab-separated values so selections round-trip through Excel, Google Sheets, and text editors.
 
+Want the interaction model and a live example first? See [React Data Grid with Excel Copy and Paste](/features/excel-copy-paste/), then use this guide for the implementation details.
+
 ## Enable Clipboard Workflows
 
 Copy is available when cell selection is enabled. Paste also needs the handler returned by `useGigatable`.

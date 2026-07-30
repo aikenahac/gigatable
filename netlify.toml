@@ -1,0 +1,44 @@
+[build]
+  command = "pnpm build"
+  publish = "dist"
+
+[[redirects]]
+  from = "https://gigatable.aiken.si/*"
+  to = "https://gigatable.dev/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/docs/overview"
+  to = "/docs/"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/docs/overview/"
+  to = "/docs/"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/*"
+  to = "/404.html"
+  status = 404
+
+[[headers]]
+  for = "/docs/*.md"
+
+  [headers.values]
+    X-Robots-Tag = "noindex"
+
+[[headers]]
+  for = "/llms*.txt"
+
+  [headers.values]
+    X-Robots-Tag = "noindex"
+
+[[headers]]
+  for = "/assets/*"
+
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"

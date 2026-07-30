@@ -15,7 +15,8 @@ export function getMarkdownUrl(slug: DocsSlug, origin: string): string {
 }
 
 export function getPageUrl(slug: DocsSlug, origin: string): string {
-  return new URL(`/docs/${slug}`, origin).href;
+  return new URL(slug === "overview" ? "/docs/" : `/docs/${slug}/`, origin)
+    .href;
 }
 
 export function buildAiPrompt(markdownUrl: string): string {

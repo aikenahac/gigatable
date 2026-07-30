@@ -1,4 +1,4 @@
-import { docsSections, type DocsNavItem } from "./docs";
+import { docsSections, getDocPath, type DocsNavItem } from "./docs";
 import { SiteLink } from "../site/site-link";
 
 export function DocsNavigation({
@@ -19,7 +19,7 @@ export function DocsNavigation({
             {section.items.map((item) => (
               <li key={item.slug}>
                 <SiteLink
-                  href={`/docs/${item.slug}`}
+                  href={getDocPath(item.slug)}
                   navigate={navigate}
                   aria-current={item.slug === current.slug ? "page" : undefined}
                   onClick={onNavigate}

@@ -2,6 +2,7 @@ import React from "react";
 import { Highlight, themes as prismThemes } from "prism-react-renderer";
 import { copyText } from "./page-actions";
 import { useSiteTheme } from "../site/theme";
+import { trackEvent } from "../site/analytics";
 
 const languageNames: Record<string, string> = {
   bash: "Terminal",
@@ -33,6 +34,9 @@ export function CodeBlock({
   const handleCopy = async () => {
     try {
       await copyText(code);
+      if (code.includes("gigatable init")) {
+        trackEvent("Install Command Copied");
+      }
       setStatus("copied");
       window.setTimeout(() => setStatus("idle"), 1400);
     } catch {
@@ -118,6 +122,10 @@ const packageCommands: Record<PackageManager, string> = {
 const packageManagerKey = "gigatable-package-manager";
 
 function getInitialPackageManager(): PackageManager {
+  if (typeof window === "undefined") {
+    return "npm";
+  }
+
   const stored = window.localStorage.getItem(packageManagerKey);
   return stored === "npm" ||
     stored === "pnpm" ||
@@ -128,9 +136,11 @@ function getInitialPackageManager(): PackageManager {
 }
 
 export function PackageManagerTabs({ compact = false }: { compact?: boolean }) {
-  const [manager, setManager] = React.useState<PackageManager>(
-    getInitialPackageManager,
-  );
+  const [manager, setManager] = React.useState<PackageManager>("npm");
+
+  React.useEffect(() => {
+    setManager(getInitialPackageManager());
+  }, []);
 
   const selectManager = (nextManager: PackageManager) => {
     window.localStorage.setItem(packageManagerKey, nextManager);

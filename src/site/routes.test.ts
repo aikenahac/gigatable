@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getHashTargetId, getRouteForPath } from "./routes";
+import { getCanonicalPath, getHashTargetId, getRouteForPath } from "./routes";
 
 describe("getRouteForPath", () => {
   it("maps the root path to the landing route", () => {
@@ -17,6 +17,13 @@ describe("getRouteForPath", () => {
     });
   });
 
+  it("maps the legacy overview alias to the canonical docs overview", () => {
+    const aliasRoute = getRouteForPath("/docs/overview/");
+
+    expect(aliasRoute).toEqual({ name: "docs", slug: "overview" });
+    expect(getCanonicalPath(aliasRoute)).toBe("/docs/");
+  });
+
   it("maps known docs article paths to docs routes", () => {
     expect(getRouteForPath("/docs/theming")).toEqual({
       name: "docs",
@@ -31,11 +38,35 @@ describe("getRouteForPath", () => {
     });
   });
 
-  it("falls back unknown docs article paths to the first docs article", () => {
+  it("returns a not-found route for unknown docs articles", () => {
     expect(getRouteForPath("/docs/not-real")).toEqual({
-      name: "docs",
-      slug: "overview",
+      name: "not-found",
     });
+  });
+
+  it("maps the high-intent resource pages", () => {
+    expect(getRouteForPath("/guides/editable-tanstack-table/")).toEqual({
+      name: "resource",
+      slug: "editable-tanstack-table",
+    });
+    expect(getRouteForPath("/features/excel-copy-paste/")).toEqual({
+      name: "resource",
+      slug: "excel-copy-paste",
+    });
+  });
+
+  it("does not expose the removed comparison page", () => {
+    expect(getRouteForPath("/compare/open-source-react-data-grids/")).toEqual({
+      name: "not-found",
+    });
+  });
+
+  it("normalizes canonical routes to trailing slashes", () => {
+    expect(getCanonicalPath(getRouteForPath("/docs"))).toBe("/docs/");
+    expect(getCanonicalPath(getRouteForPath("/docs/theming"))).toBe(
+      "/docs/theming/",
+    );
+    expect(getCanonicalPath(getRouteForPath("/demo"))).toBe("/demo/");
   });
 
   it("decodes deep-link heading targets safely", () => {

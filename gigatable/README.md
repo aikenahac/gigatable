@@ -1,6 +1,6 @@
 # gigatable-cli
 
-Documentation: [gigatable.aiken.si](https://gigatable.aiken.si)
+Documentation: [gigatable.dev](https://gigatable.dev/)
 
 **Gigatable is supported by [Preskok ThinkTank](https://thinktank.preskok.si/en/).**
 
@@ -8,7 +8,7 @@ Documentation: [gigatable.aiken.si](https://gigatable.aiken.si)
   <img src="https://raw.githubusercontent.com/aikenahac/gigatable/refs/heads/master/public/preskok_thinktank.png" alt="Preskok Think Tank" width="220" />
 </a>
 
-Excel-like datatable for React with spreadsheet navigation, quick editing, range clearing, repeating typed paste, directional fill, compound rendering, column resizing, and undo/redo — powered by TanStack Table and TanStack Virtual.
+Gigatable is the open-source, source-installed React data grid with Excel-like interactions and TanStack control. It includes spreadsheet navigation, quick editing, range clearing, Excel-compatible copy/paste, directional fill, compound rendering, column resizing, virtualization, and undo/redo.
 
 > **Install:** `npx gigatable init` copies the source files directly into your project. You own the code.
 

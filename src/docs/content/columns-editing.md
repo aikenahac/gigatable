@@ -2,6 +2,8 @@
 
 Gigatable uses TanStack Table `ColumnDef` objects. A column becomes editable when its cell renderer uses `EditableCell` and its metadata contains `editable: true`.
 
+For a complete implementation path—from TanStack’s headless model through selection, mutation history, and virtualization—read [Build an Editable Data Grid with TanStack Table](/guides/editable-tanstack-table/).
+
 ## Read-Only and Editable Columns
 
 ```tsx

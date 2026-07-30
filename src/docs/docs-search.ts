@@ -1,6 +1,7 @@
 import {
   docsNav,
   extractMarkdownHeadings,
+  getDocPath,
   type DocsNavItem,
   type DocsSlug,
 } from "./docs";
@@ -122,5 +123,5 @@ export function searchDocs(
 
 export function getSearchResultHref(result: DocsSearchRecord): string {
   const hash = result.headingId ? `#${result.headingId}` : "";
-  return `/docs/${result.slug}${hash}`;
+  return `${getDocPath(result.slug)}${hash}`;
 }

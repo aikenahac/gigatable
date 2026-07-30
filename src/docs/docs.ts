@@ -73,6 +73,8 @@ export interface DocsNavItem {
   slug: DocsSlug;
   title: string;
   description: string;
+  seoTitle: string;
+  seoDescription: string;
   section: DocsSectionId;
   sectionTitle: string;
   sourceFile: string;
@@ -116,6 +118,10 @@ export const docsSections: Array<DocsSection> = Array.from(
 
 export function getDocBySlug(slug: string): DocsNavItem {
   return docsNav.find((item) => item.slug === slug) ?? docsNav[0];
+}
+
+export function getDocPath(slug: DocsSlug): string {
+  return slug === defaultDocsSlug ? "/docs/" : `/docs/${slug}/`;
 }
 
 export function getAdjacentDocs(slug: DocsSlug) {

@@ -26,10 +26,6 @@ interface ThemeContextValue {
 const ThemeContext = React.createContext<ThemeContextValue | null>(null);
 
 function readStoredTheme(): ThemeMode {
-  if (typeof window === "undefined") {
-    return "system";
-  }
-
   try {
     const stored = window.localStorage.getItem(STORAGE_KEY);
     return isThemeMode(stored) ? stored : "system";
@@ -39,10 +35,6 @@ function readStoredTheme(): ThemeMode {
 }
 
 function getSystemTheme(): ResolvedTheme {
-  if (typeof window === "undefined") {
-    return "light";
-  }
-
   return window.matchMedia(DARK_QUERY).matches ? "dark" : "light";
 }
 
@@ -55,12 +47,13 @@ function applyTheme(theme: ResolvedTheme) {
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [mode, setModeState] = React.useState<ThemeMode>(readStoredTheme);
-  const [systemTheme, setSystemTheme] =
-    React.useState<ResolvedTheme>(getSystemTheme);
+  const [mode, setModeState] = React.useState<ThemeMode>("system");
+  const [systemTheme, setSystemTheme] = React.useState<ResolvedTheme>("light");
   const resolvedTheme = resolveTheme(mode, systemTheme === "dark");
 
   React.useEffect(() => {
+    setModeState(readStoredTheme());
+    setSystemTheme(getSystemTheme());
     const media = window.matchMedia(DARK_QUERY);
     const handleChange = (event: MediaQueryListEvent) => {
       setSystemTheme(event.matches ? "dark" : "light");

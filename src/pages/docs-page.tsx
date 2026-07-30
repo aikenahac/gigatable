@@ -5,6 +5,7 @@ import {
   extractMarkdownHeadings,
   getAdjacentDocs,
   getDocBySlug,
+  getDocPath,
   getMarkdownHeadingId,
 } from "../docs/docs";
 import type { DocsSlug } from "../docs/docs";
@@ -333,13 +334,6 @@ export function DocsPage({ navigate, slug }: DocsPageProps) {
   }, []);
 
   React.useEffect(() => {
-    document.title = `${doc.title} · Gigatable Docs`;
-    document
-      .querySelector('meta[name="description"]')
-      ?.setAttribute("content", doc.description);
-  }, [doc.description, doc.title]);
-
-  React.useEffect(() => {
     const handleShortcut = (event: KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
         event.preventDefault();
@@ -554,10 +548,10 @@ export function DocsPage({ navigate, slug }: DocsPageProps) {
               <span>Gigatable</span>
             </SiteLink>
             <nav aria-label="Primary">
-              <SiteLink href="/docs" navigate={navigate} aria-current="page">
+              <SiteLink href="/docs/" navigate={navigate} aria-current="page">
                 Docs
               </SiteLink>
-              <SiteLink href="/demo" navigate={navigate}>
+              <SiteLink href="/demo/" navigate={navigate}>
                 Demo
               </SiteLink>
             </nav>
@@ -579,11 +573,32 @@ export function DocsPage({ navigate, slug }: DocsPageProps) {
 
         <main id="docs-main" className="docs-main">
           <article>
+            <nav className="docs-breadcrumbs" aria-label="Breadcrumb">
+              <SiteLink href="/" navigate={navigate}>
+                Gigatable
+              </SiteLink>
+              <span aria-hidden="true">/</span>
+              {doc.slug === "overview" ? (
+                <span>Docs</span>
+              ) : (
+                <>
+                  <SiteLink href="/docs/" navigate={navigate}>
+                    Docs
+                  </SiteLink>
+                  <span aria-hidden="true">/</span>
+                  <span>{doc.title}</span>
+                </>
+              )}
+            </nav>
             <header className="docs-article-header">
               <div>
                 <span>{doc.sectionTitle}</span>
-                <h1>{doc.title}</h1>
-                <p>{doc.description}</p>
+                <h1>
+                  {doc.slug === "overview"
+                    ? "Gigatable React Data Grid Documentation"
+                    : doc.title}
+                </h1>
+                <p>{doc.seoDescription}</p>
               </div>
               <PageActionsMenu doc={doc} />
             </header>
@@ -616,7 +631,7 @@ export function DocsPage({ navigate, slug }: DocsPageProps) {
               <div className="docs-pagination">
                 {adjacent.previous ? (
                   <SiteLink
-                    href={`/docs/${adjacent.previous.slug}`}
+                    href={getDocPath(adjacent.previous.slug)}
                     navigate={navigate}
                   >
                     <span>Previous</span>
@@ -627,7 +642,7 @@ export function DocsPage({ navigate, slug }: DocsPageProps) {
                 )}
                 {adjacent.next ? (
                   <SiteLink
-                    href={`/docs/${adjacent.next.slug}`}
+                    href={getDocPath(adjacent.next.slug)}
                     navigate={navigate}
                   >
                     <span>Next</span>

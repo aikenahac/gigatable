@@ -1,7 +1,31 @@
 {
   "name": "gigatable",
   "version": "1.2.0",
-  "description": "Excel-grade spreadsheets for React.",
+  "description": "Open-source, source-installed React data grid with editable cells, range selection, Excel-compatible copy/paste, fill, virtualization and undo/redo.",
+  "keywords": [
+    "react",
+    "react-data-grid",
+    "data-grid",
+    "editable-table",
+    "excel-like",
+    "spreadsheet",
+    "tanstack-table",
+    "typescript",
+    "virtualization",
+    "copy-paste",
+    "cell-selection",
+    "fill-handle"
+  ],
+  "homepage": "https://gigatable.dev/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aikenahac/gigatable.git"
+  },
+  "bugs": {
+    "url": "https://github.com/aikenahac/gigatable/issues"
+  },
+  "author": "Aiken Tine Ahac",
+  "license": "MIT",
   "type": "module",
   "main": "src/index.tsx",
   "dependencies": {
@@ -42,7 +66,7 @@
   "scripts": {
     "start": "vite",
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && vite build && vite build --ssr src/entry-server.tsx --outDir dist-ssr && node scripts/prerender.mjs && node scripts/verify-seo.mjs",
     "generate-data": "tsx src/scripts/generate-data.ts",
     "format": "prettier --write .",
     "test": "vitest run",

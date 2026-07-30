@@ -4,14 +4,23 @@ import {
   type DocsSlug,
 } from "../docs/docs-manifest";
 
+export const resourceSlugs = [
+  "editable-tanstack-table",
+  "excel-copy-paste",
+] as const;
+
+export type ResourceSlug = (typeof resourceSlugs)[number];
+
 export type SiteRoute =
   | { name: "landing" }
   | { name: "demo" }
-  | { name: "docs"; slug: DocsSlug };
+  | { name: "docs"; slug: DocsSlug }
+  | { name: "resource"; slug: ResourceSlug }
+  | { name: "not-found" };
 
 function normalizePath(pathname: string): string {
   if (pathname.length > 1 && pathname.endsWith("/")) {
-    return pathname.slice(0, -1);
+    return pathname.replace(/\/+$/, "");
   }
 
   return pathname || "/";
@@ -34,13 +43,42 @@ export function getRouteForPath(pathname: string): SiteRoute {
 
   if (path.startsWith("/docs/")) {
     const slug = path.replace("/docs/", "");
-    return {
-      name: "docs",
-      slug: isDocsSlug(slug) ? slug : defaultDocsSlug,
-    };
+    return isDocsSlug(slug) ? { name: "docs", slug } : { name: "not-found" };
   }
 
-  return { name: "landing" };
+  if (path === "/guides/editable-tanstack-table") {
+    return { name: "resource", slug: "editable-tanstack-table" };
+  }
+
+  if (path === "/features/excel-copy-paste") {
+    return { name: "resource", slug: "excel-copy-paste" };
+  }
+
+  return { name: "not-found" };
+}
+
+export function getCanonicalPath(route: SiteRoute): string {
+  if (route.name === "landing") {
+    return "/";
+  }
+
+  if (route.name === "demo") {
+    return "/demo/";
+  }
+
+  if (route.name === "docs") {
+    return route.slug === defaultDocsSlug ? "/docs/" : `/docs/${route.slug}/`;
+  }
+
+  if (route.name === "resource") {
+    if (route.slug === "editable-tanstack-table") {
+      return "/guides/editable-tanstack-table/";
+    }
+
+    return "/features/excel-copy-paste/";
+  }
+
+  return "/404.html";
 }
 
 export function getHashTargetId(hash: string): string {

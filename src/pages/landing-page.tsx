@@ -8,6 +8,7 @@ import { ParticleField } from "../site/particle-field";
 import { SiteLink } from "../site/site-link";
 import { SupportLink } from "../site/support-link";
 import { ThemeSelector, useSiteTheme } from "../site/theme";
+import { trackEvent } from "../site/analytics";
 
 interface LandingPageProps {
   navigate: (href: string) => void;
@@ -160,45 +161,66 @@ const previewColumns: Array<ColumnDef<PreviewStrain>> = [
 const features = [
   {
     index: "01",
-    title: "Select Like a Spreadsheet",
+    title: "Cell and Range Selection",
     description:
-      "Click, drag, Shift-select, and navigate with the keyboard across virtualized rows.",
+      "Click, drag, Shift-select, and move through rectangular ranges with familiar keyboard controls.",
     code: "allowCellSelection\nallowRangeSelection",
   },
   {
     index: "02",
-    title: "Edit Domain Values",
+    title: "Keyboard Navigation",
+    description:
+      "Move with Arrow keys, Tab, Home, and End—even when the target row or column is virtualized.",
+    code: "Arrow · Tab · Home · End",
+  },
+  {
+    index: "03",
+    title: "Custom Editable Cells",
     description:
       "Bring your own inputs, parse clipboard values, and clear cells with typed defaults.",
     code: "meta: { editable: true }",
   },
   {
-    index: "03",
-    title: "Move Data With TSV",
+    index: "04",
+    title: "Excel-Compatible Clipboard",
     description:
-      "Round-trip rectangular selections through Excel and Google Sheets.",
-    code: "allowPaste\nonPasteComplete",
+      "Copy and paste TSV rectangles between your app, Excel, and Google Sheets.",
+    code: "allowPaste\nparsePastedValue",
   },
   {
-    index: "04",
-    title: "Fill Any Direction",
+    index: "05",
+    title: "Typed and Repeated Paste",
+    description:
+      "Convert clipboard strings into domain values and repeat smaller data across selected ranges.",
+    code: "onPasteComplete\npasteByColumnId",
+  },
+  {
+    index: "06",
+    title: "Fill in Any Direction",
     description:
       "Repeat values vertically or horizontally with eligible-column and preview hooks.",
     code: 'fillDirection="both"',
   },
   {
-    index: "05",
-    title: "Undo Every Mutation",
+    index: "07",
+    title: "Undo, Redo, and Clear",
     description:
-      "Edits, paste, fill, and clearing become coherent history entries.",
+      "Edits, paste, fill, and range clearing become coherent history entries.",
     code: "history: true\nmaxHistorySize: 50",
   },
   {
-    index: "06",
-    title: "Compose the Renderer",
+    index: "08",
+    title: "Resize and Virtualize",
     description:
-      "Replace the body, cells, footer, or virtualizer without losing interactions.",
-    code: "<Gigatable.Cell />",
+      "Resize columns while row and column windows keep the rendered DOM focused on visible data.",
+    code: "allowColumnResizing\nTanStack Virtual",
+  },
+  {
+    index: "09",
+    title: "Theme and Compose",
+    description:
+      "Replace table layers, inputs, themes, and virtualizers without losing the interaction model.",
+    code: "themes · CSS variables\n<Gigatable.Cell />",
   },
 ];
 
@@ -207,6 +229,60 @@ const architecture = [
   ["TanStack Table", "Headless table state"],
   ["TanStack Virtual", "Only visible rows mount"],
   ["TypeScript", "Typed from input to theme"],
+];
+
+const useCases = [
+  [
+    "Internal Tools",
+    "Turn operational records into keyboard-friendly data-entry workflows.",
+  ],
+  [
+    "Admin Panels",
+    "Edit domain values directly instead of opening a form for every row.",
+  ],
+  [
+    "Inventory & Operations",
+    "Paste spreadsheet batches, validate typed columns, and undo mistakes.",
+  ],
+  [
+    "Laboratory Data Entry",
+    "Compose domain-specific editors around wide, virtualized datasets.",
+  ],
+  [
+    "Custom CRUD Interfaces",
+    "Keep business rules in React while users work in a grid.",
+  ],
+];
+
+const faqs = [
+  [
+    "What is Gigatable?",
+    "Gigatable is an open-source React data grid built on TanStack Table and TanStack Virtual. Its CLI copies the TypeScript implementation into your application.",
+  ],
+  [
+    "Is Gigatable a spreadsheet?",
+    "No. It is a data grid with spreadsheet interactions such as editing, range selection, clipboard paste, fill, and history. It is not a workbook engine and does not provide formulas or XLSX file handling.",
+  ],
+  [
+    "How is it different from TanStack Table?",
+    "TanStack Table supplies headless row, column, and state models. Gigatable keeps that model and adds a rendered, virtualized grid plus editing, selection, clipboard, fill, and history behavior.",
+  ],
+  [
+    "Can users copy and paste data from Excel or Google Sheets?",
+    "Yes. Gigatable reads and writes rectangular TSV clipboard data. Columns can parse incoming strings into numbers, dates, enums, or other application values.",
+  ],
+  [
+    "How does source installation work?",
+    "Run npx gigatable init. The CLI validates the project, copies the component source, and installs TanStack Table, TanStack Virtual, and clsx.",
+  ],
+  [
+    "Is Gigatable free for commercial projects?",
+    "Yes. Gigatable is released under the MIT license for personal and commercial use.",
+  ],
+  [
+    "How does it handle large datasets?",
+    "The default renderer virtualizes rows and columns so only the visible windows are mounted. Real performance still depends on your data operations and cell renderers.",
+  ],
 ];
 
 export function LandingPage({ navigate }: LandingPageProps) {
@@ -235,10 +311,10 @@ export function LandingPage({ navigate }: LandingPageProps) {
           <span>Gigatable</span>
         </SiteLink>
         <nav aria-label="Primary">
-          <SiteLink href="/docs" navigate={navigate}>
+          <SiteLink href="/docs/" navigate={navigate}>
             Docs
           </SiteLink>
-          <SiteLink href="/demo" navigate={navigate}>
+          <SiteLink href="/demo/" navigate={navigate}>
             Demo
           </SiteLink>
           <SupportLink className="site-support-link" />
@@ -252,32 +328,42 @@ export function LandingPage({ navigate }: LandingPageProps) {
           <div className="landing-hero-copy">
             <div className="landing-eyebrow">
               <span />
-              Source-installed React data grid
+              Open-source React data grid · MIT licensed
             </div>
             <h1>
-              Excel-grade grids.
+              Excel-like React data grids.
               <br />
               <span>Your source. Your rules.</span>
             </h1>
             <p>
-              Selection, editing, TSV clipboard, directional fill, history,
-              resizing, and virtualized rows—delivered as TypeScript source you
-              own.
+              Gigatable adds editable cells, range selection, Excel-compatible
+              copy/paste, fill handles, resizing, virtualization and undo/redo
+              to TanStack Table—with TypeScript source installed directly in
+              your app.
             </p>
             <div className="landing-hero-actions">
-              <SiteLink href="/docs" navigate={navigate}>
-                Start Building
+              <SiteLink
+                href="/docs/installation/"
+                navigate={navigate}
+                onClick={() => trackEvent("Installation CTA Clicked")}
+              >
+                Install Gigatable
                 <span aria-hidden="true">→</span>
               </SiteLink>
-              <SiteLink href="/demo" navigate={navigate}>
-                Explore the Demo
+              <SiteLink
+                href="/demo/"
+                navigate={navigate}
+                onClick={() => trackEvent("Demo Opened")}
+              >
+                Try the Interactive Demo
               </SiteLink>
             </div>
             <div className="landing-proof">
               <span>React 19+</span>
-              <span>Tailwind v4</span>
+              <span>TypeScript</span>
+              <span>Tailwind CSS v4</span>
+              <span>3 runtime dependencies</span>
               <span>MIT</span>
-              <span>Source owned</span>
             </div>
           </div>
 
@@ -305,7 +391,9 @@ export function LandingPage({ navigate }: LandingPageProps) {
           <div className="landing-section-heading">
             <div>
               <span>Interactive Proof</span>
-              <h2 id="showcase-title">The product is the demo.</h2>
+              <h2 id="showcase-title">
+                An interactive React data grid, not a static mockup
+              </h2>
             </div>
             <p>
               Click a cell, edit a value, paste TSV, drag the fill handle, or
@@ -329,9 +417,7 @@ export function LandingPage({ navigate }: LandingPageProps) {
               style={{ "--gt-table-height": "390px" } as CSSProperties}
             >
               <Gigatable
-                theme={
-                  resolvedTheme === "dark" ? themes.giga : themes.light
-                }
+                theme={resolvedTheme === "dark" ? themes.giga : themes.light}
                 table={table}
                 allowCellSelection
                 allowRangeSelection
@@ -361,7 +447,9 @@ export function LandingPage({ navigate }: LandingPageProps) {
           <div className="landing-section-heading">
             <div>
               <span>Spreadsheet Behavior</span>
-              <h2 id="features-title">Small API. Serious interactions.</h2>
+              <h2 id="features-title">
+                Spreadsheet interactions without a spreadsheet dependency
+              </h2>
             </div>
             <p>
               Enable only what your product needs. Every behavior stays
@@ -382,10 +470,38 @@ export function LandingPage({ navigate }: LandingPageProps) {
           </div>
         </section>
 
+        <section className="landing-tanstack" aria-labelledby="tanstack-title">
+          <div>
+            <span>TanStack Control</span>
+            <h2 id="tanstack-title">
+              Build on TanStack Table without rebuilding Excel-like UX
+            </h2>
+          </div>
+          <div>
+            <p>
+              Filtering, sorting, visibility, sizing, and controlled state stay
+              in the TanStack model you already know. Gigatable adds the
+              interaction and rendering layer around that model.
+            </p>
+            <p>
+              Need different markup, editors, themes, or virtualization? The
+              installed source and compound API are yours to adapt.
+            </p>
+            <SiteLink
+              href="/guides/editable-tanstack-table/"
+              navigate={navigate}
+            >
+              Read the TanStack Guide <span aria-hidden="true">→</span>
+            </SiteLink>
+          </div>
+        </section>
+
         <section className="landing-source" aria-labelledby="source-title">
           <div className="landing-source-copy">
             <span>Own the Implementation</span>
-            <h2 id="source-title">A dependency you can actually change.</h2>
+            <h2 id="source-title">
+              Source-installed means the grid belongs to your app
+            </h2>
             <p>
               Gigatable follows the shadcn model: install the component into
               your repository, review every line, then adapt it to your domain
@@ -397,7 +513,7 @@ export function LandingPage({ navigate }: LandingPageProps) {
               <li>Preset themes and CSS custom properties</li>
               <li>Composable rendering and custom virtualizers</li>
             </ul>
-            <SiteLink href="/docs/composition" navigate={navigate}>
+            <SiteLink href="/docs/composition/" navigate={navigate}>
               Explore Composition <span aria-hidden="true">→</span>
             </SiteLink>
           </div>
@@ -427,6 +543,63 @@ return (
           </div>
         </section>
 
+        <section
+          className="landing-use-cases"
+          aria-labelledby="use-cases-title"
+        >
+          <div className="landing-section-heading">
+            <div>
+              <span>Product Workflows</span>
+              <h2 id="use-cases-title">
+                Made for data-heavy product workflows
+              </h2>
+            </div>
+            <p>
+              Gigatable is designed for applications where users need to enter,
+              review, and move structured data quickly.
+            </p>
+          </div>
+          <div className="landing-use-cases-grid">
+            {useCases.map(([title, description]) => (
+              <article key={title}>
+                <h3>{title}</h3>
+                <p>{description}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section
+          className="landing-resources"
+          aria-labelledby="resources-title"
+        >
+          <div className="landing-section-heading">
+            <div>
+              <span>Go Deeper</span>
+              <h2 id="resources-title">
+                Choose and build the right React grid
+              </h2>
+            </div>
+            <p>
+              Follow a TanStack implementation guide or inspect Excel-compatible
+              clipboard behavior in detail.
+            </p>
+          </div>
+          <div className="landing-resource-grid">
+            <SiteLink
+              href="/guides/editable-tanstack-table/"
+              navigate={navigate}
+            >
+              <span>Implementation Guide</span>
+              <strong>Build an Editable Grid with TanStack Table</strong>
+            </SiteLink>
+            <SiteLink href="/features/excel-copy-paste/" navigate={navigate}>
+              <span>Feature Guide</span>
+              <strong>Excel-Compatible Copy and Paste</strong>
+            </SiteLink>
+          </div>
+        </section>
+
         <section className="landing-architecture" aria-label="Architecture">
           {architecture.map(([title, description]) => (
             <div key={title}>
@@ -436,16 +609,39 @@ return (
           ))}
         </section>
 
+        <section className="landing-faq" aria-labelledby="faq-title">
+          <div className="landing-faq-heading">
+            <span>Common Questions</span>
+            <h2 id="faq-title">React data grid questions, answered</h2>
+          </div>
+          <div className="landing-faq-list">
+            {faqs.map(([question, answer]) => (
+              <details key={question}>
+                <summary>{question}</summary>
+                <p>{answer}</p>
+              </details>
+            ))}
+          </div>
+        </section>
+
         <section className="landing-final-cta">
           <div>
             <span>Ready to ship a better grid?</span>
-            <h2>Start with source. End with your product.</h2>
+            <h2>Install your React data grid as source</h2>
           </div>
           <div>
-            <SiteLink href="/docs/installation" navigate={navigate}>
+            <SiteLink
+              href="/docs/installation/"
+              navigate={navigate}
+              onClick={() => trackEvent("Installation CTA Clicked")}
+            >
               Install Gigatable
             </SiteLink>
-            <SiteLink href="/demo" navigate={navigate}>
+            <SiteLink
+              href="/demo/"
+              navigate={navigate}
+              onClick={() => trackEvent("Demo Opened")}
+            >
               Open Full Demo
             </SiteLink>
           </div>
@@ -457,35 +653,46 @@ return (
               <span />
               <span>Gigatable</span>
             </SiteLink>
-            <p>Excel-grade data interactions for React, installed as source.</p>
+            <p>
+              Open-source React data grid interactions, installed as source.
+            </p>
           </div>
-          <div className="landing-sponsor">
-            <span>Supported by</span>
-            <a
-              href="https://thinktank.preskok.si/en/"
-              target="_blank"
-              rel="noreferrer"
-            >
-              <img
-                src="/preskok_thinktank.png"
-                alt="Preskok ThinkTank"
-                width="220"
-                height="56"
-                loading="lazy"
-              />
-            </a>
+          <div className="landing-credits">
+            <div className="landing-sponsor">
+              <span>Supported by</span>
+              <a
+                href="https://thinktank.preskok.si/en/"
+                target="_blank"
+                rel="noreferrer"
+              >
+                <img
+                  src="/preskok_thinktank.png"
+                  alt="Preskok ThinkTank"
+                  width="220"
+                  height="56"
+                  loading="lazy"
+                />
+              </a>
+            </div>
+            <span className="landing-maker">
+              Made by{" "}
+              <a href="https://aiken.si" target="_blank" rel="noreferrer">
+                Aiken T. Ahac
+              </a>
+            </span>
           </div>
           <nav aria-label="Footer">
-            <SiteLink href="/docs" navigate={navigate}>
+            <SiteLink href="/docs/" navigate={navigate}>
               Documentation
             </SiteLink>
-            <SiteLink href="/demo" navigate={navigate}>
+            <SiteLink href="/demo/" navigate={navigate}>
               Demo
             </SiteLink>
             <a
               href="https://github.com/aikenahac/gigatable"
               target="_blank"
               rel="noreferrer"
+              onClick={() => trackEvent("GitHub Opened")}
             >
               GitHub
             </a>

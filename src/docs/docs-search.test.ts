@@ -34,7 +34,7 @@ describe("documentation search", () => {
     );
 
     expect(result && getSearchResultHref(result)).toBe(
-      "/docs/clipboard-paste#parse-domain-values",
+      "/docs/clipboard-paste/#parse-domain-values",
     );
   });
 

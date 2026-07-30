@@ -1,10 +1,17 @@
-import { Gigatable, PasteResult, themes, useGigatable } from "../gigatable";
-import { columns } from "../columns";
-import { strains } from "../strains";
+import { lazy, Suspense, useState } from "react";
 import { SiteLink } from "../site/site-link";
 import { SupportLink } from "../site/support-link";
-import { useState, type CSSProperties } from "react";
-import { AdvancedDemoTable } from "./advanced-demo-table";
+
+const StandardDemoTable = lazy(() =>
+  import("./standard-demo-table").then((module) => ({
+    default: module.StandardDemoTable,
+  })),
+);
+const AdvancedDemoTable = lazy(() =>
+  import("./advanced-demo-table").then((module) => ({
+    default: module.AdvancedDemoTable,
+  })),
+);
 
 interface DemoPageProps {
   navigate: (href: string) => void;
@@ -12,27 +19,6 @@ interface DemoPageProps {
 
 export function DemoPage({ navigate }: DemoPageProps) {
   const [advanced, setAdvanced] = useState(false);
-  const {
-    table,
-    paste,
-    applyFill,
-    applyHorizontalFill,
-    undo,
-    redo,
-    canUndo,
-    canRedo,
-  } = useGigatable({
-    columns,
-    data: strains,
-    enableColumnResizing: true,
-    columnResizeMode: "onChange",
-    history: true,
-  });
-
-  const handlePasteComplete = (result: PasteResult) => {
-    console.log(`Paste completed: ${result.totalChanges} cells changed`);
-    console.log(JSON.stringify(result.changes));
-  };
 
   return (
     <main className="min-h-screen bg-[#f8fafc] text-[#0f172a]">
@@ -46,12 +32,19 @@ export function DemoPage({ navigate }: DemoPageProps) {
             >
               Gigatable
             </SiteLink>
-            <h1 className="mt-1 text-2xl font-semibold">Interactive demo</h1>
+            <h1 className="mt-1 text-2xl font-semibold">
+              Interactive React data grid demo
+            </h1>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-[#475569]">
+              Try cell and range selection, inline editing, Excel-compatible
+              copy/paste, fill handles, column resizing, keyboard navigation,
+              virtualization, and undo/redo.
+            </p>
           </div>
           <nav className="flex items-center gap-3 text-sm">
             <SupportLink className="demo-support-link" />
             <SiteLink
-              href="/docs"
+              href="/docs/"
               navigate={navigate}
               className="rounded-md border border-[#cfd8e5] px-3 py-2 font-medium text-[#334155] hover:border-[#94a3b8]"
             >
@@ -71,74 +64,52 @@ export function DemoPage({ navigate }: DemoPageProps) {
         <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-wrap gap-2 text-xs font-medium text-[#475569]">
             <span className="rounded bg-[#e0f2fe] px-2 py-1 text-[#075985]">
-              Virtualized rows
+              Virtualized rows and columns
             </span>
             <span className="rounded bg-[#dcfce7] px-2 py-1 text-[#166534]">
               Editable cells
             </span>
             <span className="rounded bg-[#fef3c7] px-2 py-1 text-[#92400e]">
-              TSV copy/paste
+              Excel-compatible TSV
             </span>
             <span className="rounded bg-[#ede9fe] px-2 py-1 text-[#5b21b6]">
-              Fill handle
+              Fill and history
             </span>
           </div>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setAdvanced((current) => !current)}
-              className="inline-flex h-8 items-center rounded-md border border-[#cfd8e5] bg-white px-3 text-xs font-semibold text-[#334155]"
-            >
-              {advanced ? "Standard demo" : "Advanced composition"}
-            </button>
-            <button
-              type="button"
-              onClick={undo}
-              disabled={!canUndo}
-              className="inline-flex h-8 items-center rounded-md border border-[#cfd8e5] bg-white px-3 text-xs font-semibold text-[#334155] shadow-sm transition-colors hover:border-[#94a3b8] hover:bg-[#f8fafc] disabled:cursor-not-allowed disabled:opacity-45"
-            >
-              Undo
-            </button>
-            <button
-              type="button"
-              onClick={redo}
-              disabled={!canRedo}
-              className="inline-flex h-8 items-center rounded-md border border-[#cfd8e5] bg-white px-3 text-xs font-semibold text-[#334155] shadow-sm transition-colors hover:border-[#94a3b8] hover:bg-[#f8fafc] disabled:cursor-not-allowed disabled:opacity-45"
-            >
-              Redo
-            </button>
-          </div>
-        </div>
-        {advanced ? (
-          <AdvancedDemoTable />
-        ) : (
-          <div
-            className="demo-table-shell"
-            style={
-              { "--gt-table-height": "calc(100vh - 178px)" } as CSSProperties
-            }
+          <button
+            type="button"
+            onClick={() => setAdvanced((current) => !current)}
+            className="inline-flex h-8 items-center rounded-md border border-[#cfd8e5] bg-white px-3 text-xs font-semibold text-[#334155]"
           >
-            <Gigatable
-              theme={themes.light}
-              table={table}
-              allowCellSelection
-              allowRangeSelection
-              allowQuickEdit
-              allowHistory
-              allowPaste
-              allowFillHandle
-              fillDirection="both"
-              allowColumnResizing
-              allColumnsEditable
-              paste={paste}
-              applyFill={applyFill}
-              applyHorizontalFill={applyHorizontalFill}
-              onPasteComplete={handlePasteComplete}
-              undo={undo}
-              redo={redo}
-            />
-          </div>
-        )}
+            {advanced ? "Standard demo" : "Advanced composition"}
+          </button>
+        </div>
+        <Suspense
+          fallback={
+            <div className="demo-table-loading" role="status">
+              Loading the interactive 1,000-row, 300-column dataset…
+            </div>
+          }
+        >
+          {advanced ? <AdvancedDemoTable /> : <StandardDemoTable />}
+        </Suspense>
+        <aside className="demo-seo-links">
+          <p>
+            Ready to build? Read the{" "}
+            <SiteLink href="/docs/quickstart/" navigate={navigate}>
+              React data grid quickstart
+            </SiteLink>
+            , inspect{" "}
+            <SiteLink href="/features/excel-copy-paste/" navigate={navigate}>
+              Excel-compatible copy and paste
+            </SiteLink>
+            , or{" "}
+            <SiteLink href="/docs/installation/" navigate={navigate}>
+              install the TypeScript source
+            </SiteLink>
+            .
+          </p>
+        </aside>
       </section>
     </main>
   );

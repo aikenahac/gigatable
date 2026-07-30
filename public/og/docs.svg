@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#050812"/>
+  <path d="M0 120H1200M0 240H1200M0 360H1200M0 480H1200M180 0V630M360 0V630M540 0V630M720 0V630M900 0V630M1080 0V630" stroke="#7dd3fc" stroke-opacity=".07"/>
+  <text x="72" y="112" fill="#74f0b4" font-family="Inter,Arial,sans-serif" font-size="30" font-weight="700">GIGATABLE DOCS</text>
+  <text x="72" y="244" fill="#f8fafc" font-family="Inter,Arial,sans-serif" font-size="68" font-weight="750">Build an editable</text>
+  <text x="72" y="324" fill="#f8fafc" font-family="Inter,Arial,sans-serif" font-size="68" font-weight="750">React data grid.</text>
+  <text x="72" y="414" fill="#b9c8dc" font-family="Inter,Arial,sans-serif" font-size="28">Installation · Guides · Customization · API Reference</text>
+  <rect x="72" y="472" width="390" height="70" rx="12" fill="#0f172a" stroke="#334155"/>
+  <text x="102" y="517" fill="#7dd3fc" font-family="ui-monospace,Menlo,monospace" font-size="25">gigatable.dev/docs/</text>
+</svg>

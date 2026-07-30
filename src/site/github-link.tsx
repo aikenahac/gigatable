@@ -1,4 +1,5 @@
 import type { AnchorHTMLAttributes } from "react";
+import { trackEvent } from "./analytics";
 
 const githubRepositoryUrl = "https://github.com/aikenahac/gigatable";
 
@@ -28,6 +29,7 @@ export function GitHubLink({
   className,
   iconClassName = "h-5 w-5",
   "aria-label": ariaLabel = "Open Gigatable on GitHub",
+  onClick,
   title = "View on GitHub",
   ...props
 }: GitHubLinkProps) {
@@ -39,6 +41,10 @@ export function GitHubLink({
       aria-label={ariaLabel}
       title={title}
       className={className}
+      onClick={(event) => {
+        trackEvent("GitHub Opened");
+        onClick?.(event);
+      }}
       {...props}
     >
       <GitHubIcon className={iconClassName} />
