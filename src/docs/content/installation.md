@@ -6,16 +6,18 @@ Gigatable is shipped as a shadcn-style source installer. The CLI copies the Reac
 
 Gigatable expects a modern React TypeScript project:
 
-| Requirement | Version |
-| --- | --- |
-| React | 19 or newer |
-| TypeScript | enabled with `tsconfig.json` |
-| Tailwind CSS | v4 |
-| Node.js | 18 or newer |
+| Requirement  | Version                      |
+| ------------ | ---------------------------- |
+| React        | 19 or newer                  |
+| TypeScript   | enabled with `tsconfig.json` |
+| Tailwind CSS | v4                           |
+| Node.js      | 18 or newer                  |
 
-## Install with your package manager
+## Install With Your Package Manager
 
 Run one of these commands from the root of your app:
+
+<!-- package-manager-tabs -->
 
 ```bash
 npx gigatable init
@@ -36,6 +38,9 @@ It also installs the runtime dependencies Gigatable needs:
 clsx
 ```
 
+The website presents these commands as package-manager tabs. They all run the
+same `init` workflow.
+
 ## TypeScript setup
 
 Add the TanStack Table augmentation file to your `tsconfig.json` include list. This enables `meta: { editable: true }` on column definitions.
@@ -55,3 +60,26 @@ import { Gigatable, useGigatable, EditableCell, themes } from "./gigatable";
 ```
 
 If you choose a different target path during installation, adjust the import path to match it.
+
+## Verify the Installation
+
+Import the barrel and render a minimal table:
+
+```tsx
+import { Gigatable, useGigatable } from "./gigatable";
+
+const { table } = useGigatable({ columns, data });
+
+return <Gigatable table={table} />;
+```
+
+Continue with [Quickstart](/docs/quickstart) to enable spreadsheet behavior.
+
+## Troubleshooting
+
+| Problem                               | Fix                                                                    |
+| ------------------------------------- | ---------------------------------------------------------------------- |
+| `meta.editable` is unknown            | Include the copied TanStack augmentation file in `tsconfig.json`       |
+| Tailwind utilities do not render      | Confirm the target app uses Tailwind CSS v4                            |
+| CLI chooses the wrong package manager | Run the corresponding `npx`, `pnpm dlx`, `yarn dlx`, or `bunx` command |
+| Import cannot be resolved             | Match the import path to the directory chosen during `init`            |

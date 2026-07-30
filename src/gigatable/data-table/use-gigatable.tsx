@@ -1,4 +1,11 @@
-import type { ColumnDef, RowData, TableOptions } from "@tanstack/react-table";
+import type {
+  Cell,
+  ColumnDef,
+  RowData,
+  Table,
+  TableMeta,
+  TableOptions,
+} from "@tanstack/react-table";
 import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import { useHistoryState } from "./use-history-state";
 import type { CellCoordinates } from "./use-cell-selection";
@@ -46,6 +53,33 @@ export interface UseGigatableProps<TData extends RowData, TValue>
   maxHistorySize?: number;
 }
 
+export function mergeGigatableMeta<TData extends RowData>(
+  meta: TableMeta<TData> | undefined,
+  updateCellData: NonNullable<TableMeta<TData>["updateCellData"]>,
+  clearCellData: NonNullable<TableMeta<TData>["clearCellData"]>,
+) {
+  return {
+    ...meta,
+    updateCellData,
+    clearCellData,
+  } as TableMeta<TData>;
+}
+
+export function resolveClearedValue<TData extends RowData>(
+  cell: Cell<TData, unknown> | undefined,
+) {
+  const resolver = cell?.column.columnDef.meta?.getClearedValue;
+  return resolver && cell ? resolver(cell) : null;
+}
+
+export function parsePastedCellValue<TData extends RowData>(
+  value: string,
+  cell: Cell<TData, unknown> | undefined,
+) {
+  const parser = cell?.column.columnDef.meta?.parsePastedValue;
+  return parser && cell ? parser(value, cell) : value;
+}
+
 /**
  * Creates and manages a TanStack Table instance with built-in support for inline cell
  * editing, undo/redo history, clipboard paste (TSV), and fill handle operations.
@@ -63,8 +97,17 @@ export function useGigatable<TData extends Record<string, unknown>, TValue>({
   const [data, setData] = useState<Array<TData>>(initialData);
   const latestDataRef = useRef<Array<TData>>(initialData);
 
-  const { presentState, setPresent, undo, redo, clear, canUndo, canRedo } =
-    useHistoryState<Array<TData>>(initialData, maxHistorySize);
+  const {
+    presentState,
+    setPresent,
+    undo,
+    redo,
+    clear,
+    reset,
+    canUndo,
+    canRedo,
+  } = useHistoryState<Array<TData>>(initialData, maxHistorySize);
+  const tableRef = useRef<Table<TData> | null>(null);
 
   const handleSetData = useCallback(
     (newData: Array<TData> | ((prevData: Array<TData>) => Array<TData>)) => {
@@ -123,13 +166,91 @@ export function useGigatable<TData extends Record<string, unknown>, TValue>({
     [handleSetData],
   );
 
+  const applyHorizontalFill = useCallback(
+    (rowIndex: number, targetColumnIds: Array<string>, value: unknown) => {
+      handleSetData((old) => {
+        const row = old[rowIndex];
+        if (!row) {
+          return old;
+        }
+
+        let didChange = false;
+        const updatedRow = { ...row } as Record<string, unknown>;
+        for (const columnId of targetColumnIds) {
+          if (updatedRow[columnId] !== value) {
+            updatedRow[columnId] = value;
+            didChange = true;
+          }
+        }
+
+        if (!didChange) {
+          return old;
+        }
+
+        const updated = [...old];
+        updated[rowIndex] = updatedRow as TData;
+        return updated;
+      });
+    },
+    [handleSetData],
+  );
+
+  const clearCells = useCallback(
+    (cells: Array<{ rowIndex: number; columnId: string }>) => {
+      handleSetData((old) => {
+        const cellsByRow = new Map<number, Set<string>>();
+        for (const { rowIndex, columnId } of cells) {
+          const columnIds = cellsByRow.get(rowIndex) ?? new Set<string>();
+          columnIds.add(columnId);
+          cellsByRow.set(rowIndex, columnIds);
+        }
+
+        const tableRows = tableRef.current?.getRowModel().rows ?? [];
+        let didChange = false;
+        const updated = old.map((row, rowIndex) => {
+          const columnIds = cellsByRow.get(rowIndex);
+          if (!columnIds) {
+            return row;
+          }
+
+          const updatedRow = { ...row } as Record<string, unknown>;
+          let didChangeRow = false;
+          for (const columnId of columnIds) {
+            const cell = tableRows
+              .find((tableRow) => tableRow.index === rowIndex)
+              ?.getAllCells()
+              .find((candidate) => candidate.column.id === columnId) as
+              | Cell<TData, unknown>
+              | undefined;
+            const clearedValue = resolveClearedValue(cell);
+            if (updatedRow[columnId] !== clearedValue) {
+              updatedRow[columnId] = clearedValue;
+              didChangeRow = true;
+            }
+          }
+
+          if (!didChangeRow) {
+            return row;
+          }
+
+          didChange = true;
+          return updatedRow as TData;
+        });
+
+        return didChange ? updated : old;
+      });
+    },
+    [handleSetData],
+  );
+
   const table = useReactTable({
     data: history && presentState ? presentState : data,
     columns,
     getCoreRowModel: getCoreRowModel(),
-    meta: { updateCellData },
     ...props,
+    meta: mergeGigatableMeta(props.meta, updateCellData, clearCells),
   });
+  tableRef.current = table;
 
   const handleTablePaste = useCallback(
     (
@@ -162,6 +283,8 @@ export function useGigatable<TData extends Record<string, unknown>, TValue>({
             if (targetRowIndex >= rows.length) {
               return;
             }
+            const targetRow = rows[targetRowIndex];
+            const dataRowIndex = targetRow.index;
 
             copyBuffer.columnIds.forEach((columnId, colIndex) => {
               const column = columns.find((c) => c.id === columnId);
@@ -169,12 +292,18 @@ export function useGigatable<TData extends Record<string, unknown>, TValue>({
                 return;
               }
 
-              const newValue = rowData[colIndex];
-              if (newValue === undefined) {
+              const pastedValue = rowData[colIndex];
+              if (pastedValue === undefined) {
                 return;
               }
 
-              const oldValue = newData[targetRowIndex][columnId];
+              const targetCell = targetRow
+                .getAllCells()
+                .find((cell) => cell.column.id === columnId) as
+                | Cell<TData, unknown>
+                | undefined;
+              const newValue = parsePastedCellValue(pastedValue, targetCell);
+              const oldValue = newData[dataRowIndex][columnId];
               if (oldValue !== newValue) {
                 const columnHeader =
                   typeof column.columnDef.header === "string"
@@ -182,15 +311,15 @@ export function useGigatable<TData extends Record<string, unknown>, TValue>({
                     : columnId;
 
                 changes.push({
-                  rowIndex: targetRowIndex,
-                  rowId: rows[targetRowIndex].id,
+                  rowIndex: dataRowIndex,
+                  rowId: targetRow.id,
                   columnId,
                   columnHeader,
                   oldValue,
                   newValue,
                 });
 
-                (newData[targetRowIndex] as Record<string, unknown>)[columnId] =
+                (newData[dataRowIndex] as Record<string, unknown>)[columnId] =
                   newValue;
               }
             });
@@ -205,12 +334,20 @@ export function useGigatable<TData extends Record<string, unknown>, TValue>({
             if (targetRowIndex >= rows.length) {
               return;
             }
+            const targetRow = rows[targetRowIndex];
+            const dataRowIndex = targetRow.index;
 
-            row.forEach((newValue, colIndex) => {
+            row.forEach((pastedValue, colIndex) => {
               const targetColIndex = startColIndex + colIndex;
               if (targetColIndex < columns.length) {
                 const columnId = columns[targetColIndex].id;
-                const oldValue = newData[targetRowIndex][columnId];
+                const targetCell = targetRow
+                  .getAllCells()
+                  .find((cell) => cell.column.id === columnId) as
+                  | Cell<TData, unknown>
+                  | undefined;
+                const newValue = parsePastedCellValue(pastedValue, targetCell);
+                const oldValue = newData[dataRowIndex][columnId];
 
                 if (oldValue !== newValue) {
                   const column = columns[targetColIndex];
@@ -220,17 +357,16 @@ export function useGigatable<TData extends Record<string, unknown>, TValue>({
                       : columnId;
 
                   changes.push({
-                    rowIndex: targetRowIndex,
-                    rowId: rows[targetRowIndex].id,
+                    rowIndex: dataRowIndex,
+                    rowId: targetRow.id,
                     columnId,
                     columnHeader,
                     oldValue,
                     newValue,
                   });
 
-                  (newData[targetRowIndex] as Record<string, unknown>)[
-                    columnId
-                  ] = newValue;
+                  (newData[dataRowIndex] as Record<string, unknown>)[columnId] =
+                    newValue;
                 }
               }
             });
@@ -251,7 +387,10 @@ export function useGigatable<TData extends Record<string, unknown>, TValue>({
   useEffect(() => {
     latestDataRef.current = initialData;
     setData(initialData);
-  }, [initialData]);
+    if (history) {
+      reset(initialData);
+    }
+  }, [history, initialData, reset]);
 
   useEffect(() => {
     if (history && presentState) {
@@ -264,9 +403,12 @@ export function useGigatable<TData extends Record<string, unknown>, TValue>({
     table,
     paste: handleTablePaste,
     applyFill,
+    applyHorizontalFill,
+    clearCells,
     undo,
     redo,
     clear,
+    reset,
     canUndo,
     canRedo,
   };

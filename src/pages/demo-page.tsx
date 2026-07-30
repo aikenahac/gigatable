@@ -2,14 +2,25 @@ import { Gigatable, PasteResult, themes, useGigatable } from "../gigatable";
 import { columns } from "../columns";
 import { strains } from "../strains";
 import { SiteLink } from "../site/site-link";
-import type { CSSProperties } from "react";
+import { useState, type CSSProperties } from "react";
+import { AdvancedDemoTable } from "./advanced-demo-table";
 
 interface DemoPageProps {
   navigate: (href: string) => void;
 }
 
 export function DemoPage({ navigate }: DemoPageProps) {
-  const { table, paste, applyFill, undo, redo, canUndo, canRedo } = useGigatable({
+  const [advanced, setAdvanced] = useState(false);
+  const {
+    table,
+    paste,
+    applyFill,
+    applyHorizontalFill,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+  } = useGigatable({
     columns,
     data: strains,
     enableColumnResizing: true,
@@ -73,6 +84,13 @@ export function DemoPage({ navigate }: DemoPageProps) {
           <div className="flex items-center gap-2">
             <button
               type="button"
+              onClick={() => setAdvanced((current) => !current)}
+              className="inline-flex h-8 items-center rounded-md border border-[#cfd8e5] bg-white px-3 text-xs font-semibold text-[#334155]"
+            >
+              {advanced ? "Standard demo" : "Advanced composition"}
+            </button>
+            <button
+              type="button"
               onClick={undo}
               disabled={!canUndo}
               className="inline-flex h-8 items-center rounded-md border border-[#cfd8e5] bg-white px-3 text-xs font-semibold text-[#334155] shadow-sm transition-colors hover:border-[#94a3b8] hover:bg-[#f8fafc] disabled:cursor-not-allowed disabled:opacity-45"
@@ -89,29 +107,36 @@ export function DemoPage({ navigate }: DemoPageProps) {
             </button>
           </div>
         </div>
-        <div
-          className="demo-table-shell"
-          style={
-            { "--gt-table-height": "calc(100vh - 178px)" } as CSSProperties
-          }
-        >
-          <Gigatable
-            theme={themes.light}
-            table={table}
-            allowCellSelection
-            allowRangeSelection
-            allowHistory
-            allowPaste
-            allowFillHandle
-            allowColumnResizing
-            allColumnsEditable
-            paste={paste}
-            applyFill={applyFill}
-            onPasteComplete={handlePasteComplete}
-            undo={undo}
-            redo={redo}
-          />
-        </div>
+        {advanced ? (
+          <AdvancedDemoTable />
+        ) : (
+          <div
+            className="demo-table-shell"
+            style={
+              { "--gt-table-height": "calc(100vh - 178px)" } as CSSProperties
+            }
+          >
+            <Gigatable
+              theme={themes.light}
+              table={table}
+              allowCellSelection
+              allowRangeSelection
+              allowQuickEdit
+              allowHistory
+              allowPaste
+              allowFillHandle
+              fillDirection="both"
+              allowColumnResizing
+              allColumnsEditable
+              paste={paste}
+              applyFill={applyFill}
+              applyHorizontalFill={applyHorizontalFill}
+              onPasteComplete={handlePasteComplete}
+              undo={undo}
+              redo={redo}
+            />
+          </div>
+        )}
       </section>
     </main>
   );

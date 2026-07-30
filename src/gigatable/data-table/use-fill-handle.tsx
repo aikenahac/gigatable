@@ -8,20 +8,38 @@ interface DragState {
   selTopIdx: number;
   selBotIdx: number;
   hoverRowIdx: number;
+  direction: FillAxis | null;
+  anchorColIdx: number;
+  hoverColIdx: number;
 }
+
+export type FillDirection = "vertical" | "horizontal" | "both";
+type FillAxis = Exclude<FillDirection, "both">;
+
+export const isFillAxisAllowed = (
+  fillDirection: FillDirection,
+  axis: FillAxis,
+) => fillDirection === "both" || fillDirection === axis;
 
 export interface UseFillHandleProps {
   selectedCell: CellCoordinates | null;
   selection: Selection | null;
   rows: Array<Row<unknown>>;
+  columnIds: Array<string>;
   isColumnEditable: (columnId: string) => boolean;
   applyFill: (
     columnId: string,
     targetRowIndices: Array<number>,
     value: unknown,
   ) => void;
+  applyHorizontalFill?: (
+    rowIndex: number,
+    targetColumnIds: Array<string>,
+    value: unknown,
+  ) => void;
   onFillComplete?: (start: CellCoordinates, end: CellCoordinates) => void;
   enabled: boolean;
+  fillDirection?: FillDirection;
   containerRef?: React.RefObject<HTMLDivElement | null>;
 }
 
@@ -37,10 +55,13 @@ export function useFillHandle({
   selectedCell,
   selection,
   rows,
+  columnIds,
   isColumnEditable,
   applyFill,
+  applyHorizontalFill,
   onFillComplete,
   enabled,
+  fillDirection = "vertical",
   containerRef,
 }: UseFillHandleProps): UseFillHandleReturn {
   const rowIndexMapRef = useRef<Record<string, number>>({});
@@ -59,6 +80,18 @@ export function useFillHandle({
     rowsRef.current = rows;
   }, [rowIndexMap, rows]);
 
+  const columnIndexMapRef = useRef<Record<string, number>>({});
+  const columnIdsRef = useRef(columnIds);
+  const fillDirectionRef = useRef(fillDirection);
+
+  useEffect(() => {
+    columnIndexMapRef.current = Object.fromEntries(
+      columnIds.map((columnId, index) => [columnId, index]),
+    );
+    columnIdsRef.current = columnIds;
+    fillDirectionRef.current = fillDirection;
+  }, [columnIds, fillDirection]);
+
   const [dragState, setDragState] = useState<DragState | null>(null);
   const dragStateRef = useRef<DragState | null>(null);
   const mousePositionRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -71,6 +104,11 @@ export function useFillHandle({
     }
 
     if (dragState) {
+      if (dragState.direction === "horizontal") {
+        const rowId = rows[dragState.selBotIdx]?.id;
+        const columnId = columnIds[dragState.hoverColIdx];
+        return rowId && columnId ? `${rowId}-${columnId}` : null;
+      }
       const hoverRowId = rows[dragState.hoverRowIdx]?.id;
       return hoverRowId ? `${hoverRowId}-${dragState.columnId}` : null;
     }
@@ -94,6 +132,7 @@ export function useFillHandle({
     rowIndexMap,
     isColumnEditable,
     dragState,
+    columnIds,
   ]);
 
   const isAnchorCell = useCallback(
@@ -120,7 +159,22 @@ export function useFillHandle({
 
   const isFillRangeCell = useCallback(
     (rowId: string, columnId: string) => {
-      if (!dragState || columnId !== dragState.columnId) {
+      if (!dragState) {
+        return false;
+      }
+      if (dragState.direction === "horizontal") {
+        const rowIdx = rowIndexMapRef.current[rowId] ?? -1;
+        const colIdx = columnIndexMapRef.current[columnId] ?? -1;
+        const min = Math.min(dragState.anchorColIdx, dragState.hoverColIdx);
+        const max = Math.max(dragState.anchorColIdx, dragState.hoverColIdx);
+        return (
+          rowIdx === dragState.selBotIdx &&
+          colIdx >= min &&
+          colIdx <= max &&
+          colIdx !== dragState.anchorColIdx
+        );
+      }
+      if (columnId !== dragState.columnId) {
         return false;
       }
       const rowIdx = rowIndexMapRef.current[rowId] ?? -1;
@@ -136,7 +190,16 @@ export function useFillHandle({
   // True for the source cell — it already has the correct value, so no preview overlay needed.
   const isFillSourceCell = useCallback(
     (rowId: string, columnId: string) => {
-      if (!dragState || columnId !== dragState.columnId) {
+      if (!dragState) {
+        return false;
+      }
+      if (dragState.direction === "horizontal") {
+        return (
+          rowIndexMapRef.current[rowId] === dragState.selBotIdx &&
+          columnIndexMapRef.current[columnId] === dragState.anchorColIdx
+        );
+      }
+      if (columnId !== dragState.columnId) {
         return false;
       }
       const rowIdx = rowIndexMapRef.current[rowId] ?? -1;
@@ -161,6 +224,9 @@ export function useFillHandle({
       return undefined;
     }
     const { columnId, selTopIdx, selBotIdx, hoverRowIdx } = dragState;
+    if (dragState.direction === "horizontal") {
+      return (rows[selBotIdx]?.original as Record<string, unknown>)?.[columnId];
+    }
     if (hoverRowIdx > selBotIdx) {
       return (rows[selTopIdx]?.original as Record<string, unknown>)?.[columnId];
     }
@@ -170,29 +236,119 @@ export function useFillHandle({
     return undefined;
   }, [dragState, rows]);
 
-  const handleGlobalMouseMove = useCallback((e: MouseEvent) => {
-    mousePositionRef.current = { x: e.clientX, y: e.clientY };
-    const state = dragStateRef.current;
-    if (!state) {
-      return;
-    }
-    const el = document.elementFromPoint(e.clientX, e.clientY);
-    const td = el?.closest("td[data-row-id]") as HTMLTableCellElement | null;
-    if (!td || td.dataset.columnId !== state.columnId) {
-      return;
-    }
-    const rowIdx = rowIndexMapRef.current[td.dataset.rowId!] ?? -1;
-    if (rowIdx === -1 || rowIdx === state.hoverRowIdx) {
-      return;
-    }
-    const nextState = { ...state, hoverRowIdx: rowIdx };
-    dragStateRef.current = nextState;
-    setDragState(nextState);
-  }, []);
+  const handleGlobalMouseMove = useCallback(
+    (e: MouseEvent) => {
+      mousePositionRef.current = { x: e.clientX, y: e.clientY };
+      const state = dragStateRef.current;
+      if (!state) {
+        return;
+      }
+      const el = document.elementFromPoint(e.clientX, e.clientY);
+      const td = el?.closest("td[data-row-id]") as HTMLTableCellElement | null;
+      if (!td) {
+        return;
+      }
+      const rowIdx = rowIndexMapRef.current[td.dataset.rowId!] ?? -1;
+      const colIdx = columnIndexMapRef.current[td.dataset.columnId!] ?? -1;
+      const direction = fillDirectionRef.current;
+
+      if (state.direction === null) {
+        if (
+          td.dataset.columnId === state.columnId &&
+          rowIdx !== state.hoverRowIdx &&
+          isFillAxisAllowed(direction, "vertical")
+        ) {
+          const nextState = {
+            ...state,
+            direction: "vertical" as const,
+            hoverRowIdx: rowIdx,
+          };
+          dragStateRef.current = nextState;
+          setDragState(nextState);
+        } else if (
+          rowIdx === state.selBotIdx &&
+          colIdx !== state.hoverColIdx &&
+          isFillAxisAllowed(direction, "horizontal") &&
+          applyHorizontalFill
+        ) {
+          const nextState = {
+            ...state,
+            direction: "horizontal" as const,
+            hoverColIdx: colIdx,
+          };
+          dragStateRef.current = nextState;
+          setDragState(nextState);
+        }
+        return;
+      }
+
+      if (state.direction === "vertical") {
+        if (
+          td.dataset.columnId !== state.columnId ||
+          rowIdx === -1 ||
+          rowIdx === state.hoverRowIdx
+        ) {
+          return;
+        }
+        const nextState = { ...state, hoverRowIdx: rowIdx };
+        dragStateRef.current = nextState;
+        setDragState(nextState);
+        return;
+      }
+
+      if (
+        rowIdx !== state.selBotIdx ||
+        colIdx === -1 ||
+        colIdx === state.hoverColIdx
+      ) {
+        return;
+      }
+      const nextState = { ...state, hoverColIdx: colIdx };
+      dragStateRef.current = nextState;
+      setDragState(nextState);
+    },
+    [applyHorizontalFill],
+  );
 
   const handleGlobalMouseUp = useCallback(() => {
     const state = dragStateRef.current;
     if (!state) {
+      return;
+    }
+    if (state.direction === "horizontal") {
+      const currentRows = rowsRef.current;
+      const sourceValue = (
+        currentRows[state.selBotIdx]?.original as Record<string, unknown>
+      )?.[state.columnId];
+      const from = Math.min(state.anchorColIdx, state.hoverColIdx);
+      const to = Math.max(state.anchorColIdx, state.hoverColIdx);
+      const targetColumnIds = columnIdsRef.current
+        .slice(from, to + 1)
+        .filter(
+          (columnId) =>
+            columnId !== state.columnId && isColumnEditable(columnId),
+        );
+
+      if (targetColumnIds.length && applyHorizontalFill) {
+        applyHorizontalFill(
+          currentRows[state.selBotIdx].index,
+          targetColumnIds,
+          sourceValue,
+        );
+        const rowId = currentRows[state.selBotIdx]?.id;
+        const startColumnId = columnIdsRef.current[from];
+        const endColumnId = columnIdsRef.current[to];
+        if (rowId && startColumnId && endColumnId) {
+          onFillComplete?.(
+            { rowId, columnId: startColumnId },
+            { rowId, columnId: endColumnId },
+          );
+        }
+      }
+
+      isDraggingRef.current = false;
+      dragStateRef.current = null;
+      setDragState(null);
       return;
     }
     const { columnId, selTopIdx, selBotIdx, hoverRowIdx } = state;
@@ -207,7 +363,7 @@ export function useFillHandle({
         currentRows[selTopIdx]?.original as Record<string, unknown>
       )?.[columnId];
       for (let i = selTopIdx + 1; i <= hoverRowIdx; i++) {
-        targetIndices.push(i);
+        targetIndices.push(currentRows[i].index);
       }
       newSelBotIdx = hoverRowIdx;
     } else if (hoverRowIdx < selBotIdx) {
@@ -215,7 +371,7 @@ export function useFillHandle({
         currentRows[selBotIdx]?.original as Record<string, unknown>
       )?.[columnId];
       for (let i = hoverRowIdx; i <= selBotIdx - 1; i++) {
-        targetIndices.push(i);
+        targetIndices.push(currentRows[i].index);
       }
       newSelTopIdx = hoverRowIdx;
     }
@@ -235,7 +391,7 @@ export function useFillHandle({
     isDraggingRef.current = false;
     dragStateRef.current = null;
     setDragState(null);
-  }, [applyFill, onFillComplete]);
+  }, [applyFill, applyHorizontalFill, isColumnEditable, onFillComplete]);
 
   useEffect(() => {
     if (!dragState) {
@@ -340,7 +496,13 @@ export function useFillHandle({
         selTopIdx,
         selBotIdx,
         hoverRowIdx: selBotIdx,
+        direction: null,
+        anchorColIdx: columnIndexMapRef.current[selectedCell.columnId] ?? -1,
+        hoverColIdx: columnIndexMapRef.current[selectedCell.columnId] ?? -1,
       };
+      if (state.anchorColIdx === -1) {
+        return;
+      }
       isDraggingRef.current = true;
       dragStateRef.current = state;
       setDragState(state);

@@ -3,8 +3,37 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#05070d" />
-    <script defer data-domain="gigatable.aiken.si" src="https://plausible.aerio.cloud/js/script.outbound-links.js"></script>
+    <meta name="theme-color" content="#07090f" />
+    <script>
+      (() => {
+        let value = null;
+        try {
+          value = localStorage.getItem("gigatable-site-theme");
+        } catch {
+          value = null;
+        }
+        const mode =
+          value === "light" || value === "dark" || value === "system"
+            ? value
+            : "system";
+        const theme =
+          mode === "system"
+            ? matchMedia("(prefers-color-scheme: dark)").matches
+              ? "dark"
+              : "light"
+            : mode;
+        document.documentElement.dataset.theme = theme;
+        document.documentElement.style.colorScheme = theme;
+        document
+          .querySelector('meta[name="theme-color"]')
+          ?.setAttribute("content", theme === "dark" ? "#07090f" : "#f7f9fc");
+      })();
+    </script>
+    <script
+      defer
+      data-domain="gigatable.aiken.si"
+      src="https://plausible.aerio.cloud/js/script.outbound-links.js"
+    ></script>
     <meta
       name="description"
       content="Gigatable documentation and demo for an Excel-like React data table with selection, editing, paste, fill handle, and virtualization."

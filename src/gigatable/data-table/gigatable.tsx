@@ -1,7 +1,6 @@
 import { clsx } from "clsx";
 import type {
   Cell,
-  ColumnResizeDirection,
   Row,
   Table as TanStackTableType,
 } from "@tanstack/react-table";
@@ -11,11 +10,13 @@ import { Table } from "../table";
 import type { CellCoordinates } from "./use-cell-selection";
 import type { PasteResult } from "./use-gigatable";
 import {
+  isEditableElement,
   isCellWithinSelection,
   useCellSelection,
 } from "./use-cell-selection";
 import { useCopyToClipboard } from "./use-copy-to-clipboard";
 import { useFillHandle } from "./use-fill-handle";
+import type { FillDirection } from "./use-fill-handle";
 import { parseCopyData } from "./parse-copy-data";
 import type { CopyBuffer } from "./parse-copy-data";
 import { parsePasteData } from "./parse-paste-data";
@@ -28,8 +29,30 @@ import React, {
 } from "react";
 import type { GigatableTheme } from "../theme/types";
 import { resolveTheme } from "../theme/utils";
-import { EditableCell } from "./editable-cell";
+import { EditableCell, QuickEditProvider } from "./editable-cell";
 import type { EditableCellInputProps } from "./editable-cell";
+import {
+  getColumnResizerClassName,
+  shouldRenderColumnResizer,
+} from "./column-resizing";
+export {
+  getColumnResizerClassName,
+  shouldRenderColumnResizer,
+} from "./column-resizing";
+import {
+  GigatableContextProvider,
+  type GigatableCellState,
+  type GigatableContextValue,
+  type GigatableRowScroller,
+} from "./gigatable-context";
+import {
+  GigatableBody,
+  GigatableCell,
+  GigatableFeatureGuide,
+  GigatableFooter,
+  GigatableHeader,
+  GigatableTable,
+} from "./gigatable-parts";
 
 const DefaultTextInput = ({
   value,
@@ -37,29 +60,24 @@ const DefaultTextInput = ({
   onBlur,
   onKeyDown,
 }: EditableCellInputProps<unknown>) => (
-  <input autoFocus value={String(value ?? "")} onChange={onChange} onBlur={onBlur} onKeyDown={onKeyDown} />
+  <input
+    autoFocus
+    value={String(value ?? "")}
+    onChange={onChange}
+    onBlur={onBlur}
+    onKeyDown={onKeyDown}
+  />
 );
 
 const PASTE_HIGHLIGHT_TIMEOUT_DURATION = 5000;
 
-export function shouldRenderColumnResizer(
-  allowColumnResizing: boolean,
-  canResize: boolean,
-) {
-  return allowColumnResizing && canResize;
-}
-
-export function getColumnResizerClassName(
-  direction: ColumnResizeDirection | undefined,
-  isResizing: boolean,
-) {
-  const resolvedDirection = direction ?? "ltr";
-  return clsx(
-    "gt-column-resizer",
-    `gt-column-resizer-${resolvedDirection}`,
-    { "is-resizing": isResizing },
-  );
-}
+const dispatchCellEdit = (cell: HTMLTableCellElement | null) => {
+  cell
+    ?.querySelector<HTMLElement>("[data-editable-cell-viewing]")
+    ?.dispatchEvent(
+      new MouseEvent("dblclick", { bubbles: true, cancelable: true }),
+    );
+};
 
 /** Props for the {@link Gigatable} component. */
 export interface GigatableProps<TData> {
@@ -75,6 +93,10 @@ export interface GigatableProps<TData> {
   allowHistory?: boolean;
   /** Enable Ctrl/Cmd+V paste from clipboard (TSV format). Requires `paste` prop. */
   allowPaste?: boolean;
+  /** Preserve copied column IDs for internal paste. Defaults to true. */
+  pasteByColumnId?: boolean;
+  /** Enable Alt/Option-click editing and Alt/Option-drag partial-text editing. */
+  allowQuickEdit?: boolean;
   /** Enable Excel-style fill handle to drag-fill a value down a column. Requires `applyFill` prop and `meta: { editable: true }` on columns. */
   allowFillHandle?: boolean;
   /** Enable header-border drag handles for TanStack column resizing. Requires `enableColumnResizing` in `useGigatable`. */
@@ -93,6 +115,14 @@ export interface GigatableProps<TData> {
     targetRowIndices: Array<number>,
     value: unknown,
   ) => void;
+  /** Horizontal fill handler from `useGigatable`. */
+  applyHorizontalFill?: (
+    rowIndex: number,
+    targetColumnIds: Array<string>,
+    value: unknown,
+  ) => void;
+  /** Allowed fill axes. Defaults to vertical. */
+  fillDirection?: FillDirection;
   /** Undo handler from `useGigatable`. Required when `allowHistory` is true. */
   undo?: () => void;
   /** Redo handler from `useGigatable`. Required when `allowHistory` is true. */
@@ -102,6 +132,109 @@ export interface GigatableProps<TData> {
   /** When true, every column is treated as editable using a default text input.
    *  Columns with explicit `meta: { editable: true }` keep their own renderInput. */
   allColumnsEditable?: boolean;
+  /** Compound table content. Omit to render the default virtualized table. */
+  children?: React.ReactNode;
+  /** Ref to the scroll container, useful for custom virtualizers. */
+  containerRef?: React.RefObject<HTMLDivElement | null>;
+  /** Extra styles applied to the table in compound rendering mode. */
+  tableStyle?: React.CSSProperties;
+}
+
+export function getSelectionCoordinates<TData>(
+  selection: NonNullable<
+    ReturnType<typeof useCellSelection<TData>>["selection"]
+  >,
+  rows: Array<Row<TData>>,
+  columns: ReturnType<TanStackTableType<TData>["getVisibleLeafColumns"]>,
+) {
+  const startRowIndex = rows.findIndex(
+    (row) => row.id === selection.start.rowId,
+  );
+  const endRowIndex = rows.findIndex((row) => row.id === selection.end.rowId);
+  const startColumnIndex = columns.findIndex(
+    (column) => column.id === selection.start.columnId,
+  );
+  const endColumnIndex = columns.findIndex(
+    (column) => column.id === selection.end.columnId,
+  );
+  if (
+    [startRowIndex, endRowIndex, startColumnIndex, endColumnIndex].some(
+      (index) => index < 0,
+    )
+  ) {
+    return [];
+  }
+
+  const coordinates: Array<{ rowIndex: number; columnId: string }> = [];
+  for (
+    let rowIndex = Math.min(startRowIndex, endRowIndex);
+    rowIndex <= Math.max(startRowIndex, endRowIndex);
+    rowIndex += 1
+  ) {
+    for (
+      let columnIndex = Math.min(startColumnIndex, endColumnIndex);
+      columnIndex <= Math.max(startColumnIndex, endColumnIndex);
+      columnIndex += 1
+    ) {
+      coordinates.push({
+        rowIndex: rows[rowIndex].index,
+        columnId: columns[columnIndex].id,
+      });
+    }
+  }
+  return coordinates;
+}
+
+export function getEditableSelectionCoordinates<TData>(
+  selection: NonNullable<
+    ReturnType<typeof useCellSelection<TData>>["selection"]
+  >,
+  rows: Array<Row<TData>>,
+  columns: ReturnType<TanStackTableType<TData>["getVisibleLeafColumns"]>,
+  isColumnEditable: (columnId: string) => boolean,
+) {
+  return getSelectionCoordinates(selection, rows, columns).filter((cell) =>
+    isColumnEditable(cell.columnId),
+  );
+}
+
+export function repeatPasteToSelection(
+  clipboardData: string,
+  selection: {
+    start: CellCoordinates;
+    end: CellCoordinates;
+  } | null,
+  rowIds: Array<string>,
+  columnIds: Array<string>,
+) {
+  if (!selection) {
+    return clipboardData;
+  }
+  const parsed = parsePasteData(clipboardData);
+  if (!parsed.length || !parsed[0]?.length) {
+    return clipboardData;
+  }
+  const startRow = rowIds.indexOf(selection.start.rowId);
+  const endRow = rowIds.indexOf(selection.end.rowId);
+  const startColumn = columnIds.indexOf(selection.start.columnId);
+  const endColumn = columnIds.indexOf(selection.end.columnId);
+  if ([startRow, endRow, startColumn, endColumn].some((index) => index < 0)) {
+    return clipboardData;
+  }
+  const rowCount = Math.abs(endRow - startRow) + 1;
+  const columnCount = Math.abs(endColumn - startColumn) + 1;
+  if (rowCount <= parsed.length && columnCount <= parsed[0].length) {
+    return clipboardData;
+  }
+  return Array.from({ length: rowCount }, (_, rowIndex) =>
+    Array.from(
+      { length: columnCount },
+      (_, columnIndex) =>
+        parsed[rowIndex % parsed.length][
+          columnIndex % parsed[rowIndex % parsed.length].length
+        ],
+    ).join("\t"),
+  ).join("\n");
 }
 
 interface PasteHighlight {
@@ -212,7 +345,7 @@ const TableCell = React.memo(
       }}
       data-row-id={cell.row.id}
       data-column-id={cell.column.id}
-      className={clsx({
+      className={clsx(cell.column.columnDef.meta?.getCellClassName?.(cell), {
         "outline-[1.5px] outline-(--gt-selection-outline) -outline-offset-2 rounded-(--border-md) focus-visible:outline focus-visible:outline-(--gt-selection-outline) focus-visible:-outline-offset-2 focus-visible:rounded-(--border-md)":
           isSelected,
         "cursor-text": isEditable,
@@ -237,7 +370,10 @@ const TableCell = React.memo(
         </span>
       ) : allColumnsEditable && !cell.column.columnDef.meta?.editable ? (
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        <EditableCell {...(cell.getContext() as any)} renderInput={DefaultTextInput} />
+        <EditableCell
+          {...(cell.getContext() as any)}
+          renderInput={DefaultTextInput}
+        />
       ) : (
         flexRender(cell.column.columnDef.cell, cell.getContext())
       )}
@@ -271,33 +407,39 @@ TableCell.displayName = "TableCell";
  * <Gigatable table={table} allowCellSelection allowPaste paste={paste} />
  * ```
  */
-export function Gigatable<TData>({
+function GigatableRoot<TData>({
   table,
   allowCellSelection = false,
   allowRangeSelection = false,
   singleColumnCellSelection = false,
   allowHistory = false,
   allowPaste = false,
+  pasteByColumnId = true,
+  allowQuickEdit = false,
   allowFillHandle = false,
   allowColumnResizing = false,
   paste,
   onPasteComplete,
   applyFill,
+  applyHorizontalFill,
+  fillDirection = "vertical",
   undo,
   redo,
   theme,
   allColumnsEditable = false,
+  children,
+  containerRef,
+  tableStyle,
 }: GigatableProps<TData>) {
-  const tableContainerRef = useRef<HTMLDivElement>(null);
+  const internalTableContainerRef = useRef<HTMLDivElement>(null);
+  const tableContainerRef = containerRef ?? internalTableContainerRef;
+  const rowScrollerRef = useRef<GigatableRowScroller | null>(null);
   const rows = table.getRowModel().rows;
   const leafColumns = table.getVisibleLeafColumns();
   const isRangeSelectionEnabled =
     allowRangeSelection || singleColumnCellSelection;
   const lastMouseOverCellRef = useRef<string | null>(null);
   const copyBufferRef = useRef<CopyBuffer | null>(null);
-  const tableRef = useRef(table);
-  tableRef.current = table;
-
   const resolvedTheme = resolveTheme(theme);
   const rowHeightPx = parseInt(resolvedTheme["--gt-row-height"], 10) || 30;
 
@@ -315,14 +457,14 @@ export function Gigatable<TData>({
   }, []);
 
   const rowVirtualizer = useVirtualizer({
-    count: rows.length,
+    count: children ? 0 : rows.length,
     getScrollElement: () => tableContainerRef.current,
     estimateSize: () => rowHeightPx,
     overscan: 5,
   });
 
   const columnVirtualizer = useVirtualizer({
-    count: leafColumns.length,
+    count: children ? 0 : leafColumns.length,
     getScrollElement: () => tableContainerRef.current,
     estimateSize: (index) => leafColumns[index].getSize(),
     horizontal: true,
@@ -348,6 +490,8 @@ export function Gigatable<TData>({
       // from a fixed 30px guess, so getOffsetForIndex undershoots for taller actual rows.
       if (rowAlign === "end" && container) {
         container.scrollTop = container.scrollHeight;
+      } else if (rowScrollerRef.current) {
+        rowScrollerRef.current(rowIndex, behavior, rowAlign);
       } else {
         rowVirtualizer.scrollToIndex(rowIndex, { behavior, align: rowAlign });
       }
@@ -398,6 +542,16 @@ export function Gigatable<TData>({
     },
     [leafColumns, allColumnsEditable],
   );
+  const isColumnFillEnabled = useCallback(
+    (columnId: string) => {
+      const column = leafColumns.find((candidate) => candidate.id === columnId);
+      return (
+        isColumnEditable(columnId) &&
+        column?.columnDef.meta?.allowFill !== false
+      );
+    },
+    [isColumnEditable, leafColumns],
+  );
 
   const {
     isAnchorCell,
@@ -409,10 +563,13 @@ export function Gigatable<TData>({
     selectedCell,
     selection: selectedRange,
     rows: rows as Array<Row<unknown>>,
-    isColumnEditable,
+    columnIds: leafColumns.map((column) => column.id),
+    isColumnEditable: isColumnFillEnabled,
     applyFill: applyFill ?? (() => {}),
+    applyHorizontalFill,
     onFillComplete: setRangeSelection,
     enabled: allowFillHandle && !!applyFill,
+    fillDirection,
     containerRef: tableContainerRef,
   });
 
@@ -432,7 +589,10 @@ export function Gigatable<TData>({
         clearTimeout(fadeTimerRef.current);
       }
       setPasteHighlight((prev) => (prev ? { ...prev, phase: "fading" } : null));
-      fadeTimerRef.current = setTimeout(() => setPasteHighlight(null), PASTE_HIGHLIGHT_TIMEOUT_DURATION);
+      fadeTimerRef.current = setTimeout(
+        () => setPasteHighlight(null),
+        PASTE_HIGHLIGHT_TIMEOUT_DURATION,
+      );
     }
     prevSelectedCellKeyRef.current = key;
   }, [selectedCell, pasteHighlight]);
@@ -449,8 +609,15 @@ export function Gigatable<TData>({
         return;
       }
       handleClick(td.dataset.rowId!, td.dataset.columnId!);
+      if (
+        allowQuickEdit &&
+        e.altKey &&
+        isColumnEditable(td.dataset.columnId!)
+      ) {
+        dispatchCellEdit(td);
+      }
     },
-    [allowCellSelection, handleClick],
+    [allowCellSelection, allowQuickEdit, handleClick, isColumnEditable],
   );
 
   const handleBodyMouseDown = useCallback(
@@ -513,21 +680,66 @@ export function Gigatable<TData>({
       if (!rowId || !columnId) {
         return;
       }
+
+      if (
+        (e.key === "Delete" || e.key === "Backspace") &&
+        !isEditableElement(e.target as Element)
+      ) {
+        const activeSelection = selectedRange ?? {
+          start: { rowId, columnId },
+          end: { rowId, columnId },
+        };
+        const cells = getEditableSelectionCoordinates(
+          activeSelection,
+          rows,
+          leafColumns,
+          isColumnEditable,
+        );
+        if (cells.length) {
+          e.preventDefault();
+          table.options.meta?.clearCellData?.(cells);
+        }
+        return;
+      }
+
+      const editingElement = isEditableElement(e.target as Element);
       handleKeyDown(e as React.KeyboardEvent<HTMLDivElement>, rowId, columnId);
       if (e.key === "Enter") {
-        const editableCell = td?.querySelector("[data-editable-cell-viewing]");
-        if (editableCell) {
-          editableCell.dispatchEvent(
-            new KeyboardEvent("keydown", {
-              key: "Enter",
-              bubbles: true,
-              cancelable: true,
-            }),
+        if (editingElement) {
+          const rowIndex = rows.findIndex((row) => row.id === rowId);
+          const columnIndex = leafColumns.findIndex(
+            (column) => column.id === columnId,
           );
+          const nextRow = rows[Math.min(rowIndex + 1, rows.length - 1)];
+          if (nextRow && rowIndex >= 0 && columnIndex >= 0) {
+            const nextCell = { rowId: nextRow.id, columnId };
+            setRangeSelection(nextCell, nextCell);
+            scrollToCell(
+              Math.min(rowIndex + 1, rows.length - 1),
+              columnIndex,
+              "smooth",
+            );
+            if (nextRow.id === rowId) {
+              requestAnimationFrame(() => td?.focus({ preventScroll: true }));
+            }
+          }
+        } else {
+          dispatchCellEdit(td);
         }
       }
     },
-    [allowCellSelection, handleKeyDown, selectedCell],
+    [
+      allowCellSelection,
+      handleKeyDown,
+      isColumnEditable,
+      leafColumns,
+      rows,
+      scrollToCell,
+      selectedCell,
+      selectedRange,
+      setRangeSelection,
+      table.options.meta,
+    ],
   );
 
   useEffect(() => {
@@ -566,40 +778,29 @@ export function Gigatable<TData>({
   useEffect(() => {
     if (allowPaste && paste && selectedCell) {
       const pasteHandler = (event: ClipboardEvent) => {
-        const clipboardText = event.clipboardData?.getData("Text");
+        const rawClipboardText = event.clipboardData?.getData("Text");
+        const clipboardText = rawClipboardText
+          ? repeatPasteToSelection(
+              rawClipboardText,
+              selectedRange,
+              selectedRangeRowIds,
+              selectedRangeColumnIds,
+            )
+          : rawClipboardText;
+        event.preventDefault();
         const result = paste(
           selectedCell,
           clipboardText,
-          copyBufferRef.current,
+          pasteByColumnId ? copyBufferRef.current : null,
         );
 
         if (clipboardText && result.totalChanges > 0) {
-          const t = tableRef.current;
-          const parsedRows = parsePasteData(clipboardText);
-          const allRows = t.getRowModel().rows;
-          const startRowIdx = allRows.findIndex(
-            (r) => r.id === selectedCell.rowId,
+          const highlightRowIds = Array.from(
+            new Set(result.changes.map((change) => change.rowId)),
           );
-          const highlightRowIds = allRows
-            .slice(startRowIdx, startRowIdx + parsedRows.length)
-            .map((r) => r.id);
-
-          const isInternal =
-            copyBufferRef.current != null &&
-            clipboardText === copyBufferRef.current.text;
-
-          let highlightColumnIds: Array<string>;
-          if (isInternal && copyBufferRef.current) {
-            highlightColumnIds = copyBufferRef.current.columnIds;
-          } else {
-            const visibleCols = t.getVisibleFlatColumns();
-            const startColIdx = visibleCols.findIndex(
-              (c) => c.id === selectedCell.columnId,
-            );
-            highlightColumnIds = (parsedRows[0] ?? [])
-              .map((_, i) => visibleCols[startColIdx + i]?.id ?? "")
-              .filter(Boolean);
-          }
+          const highlightColumnIds = Array.from(
+            new Set(result.changes.map((change) => change.columnId)),
+          );
 
           if (fadeTimerRef.current) {
             clearTimeout(fadeTimerRef.current);
@@ -619,7 +820,16 @@ export function Gigatable<TData>({
       return () => document.removeEventListener("paste", pasteHandler);
     }
     return undefined;
-  }, [allowPaste, selectedCell, paste, onPasteComplete]);
+  }, [
+    allowPaste,
+    onPasteComplete,
+    paste,
+    pasteByColumnId,
+    selectedCell,
+    selectedRange,
+    selectedRangeColumnIds,
+    selectedRangeRowIds,
+  ]);
 
   const virtualRows = rowVirtualizer.getVirtualItems();
   const virtualColumns = columnVirtualizer.getVirtualItems();
@@ -627,6 +837,111 @@ export function Gigatable<TData>({
   const leftColPad = virtualColumns[0]?.start ?? 0;
   const rightColPad =
     totalColumnsWidth - (virtualColumns[virtualColumns.length - 1]?.end ?? 0);
+
+  const registerRowScroller = useCallback((scroller: GigatableRowScroller) => {
+    rowScrollerRef.current = scroller;
+    return () => {
+      if (rowScrollerRef.current === scroller) {
+        rowScrollerRef.current = null;
+      }
+    };
+  }, []);
+
+  const getCellState = useCallback(
+    (cell: Cell<TData, unknown>): GigatableCellState => {
+      const pasteStyle = computePasteCellStyle(
+        cell.row.id,
+        cell.column.id,
+        pasteHighlight,
+      );
+      const previewValue = fillPreviewValue;
+      return {
+        isSelected: isCellSelected(cell.row.id, cell.column.id),
+        isInRange: isCellWithinSelection(
+          cell.row.id,
+          cell.column.id,
+          selectedRange,
+          selectedRangeRowIds,
+          selectedRangeColumnIds,
+        ),
+        isEditable: isColumnEditable(cell.column.id),
+        isFillAnchor: isAnchorCell(cell.row.id, cell.column.id),
+        isFillRange: isFillRangeCell(cell.row.id, cell.column.id),
+        isFillSource: isFillSourceCell(cell.row.id, cell.column.id),
+        fillPreviewValue:
+          previewValue === undefined
+            ? undefined
+            : (cell.column.columnDef.meta?.formatFillPreview?.(
+                previewValue,
+                cell,
+              ) ?? previewValue),
+        fillHandleMouseDown,
+        ...pasteStyle,
+        cellRef: getCellRef(cell.row.id, cell.column.id),
+      };
+    },
+    [
+      fillHandleMouseDown,
+      fillPreviewValue,
+      getCellRef,
+      isAnchorCell,
+      isCellSelected,
+      isColumnEditable,
+      isFillRangeCell,
+      isFillSourceCell,
+      pasteHighlight,
+      selectedRange,
+      selectedRangeColumnIds,
+      selectedRangeRowIds,
+    ],
+  );
+
+  const contextValue = useMemo<GigatableContextValue<TData>>(
+    () => ({
+      table,
+      rows,
+      leafColumns,
+      scrollContainerRef: tableContainerRef,
+      selectedCell,
+      selection: selectedRange,
+      allColumnsEditable,
+      allowColumnResizing,
+      tableStyle,
+      features: {
+        cellSelection: allowCellSelection,
+        rangeSelection: isRangeSelectionEnabled,
+        quickEdit: allowQuickEdit,
+        history: allowHistory,
+        paste: allowPaste,
+        fillHandle: allowFillHandle,
+        fillDirection,
+        columnResizing: allowColumnResizing,
+        clearing: allowCellSelection,
+      },
+      getCellState,
+      registerRowScroller,
+    }),
+    [
+      allColumnsEditable,
+      allowCellSelection,
+      allowColumnResizing,
+      allowFillHandle,
+      allowHistory,
+      allowPaste,
+      allowQuickEdit,
+      fillDirection,
+      getCellState,
+      isRangeSelectionEnabled,
+      leafColumns,
+      registerRowScroller,
+      rows,
+      selectedCell,
+      selectedRange,
+      table,
+      tableContainerRef,
+      tableStyle,
+    ],
+  );
 
   return (
     <>
@@ -656,178 +971,220 @@ export function Gigatable<TData>({
           .gt-column-resizer.is-resizing { opacity: 1; }
         }
       `}</style>
-    <div
-      className={clsx(
-        "box-border border border-(--gt-cell-border-color) rounded-(--border-md)",
-        {
-          "select-none":
-            isRangeSelectionEnabled || !!columnSizingInfo.isResizingColumn,
-        },
-      )}
-      style={{ ...resolvedTheme, backgroundColor: "var(--gt-row-bg)" }}
-      onKeyDown={handleContainerKeyDown}
-    >
-      <div
-        ref={tableContainerRef}
-        className="overflow-auto outline-none"
-        style={{ height: "var(--gt-table-height, 90vh)" }}
-        tabIndex={-1}
+      <GigatableContextProvider
+        value={contextValue as GigatableContextValue<unknown>}
       >
-        <Table style={{ width: `${totalColumnsWidth}px` }}>
-          <Table.Header>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <Table.Row key={headerGroup.id}>
-                <th
-                  className="bg-(--gt-header-bg) border-r"
-                  style={{ width: `${leftColPad}px`, padding: 0, borderRightColor: "var(--gt-header-border-color)" }}
-                />
-                {virtualColumns.map((vc) => {
-                  const header = headerGroup.headers[vc.index];
-                  const canResize = shouldRenderColumnResizer(
-                    allowColumnResizing,
-                    !header.isPlaceholder && header.column.getCanResize(),
-                  );
-                  return (
-                    <Table.Head
-                      key={header.id}
-                      style={{ width: `${vc.size}px` }}
-                      className={clsx({ relative: canResize })}
-                    >
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
-                      {canResize ? (
-                        <span
-                          aria-hidden="true"
-                          data-gigatable-column-resizer
-                          className={getColumnResizerClassName(
-                            table.options.columnResizeDirection,
-                            header.column.getIsResizing(),
-                          )}
-                          onDoubleClick={(event) => {
-                            event.stopPropagation();
-                            header.column.resetSize();
-                          }}
-                          onMouseDown={(event) => {
-                            event.stopPropagation();
-                            header.getResizeHandler()(event);
-                          }}
-                          onTouchStart={(event) => {
-                            event.stopPropagation();
-                            header.getResizeHandler()(event);
-                          }}
-                        />
-                      ) : null}
-                    </Table.Head>
-                  );
-                })}
-                <th
-                  className="bg-(--gt-header-bg)"
-                  style={{ width: `${rightColPad}px`, padding: 0 }}
-                />
-              </Table.Row>
-            ))}
-          </Table.Header>
-          <Table.Body
+        <QuickEditProvider value={allowQuickEdit}>
+          <div
+            className={clsx(
+              "box-border border border-(--gt-cell-border-color) rounded-(--border-md)",
+              {
+                "select-none":
+                  isRangeSelectionEnabled ||
+                  !!columnSizingInfo.isResizingColumn,
+              },
+            )}
+            style={{ ...resolvedTheme, backgroundColor: "var(--gt-row-bg)" }}
+            onKeyDown={handleContainerKeyDown}
             onClick={handleBodyClick}
             onMouseDown={handleBodyMouseDown}
             onMouseOver={handleBodyMouseOver}
           >
-            {rows.length > 0 ? (
-              <>
-                <tr style={{ height: `${virtualRows[0]?.start ?? 0}px` }} />
-                {virtualRows.map((virtualRow) => {
-                  const row = rows[virtualRow.index];
-                  const visibleCells = row.getVisibleCells();
-                  return (
-                    <Table.Row
-                      key={row.id}
-                      data-state={row.getIsSelected() && "selected"}
-                      style={{ height: `${virtualRow.size}px` }}
-                    >
-                      <td style={{ width: `${leftColPad}px`, padding: 0 }} />
-                      {virtualColumns.map((vc) => {
-                        const cell = visibleCells[vc.index];
-                        const {
-                          pasteBackground,
-                          pasteShadow,
-                          pasteTransition,
-                        } = computePasteCellStyle(
-                          cell.row.id,
-                          cell.column.id,
-                          pasteHighlight,
-                        );
-                        return (
-                          <TableCell
-                            key={cell.id}
-                            cell={cell}
-                            cellRef={getCellRef(cell.row.id, cell.column.id)}
-                            isSelected={isCellSelected(
-                              cell.row.id,
-                              cell.column.id,
-                            )}
-                            isInRange={isCellWithinSelection(
-                              cell.row.id,
-                              cell.column.id,
-                              selectedRange,
-                              selectedRangeRowIds,
-                              selectedRangeColumnIds,
-                            )}
-                            isEditable={
-                              allColumnsEditable ||
-                              (cell.column.columnDef.meta?.editable ?? false)
-                            }
-                            isFillAnchor={isAnchorCell(
-                              cell.row.id,
-                              cell.column.id,
-                            )}
-                            isFillRange={isFillRangeCell(
-                              cell.row.id,
-                              cell.column.id,
-                            )}
-                            isFillSource={isFillSourceCell(
-                              cell.row.id,
-                              cell.column.id,
-                            )}
-                            fillPreviewValue={fillPreviewValue}
-                            fillHandleMouseDown={fillHandleMouseDown}
-                            pasteBackground={pasteBackground}
-                            pasteShadow={pasteShadow}
-                            pasteTransition={pasteTransition}
-                            allColumnsEditable={allColumnsEditable}
-                          />
-                        );
-                      })}
-                      <td style={{ width: `${rightColPad}px`, padding: 0 }} />
-                    </Table.Row>
-                  );
-                })}
-                <tr
-                  style={{
-                    height: `${
-                      rowVirtualizer.getTotalSize() -
-                      (virtualRows[virtualRows.length - 1]?.end ?? 0)
-                    }px`,
-                  }}
-                />
-              </>
-            ) : (
-              <tr>
-                <td
-                  colSpan={leafColumns.length}
-                  className="h-24 text-center align-middle border-r border-(--gt-cell-border-color)"
-                >
-                  No data.
-                </td>
-              </tr>
-            )}
-          </Table.Body>
-        </Table>
-      </div>
-    </div>
+            <div
+              ref={tableContainerRef}
+              className="overflow-auto outline-none"
+              style={{ height: "var(--gt-table-height, 90vh)" }}
+              tabIndex={-1}
+            >
+              {children ?? (
+                <Table style={{ width: `${totalColumnsWidth}px` }}>
+                  <Table.Header>
+                    {table.getHeaderGroups().map((headerGroup) => (
+                      <Table.Row key={headerGroup.id}>
+                        <th
+                          className="bg-(--gt-header-bg) border-r"
+                          style={{
+                            width: `${leftColPad}px`,
+                            padding: 0,
+                            borderRightColor: "var(--gt-header-border-color)",
+                          }}
+                        />
+                        {virtualColumns.map((vc) => {
+                          const header = headerGroup.headers[vc.index];
+                          const canResize = shouldRenderColumnResizer(
+                            allowColumnResizing,
+                            !header.isPlaceholder &&
+                              header.column.getCanResize(),
+                          );
+                          return (
+                            <Table.Head
+                              key={header.id}
+                              style={{ width: `${vc.size}px` }}
+                              className={clsx({ relative: canResize })}
+                            >
+                              {header.isPlaceholder
+                                ? null
+                                : flexRender(
+                                    header.column.columnDef.header,
+                                    header.getContext(),
+                                  )}
+                              {canResize ? (
+                                <span
+                                  aria-hidden="true"
+                                  data-gigatable-column-resizer
+                                  className={getColumnResizerClassName(
+                                    table.options.columnResizeDirection,
+                                    header.column.getIsResizing(),
+                                  )}
+                                  onDoubleClick={(event) => {
+                                    event.stopPropagation();
+                                    header.column.resetSize();
+                                  }}
+                                  onMouseDown={(event) => {
+                                    event.stopPropagation();
+                                    header.getResizeHandler()(event);
+                                  }}
+                                  onTouchStart={(event) => {
+                                    event.stopPropagation();
+                                    header.getResizeHandler()(event);
+                                  }}
+                                />
+                              ) : null}
+                            </Table.Head>
+                          );
+                        })}
+                        <th
+                          className="bg-(--gt-header-bg)"
+                          style={{ width: `${rightColPad}px`, padding: 0 }}
+                        />
+                      </Table.Row>
+                    ))}
+                  </Table.Header>
+                  <Table.Body>
+                    {rows.length > 0 ? (
+                      <>
+                        <tr
+                          style={{ height: `${virtualRows[0]?.start ?? 0}px` }}
+                        />
+                        {virtualRows.map((virtualRow) => {
+                          const row = rows[virtualRow.index];
+                          const visibleCells = row.getVisibleCells();
+                          return (
+                            <Table.Row
+                              key={row.id}
+                              data-state={row.getIsSelected() && "selected"}
+                              style={{ height: `${virtualRow.size}px` }}
+                            >
+                              <td
+                                style={{ width: `${leftColPad}px`, padding: 0 }}
+                              />
+                              {virtualColumns.map((vc) => {
+                                const cell = visibleCells[vc.index];
+                                const {
+                                  pasteBackground,
+                                  pasteShadow,
+                                  pasteTransition,
+                                } = computePasteCellStyle(
+                                  cell.row.id,
+                                  cell.column.id,
+                                  pasteHighlight,
+                                );
+                                return (
+                                  <TableCell
+                                    key={cell.id}
+                                    cell={cell}
+                                    cellRef={getCellRef(
+                                      cell.row.id,
+                                      cell.column.id,
+                                    )}
+                                    isSelected={isCellSelected(
+                                      cell.row.id,
+                                      cell.column.id,
+                                    )}
+                                    isInRange={isCellWithinSelection(
+                                      cell.row.id,
+                                      cell.column.id,
+                                      selectedRange,
+                                      selectedRangeRowIds,
+                                      selectedRangeColumnIds,
+                                    )}
+                                    isEditable={
+                                      allColumnsEditable ||
+                                      (cell.column.columnDef.meta?.editable ??
+                                        false)
+                                    }
+                                    isFillAnchor={isAnchorCell(
+                                      cell.row.id,
+                                      cell.column.id,
+                                    )}
+                                    isFillRange={isFillRangeCell(
+                                      cell.row.id,
+                                      cell.column.id,
+                                    )}
+                                    isFillSource={isFillSourceCell(
+                                      cell.row.id,
+                                      cell.column.id,
+                                    )}
+                                    fillPreviewValue={
+                                      fillPreviewValue === undefined
+                                        ? undefined
+                                        : (cell.column.columnDef.meta?.formatFillPreview?.(
+                                            fillPreviewValue,
+                                            cell,
+                                          ) ?? fillPreviewValue)
+                                    }
+                                    fillHandleMouseDown={fillHandleMouseDown}
+                                    pasteBackground={pasteBackground}
+                                    pasteShadow={pasteShadow}
+                                    pasteTransition={pasteTransition}
+                                    allColumnsEditable={allColumnsEditable}
+                                  />
+                                );
+                              })}
+                              <td
+                                style={{
+                                  width: `${rightColPad}px`,
+                                  padding: 0,
+                                }}
+                              />
+                            </Table.Row>
+                          );
+                        })}
+                        <tr
+                          style={{
+                            height: `${
+                              rowVirtualizer.getTotalSize() -
+                              (virtualRows[virtualRows.length - 1]?.end ?? 0)
+                            }px`,
+                          }}
+                        />
+                      </>
+                    ) : (
+                      <tr>
+                        <td
+                          colSpan={leafColumns.length}
+                          className="h-24 text-center align-middle border-r border-(--gt-cell-border-color)"
+                        >
+                          No data.
+                        </td>
+                      </tr>
+                    )}
+                  </Table.Body>
+                </Table>
+              )}
+            </div>
+          </div>
+        </QuickEditProvider>
+      </GigatableContextProvider>
     </>
   );
 }
+
+export const Gigatable = Object.assign(GigatableRoot, {
+  Table: GigatableTable,
+  Header: GigatableHeader,
+  Body: GigatableBody,
+  Footer: GigatableFooter,
+  Cell: GigatableCell,
+  FeatureGuide: GigatableFeatureGuide,
+});

@@ -25,8 +25,10 @@ Gigatable is supported by [Preskok ThinkTank](https://thinktank.preskok.si/en/).
 
 - **Inline Editing**
   - Double-click or Enter to activate edit mode
+  - Alt/Option-click quick edit and partial-text selection
   - Custom input renderers per column (text, number with steps)
-  - Escape to cancel, Enter/Tab to save
+  - Escape to cancel, Enter/Tab to save and navigate
+  - Delete/Backspace clears editable selections as one undo step
   - Automatic cell selection after edit
 
 - **Copy/Paste Operations**
@@ -34,10 +36,17 @@ Gigatable is supported by [Preskok ThinkTank](https://thinktank.preskok.si/en/).
   - Paste data with Ctrl/Cmd+V starting from selected cell
   - Excel-compatible data formatting
   - Detailed change tracking with `PasteResult` callbacks
+  - Selected-range repetition and per-column value parsing
 
 - **Fill Handle**
   - Excel-style drag handle at bottom-right of anchor cell
-  - Drag down to fill a column value across rows
+  - Direction-locked vertical or horizontal fill
+  - Per-column eligibility and formatted previews
+
+- **Compound Rendering**
+  - Default virtualized renderer remains available with zero setup
+  - Override table, header, body, footer, or individual cells
+  - Register custom row virtualizers while retaining keyboard navigation
 
 - **Column Resizing**
   - Hover over a header border to reveal the resize handle
@@ -165,6 +174,7 @@ npx gigatable init
 The CLI detects your package manager and installs peer dependencies automatically.
 
 To publish a new version:
+
 1. Bump `version` in `gigatable/package.json`
 2. Run `pnpm deploy` from `gigatable/` — syncs `src/gigatable/` → `templates/`, builds, publishes
 
@@ -175,14 +185,37 @@ To publish a new version:
 Consumers import from `./gigatable`:
 
 ```typescript
-import { Gigatable, useGigatable, EditableCell, themes } from "./gigatable";
-import type { GigatableProps, UseGigatableProps, CellChange, PasteResult, GigatableTheme } from "./gigatable";
+import {
+  Gigatable,
+  useGigatable,
+  useGigatableContext,
+  EditableCell,
+  themes,
+} from "./gigatable";
+import type {
+  GigatableProps,
+  UseGigatableProps,
+  CellChange,
+  PasteResult,
+  GigatableTheme,
+} from "./gigatable";
 ```
 
 ### useGigatable Hook
 
 ```typescript
-const { table, paste, applyFill, undo, redo, canUndo, canRedo } = useGigatable({
+const {
+  table,
+  paste,
+  applyFill,
+  applyHorizontalFill,
+  clearCells,
+  reset,
+  undo,
+  redo,
+  canUndo,
+  canRedo,
+} = useGigatable({
   columns,
   data,
   enableColumnResizing: true,
@@ -212,41 +245,41 @@ const { table, paste, applyFill, undo, redo, canUndo, canRedo } = useGigatable({
 
 ### Gigatable Props
 
-| Prop | Type | Default | Description |
-|---|---|---|---|
-| `table` | `Table<TData>` | required | From `useGigatable` |
-| `allowCellSelection` | `boolean` | `false` | Click selection + arrow keys |
-| `allowRangeSelection` | `boolean` | `false` | Drag + Shift+Arrow range |
-| `singleColumnCellSelection` | `boolean` | `false` | Drag + Shift+Arrow range down one column. Requires `allowCellSelection`; works when `allowRangeSelection` is false. |
-| `allowHistory` | `boolean` | `false` | Ctrl/Cmd+Z/Shift+Z shortcuts |
-| `allowPaste` | `boolean` | `false` | Ctrl/Cmd+V paste |
-| `allowFillHandle` | `boolean` | `false` | Drag-fill down a column |
-| `allowColumnResizing` | `boolean` | `false` | Header-border drag resizing. Requires `enableColumnResizing` in `useGigatable`. |
-| `paste` | `Function` | — | From `useGigatable`. Required when `allowPaste`. |
-| `applyFill` | `Function` | — | From `useGigatable`. Required when `allowFillHandle`. |
-| `undo` | `() => void` | — | From `useGigatable`. Required when `allowHistory`. |
-| `redo` | `() => void` | — | From `useGigatable`. Required when `allowHistory`. |
-| `onPasteComplete` | `(result: PasteResult) => void` | — | Callback after paste |
-| `allColumnsEditable` | `boolean` | `false` | Make every column editable with a default text input. Columns with `meta: { editable: true }` keep their own `renderInput`. |
-| `theme` | `GigatableTheme` | `themes.light` | Customise visual appearance |
+| Prop                        | Type                            | Default        | Description                                                                                                                 |
+| --------------------------- | ------------------------------- | -------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `table`                     | `Table<TData>`                  | required       | From `useGigatable`                                                                                                         |
+| `allowCellSelection`        | `boolean`                       | `false`        | Click selection + arrow keys                                                                                                |
+| `allowRangeSelection`       | `boolean`                       | `false`        | Drag + Shift+Arrow range                                                                                                    |
+| `singleColumnCellSelection` | `boolean`                       | `false`        | Drag + Shift+Arrow range down one column. Requires `allowCellSelection`; works when `allowRangeSelection` is false.         |
+| `allowHistory`              | `boolean`                       | `false`        | Ctrl/Cmd+Z/Shift+Z shortcuts                                                                                                |
+| `allowPaste`                | `boolean`                       | `false`        | Ctrl/Cmd+V paste                                                                                                            |
+| `allowFillHandle`           | `boolean`                       | `false`        | Drag-fill down a column                                                                                                     |
+| `allowColumnResizing`       | `boolean`                       | `false`        | Header-border drag resizing. Requires `enableColumnResizing` in `useGigatable`.                                             |
+| `paste`                     | `Function`                      | —              | From `useGigatable`. Required when `allowPaste`.                                                                            |
+| `applyFill`                 | `Function`                      | —              | From `useGigatable`. Required when `allowFillHandle`.                                                                       |
+| `undo`                      | `() => void`                    | —              | From `useGigatable`. Required when `allowHistory`.                                                                          |
+| `redo`                      | `() => void`                    | —              | From `useGigatable`. Required when `allowHistory`.                                                                          |
+| `onPasteComplete`           | `(result: PasteResult) => void` | —              | Callback after paste                                                                                                        |
+| `allColumnsEditable`        | `boolean`                       | `false`        | Make every column editable with a default text input. Columns with `meta: { editable: true }` keep their own `renderInput`. |
+| `theme`                     | `GigatableTheme`                | `themes.light` | Customise visual appearance                                                                                                 |
 
 ## Keyboard Shortcuts
 
-| Shortcut | Action |
-|----------|--------|
-| Click | Select cell |
-| Double-click | Edit cell (if editable) |
-| Enter | Edit selected cell or save changes |
-| Escape | Cancel editing |
-| Tab | Save changes and move to next cell |
-| Arrow keys | Navigate between cells |
-| Shift + Arrow | Extend selection range |
-| Ctrl/Cmd + C | Copy selected range |
-| Ctrl/Cmd + V | Paste data |
-| Ctrl/Cmd + Z | Undo last change |
-| Ctrl/Cmd + Shift + Z | Redo last undone change |
-| Drag header border | Resize column |
-| Double-click header border | Reset column width |
+| Shortcut                   | Action                             |
+| -------------------------- | ---------------------------------- |
+| Click                      | Select cell                        |
+| Double-click               | Edit cell (if editable)            |
+| Enter                      | Edit selected cell or save changes |
+| Escape                     | Cancel editing                     |
+| Tab                        | Save changes and move to next cell |
+| Arrow keys                 | Navigate between cells             |
+| Shift + Arrow              | Extend selection range             |
+| Ctrl/Cmd + C               | Copy selected range                |
+| Ctrl/Cmd + V               | Paste data                         |
+| Ctrl/Cmd + Z               | Undo last change                   |
+| Ctrl/Cmd + Shift + Z       | Redo last undone change            |
+| Drag header border         | Resize column                      |
+| Double-click header border | Reset column width                 |
 
 ## Column Resizing
 

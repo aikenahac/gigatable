@@ -1,5 +1,8 @@
-import { defaultDocsSlug, isDocsSlug } from "../docs/docs";
-import type { DocsSlug } from "../docs/docs";
+import {
+  defaultDocsSlug,
+  isDocsSlug,
+  type DocsSlug,
+} from "../docs/docs-manifest";
 
 export type SiteRoute =
   | { name: "landing" }
@@ -38,4 +41,16 @@ export function getRouteForPath(pathname: string): SiteRoute {
   }
 
   return { name: "landing" };
+}
+
+export function getHashTargetId(hash: string): string {
+  if (!hash || hash === "#") {
+    return "";
+  }
+
+  try {
+    return decodeURIComponent(hash.replace(/^#/, ""));
+  } catch {
+    return hash.replace(/^#/, "");
+  }
 }

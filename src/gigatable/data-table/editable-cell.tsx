@@ -1,6 +1,11 @@
 import * as React from "react";
 import { CellContext, TableMeta as TableMetaTS } from "@tanstack/react-table";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useQuickEdit } from "./use-quick-edit";
+
+const QuickEditContext = React.createContext(false);
+
+export const QuickEditProvider = QuickEditContext.Provider;
 
 export interface TableMeta<TData> extends TableMetaTS<TData> {
   updateCellData?: (rowId: number, colId: string, value: unknown) => void;
@@ -32,7 +37,7 @@ interface EditableCellProps<TData, TValue> extends CellContext<TData, TValue> {
 
 function EditableCellComponent<TData, TValue>({
   getValue,
-  row: { index: rowId },
+  row: { id: rowKey, index: rowId },
   column: { id: colId },
   table,
   renderInput,
@@ -41,12 +46,36 @@ function EditableCellComponent<TData, TValue>({
   const RenderInput = renderInput;
   const [isEditing, setIsEditing] = useState(false);
   const [value, setValue] = useState<TValue>(initialValue);
+  const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
+  const quickEditEnabled = React.use(QuickEditContext);
 
   const onDoubleClick = () => setIsEditing(true);
+  const quickEdit = useQuickEdit({
+    enabled: quickEditEnabled,
+    inputRef,
+    isEditing,
+    startEditing: () => setIsEditing(true),
+  });
+
+  const restoreCellFocus = () => {
+    requestAnimationFrame(() => {
+      const cell = Array.from(
+        document.querySelectorAll<HTMLTableCellElement>(
+          "td[data-row-id][data-column-id]",
+        ),
+      ).find(
+        (candidate) =>
+          candidate.dataset.rowId === rowKey &&
+          candidate.dataset.columnId === colId,
+      );
+      cell?.focus({ preventScroll: true });
+    });
+  };
 
   const cancelEditing = () => {
     setValue(initialValue);
     setIsEditing(false);
+    restoreCellFocus();
   };
 
   const onValueChange = (value: string) => {
@@ -57,6 +86,7 @@ function EditableCellComponent<TData, TValue>({
       colId,
       value,
     );
+    restoreCellFocus();
   };
 
   const onChange = (
@@ -77,8 +107,11 @@ function EditableCellComponent<TData, TValue>({
 
   const handleKeyDownOnEdit = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" || e.key === "Tab") {
+      e.preventDefault();
       handleEndEditing();
     } else if (e.key === "Escape") {
+      e.preventDefault();
+      e.stopPropagation();
       cancelEditing();
     } else {
       e.stopPropagation();
@@ -101,6 +134,12 @@ function EditableCellComponent<TData, TValue>({
   if (isEditing) {
     return (
       <div
+        ref={(element) => {
+          inputRef.current =
+            element?.querySelector<HTMLInputElement | HTMLTextAreaElement>(
+              "input, textarea",
+            ) ?? null;
+        }}
         onDoubleClick={onDoubleClick}
         className="flex items-center box-border w-full h-full cursor-text [&_input]:w-full [&_input]:h-full [&_input]:border-none [&_input]:outline-none [&_input]:bg-transparent [&_input]:text-inherit [&_input]:font-inherit [&_input]:p-0"
         tabIndex={0}
@@ -119,8 +158,11 @@ function EditableCellComponent<TData, TValue>({
 
   return (
     <div
+      ref={quickEdit.wrapperRef}
       onKeyDown={handleKeyDownOnView}
       onDoubleClick={onDoubleClick}
+      onMouseDown={quickEdit.onMouseDown}
+      onClickCapture={quickEdit.onClickCapture}
       className="w-full h-full overflow-hidden text-ellipsis whitespace-nowrap flex items-center"
       data-editable-cell-viewing
       tabIndex={0}
@@ -142,6 +184,7 @@ export const EditableCell = React.memo(
     return (
       prevProps.getValue() === nextProps.getValue() &&
       prevProps.row.index === nextProps.row.index &&
+      prevProps.row.id === nextProps.row.id &&
       prevProps.column.id === nextProps.column.id
     );
   },

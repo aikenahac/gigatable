@@ -1,12 +1,12 @@
 import { useCallback, useReducer, useRef } from "react";
 
-type HistoryState<T> = {
+export type HistoryState<T> = {
   past: Array<T>;
   present: T | null;
   future: Array<T>;
 };
 
-type Action<T> =
+export type HistoryAction<T> =
   | { type: "UNDO" }
   | { type: "REDO" }
   | { type: "SET"; newPresent: T }
@@ -18,9 +18,9 @@ const initialUseHistoryState = <T,>(initialPresent: T): HistoryState<T> => ({
   future: [],
 });
 
-function useHistoryStateReducer<T>(
+export function historyStateReducer<T>(
   state: HistoryState<T>,
-  action: Action<T>,
+  action: HistoryAction<T>,
   maxHistorySize: number,
 ): HistoryState<T> {
   const { past, present, future } = state;
@@ -73,8 +73,8 @@ export function useHistoryState<T>(initialPresent: T, maxHistorySize = 20) {
   const initialPresentRef = useRef(initialPresent);
 
   const reducerWrapper = useCallback(
-    (state: HistoryState<T>, action: Action<T>) => {
-      return useHistoryStateReducer(state, action, maxHistorySize);
+    (state: HistoryState<T>, action: HistoryAction<T>) => {
+      return historyStateReducer(state, action, maxHistorySize);
     },
     [maxHistorySize],
   );
@@ -110,12 +110,18 @@ export function useHistoryState<T>(initialPresent: T, maxHistorySize = 20) {
     [],
   );
 
+  const reset = useCallback((newPresent: T) => {
+    initialPresentRef.current = newPresent;
+    dispatch({ type: "CLEAR", initialPresent: newPresent });
+  }, []);
+
   return {
     presentState: state.present,
     setPresent: set,
     undo,
     redo,
     clear,
+    reset,
     canUndo,
     canRedo,
   };

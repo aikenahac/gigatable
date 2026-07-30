@@ -76,11 +76,39 @@ export const isCellWithinSelection = (
 const isSameCell = (cell: CellCoordinates | null, nextCell: CellCoordinates) =>
   cell?.rowId === nextCell.rowId && cell.columnId === nextCell.columnId;
 
-const isEditableElement = (element: Element | null) =>
+export const isEditableElement = (element: Element | null) =>
   element instanceof HTMLInputElement ||
   element instanceof HTMLTextAreaElement ||
   element instanceof HTMLSelectElement ||
   (element instanceof HTMLElement && element.isContentEditable);
+
+const getPinnedInsets = <TData,>(
+  columns: Array<Column<TData>>,
+  targetColumnId: string,
+) => {
+  const target = columns.find((column) => column.id === targetColumnId);
+  if (target?.getIsPinned()) {
+    return null;
+  }
+  return {
+    left: columns
+      .filter((column) => column.getIsPinned() === "left")
+      .reduce((sum, column) => sum + column.getSize(), 0),
+    right: columns
+      .filter((column) => column.getIsPinned() === "right")
+      .reduce((sum, column) => sum + column.getSize(), 0),
+  };
+};
+
+const measureStickyHeight = (
+  container: HTMLElement,
+  selector: "thead" | "tfoot",
+) => {
+  const element = container.querySelector(selector);
+  return element && getComputedStyle(element).position === "sticky"
+    ? element.getBoundingClientRect().height
+    : 0;
+};
 
 export function useCellSelection<TData>(
   rows: Array<Row<TData>>,
@@ -121,6 +149,7 @@ export function useCellSelection<TData>(
   const columnIndexMapRef = useRef<Record<string, number>>({});
   const rowIdsRef = useRef<Array<string>>([]);
   const columnIdsRef = useRef<Array<string>>([]);
+  const columnsRef = useRef<Array<Column<TData>>>([]);
   // Mirrors selectedCell state so stable callbacks can read it without re-creating
   const selectedCellRef = useRef<CellCoordinates | null>(null);
 
@@ -131,6 +160,7 @@ export function useCellSelection<TData>(
     }, {});
     columnIndexMapRef.current = map;
     columnIdsRef.current = columns.map((c) => c.id);
+    columnsRef.current = columns;
     return map;
   }, [columns]);
 
@@ -295,7 +325,7 @@ export function useCellSelection<TData>(
             if (sc && `${sc.rowId}-${sc.columnId}` === key) {
               const activeEl = document.activeElement;
               if (!el.contains(activeEl) || !isEditableElement(activeEl)) {
-                el.focus();
+                el.focus({ preventScroll: true });
               }
             }
           } else {
@@ -328,6 +358,49 @@ export function useCellSelection<TData>(
     columnId: string,
   ) => {
     const { key } = e;
+    if (key === "Tab") {
+      e.preventDefault();
+      const rowIndex = rowIndexMap[rowId];
+      const colIndex = columnIndexMap[columnId];
+      if (rowIndex == null || colIndex == null) {
+        return;
+      }
+
+      let nextRowIndex = rowIndex;
+      let nextColIndex = colIndex + (e.shiftKey ? -1 : 1);
+      if (nextColIndex >= columns.length) {
+        if (rowIndex >= rows.length - 1) {
+          requestAnimationFrame(() =>
+            cellRefsMap.current
+              .get(`${rowId}-${columnId}`)
+              ?.focus({ preventScroll: true }),
+          );
+          return;
+        }
+        nextRowIndex += 1;
+        nextColIndex = 0;
+      } else if (nextColIndex < 0) {
+        if (rowIndex <= 0) {
+          requestAnimationFrame(() =>
+            cellRefsMap.current
+              .get(`${rowId}-${columnId}`)
+              ?.focus({ preventScroll: true }),
+          );
+          return;
+        }
+        nextRowIndex -= 1;
+        nextColIndex = columns.length - 1;
+      }
+
+      const nextCoord = {
+        rowId: rows[nextRowIndex].id,
+        columnId: columns[nextColIndex].id,
+      };
+      setSelectedCellIfChanged(nextCoord);
+      commitSelection({ start: nextCoord, end: nextCoord });
+      scrollToIndex?.(nextRowIndex, nextColIndex, "smooth", "auto", "auto");
+      return;
+    }
     if (!["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(key)) {
       return;
     }
@@ -554,12 +627,36 @@ export function useCellSelection<TData>(
       if (el.contains(activeElement) && isEditableElement(activeElement)) {
         return;
       }
-      el.focus();
-      el.scrollIntoView({
-        behavior: "smooth",
-        block: "nearest",
-        inline: "nearest",
-      });
+      el.focus({ preventScroll: true });
+      const container = containerRef?.current;
+      if (container) {
+        const cellRect = el.getBoundingClientRect();
+        const containerRect = container.getBoundingClientRect();
+        const headerHeight = measureStickyHeight(container, "thead");
+        const footerHeight = measureStickyHeight(container, "tfoot");
+        const pinnedInsets = getPinnedInsets(
+          columnsRef.current,
+          selectedCell.columnId,
+        );
+        const visibleTop = containerRect.top + headerHeight;
+        const visibleBottom = containerRect.bottom - footerHeight;
+
+        if (cellRect.top < visibleTop) {
+          container.scrollTop -= visibleTop - cellRect.top;
+        } else if (cellRect.bottom > visibleBottom) {
+          container.scrollTop += cellRect.bottom - visibleBottom;
+        }
+
+        if (pinnedInsets) {
+          const visibleLeft = containerRect.left + pinnedInsets.left;
+          const visibleRight = containerRect.right - pinnedInsets.right;
+          if (cellRect.left < visibleLeft) {
+            container.scrollLeft -= visibleLeft - cellRect.left;
+          } else if (cellRect.right > visibleRight) {
+            container.scrollLeft += cellRect.right - visibleRight;
+          }
+        }
+      }
     } else if (containerRef?.current) {
       // Cell is not in the DOM yet (virtualizer hasn't rendered it). Focus the container
       // so keyboard events still bubble to the outer onKeyDown handler while we wait for

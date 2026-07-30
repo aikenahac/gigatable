@@ -4,7 +4,7 @@ Gigatable is themed through a typed `theme` prop. Theme values are resolved into
 
 ## Presets
 
-Three presets are included:
+Four presets are included:
 
 ```tsx
 import { Gigatable, themes } from "./gigatable";
@@ -12,6 +12,7 @@ import { Gigatable, themes } from "./gigatable";
 <Gigatable table={table} theme={themes.light} />;
 <Gigatable table={table} theme={themes.dark} />;
 <Gigatable table={table} theme={themes.minimal} />;
+<Gigatable table={table} theme={themes.giga} />;
 ```
 
 ## Partial overrides
@@ -47,24 +48,24 @@ Spread a preset when you want to keep its baseline and replace a few tokens.
 
 ## Theme tokens
 
-| Area | Fields |
-| --- | --- |
-| `header` | `background`, `textColor`, `borderColor`, `height`, `fontSize`, `fontFamily`, `fontWeight` |
-| `row` | `height`, `background`, `hoverBackground` |
-| `cell` | `borderColor`, `fontSize`, `fontFamily`, `fontWeight`, `textColor`, `paddingX`, `paddingY` |
-| `selection` | `outline`, `rangeBackground` |
-| `paste` | `highlightBackground`, `highlightBorderColor` |
-| `fill` | `previewBackground`, `previewTextColor` |
+| Area        | Fields                                                                                     |
+| ----------- | ------------------------------------------------------------------------------------------ |
+| `header`    | `background`, `textColor`, `borderColor`, `height`, `fontSize`, `fontFamily`, `fontWeight` |
+| `row`       | `height`, `background`, `hoverBackground`                                                  |
+| `cell`      | `borderColor`, `fontSize`, `fontFamily`, `fontWeight`, `textColor`, `paddingX`, `paddingY` |
+| `selection` | `outline`, `rangeBackground`                                                               |
+| `paste`     | `highlightBackground`, `highlightBorderColor`                                              |
+| `fill`      | `previewBackground`, `previewTextColor`                                                    |
+
+`themes.giga` is the dark cyan preset used by the website’s interactive
+showcases.
 
 ## Value formats
 
 String values are passed through unchanged, including CSS variables:
 
 ```tsx
-<Gigatable
-  table={table}
-  theme={{ selection: { outline: "var(--accent)" } }}
-/>
+<Gigatable table={table} theme={{ selection: { outline: "var(--accent)" } }} />
 ```
 
 Number values are converted to pixel values for size fields. Font weights are converted to plain numeric strings.

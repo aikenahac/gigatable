@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getRouteForPath } from "./routes";
+import { getHashTargetId, getRouteForPath } from "./routes";
 
 describe("getRouteForPath", () => {
   it("maps the root path to the landing route", () => {
@@ -10,10 +10,10 @@ describe("getRouteForPath", () => {
     expect(getRouteForPath("/demo")).toEqual({ name: "demo" });
   });
 
-  it("maps /docs to the first docs article", () => {
+  it("maps /docs to the documentation overview", () => {
     expect(getRouteForPath("/docs")).toEqual({
       name: "docs",
-      slug: "installation",
+      slug: "overview",
     });
   });
 
@@ -34,7 +34,14 @@ describe("getRouteForPath", () => {
   it("falls back unknown docs article paths to the first docs article", () => {
     expect(getRouteForPath("/docs/not-real")).toEqual({
       name: "docs",
-      slug: "installation",
+      slug: "overview",
     });
+  });
+
+  it("decodes deep-link heading targets safely", () => {
+    expect(getHashTargetId("#parse-domain-values")).toBe("parse-domain-values");
+    expect(getHashTargetId("#custom%20heading")).toBe("custom heading");
+    expect(getHashTargetId("#broken%")).toBe("broken%");
+    expect(getHashTargetId("")).toBe("");
   });
 });

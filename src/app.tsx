@@ -1,5 +1,6 @@
 import { Suspense, lazy } from "react";
 import { useSiteRouter } from "./site/use-site-router";
+import { ThemeProvider } from "./site/theme";
 
 const DemoPage = lazy(() =>
   import("./pages/demo-page").then((module) => ({ default: module.DemoPage })),
@@ -14,11 +15,19 @@ const LandingPage = lazy(() =>
 );
 
 export default function App() {
+  return (
+    <ThemeProvider>
+      <SiteApp />
+    </ThemeProvider>
+  );
+}
+
+function SiteApp() {
   const { route, navigate } = useSiteRouter();
 
   if (route.name === "docs") {
     return (
-      <Suspense fallback={<div className="site-loading">Loading docs...</div>}>
+      <Suspense fallback={<div className="site-loading">Loading docs…</div>}>
         <DocsPage slug={route.slug} navigate={navigate} />
       </Suspense>
     );
@@ -26,14 +35,14 @@ export default function App() {
 
   if (route.name === "demo") {
     return (
-      <Suspense fallback={<div className="site-loading">Loading demo...</div>}>
+      <Suspense fallback={<div className="site-loading">Loading demo…</div>}>
         <DemoPage navigate={navigate} />
       </Suspense>
     );
   }
 
   return (
-    <Suspense fallback={<div className="site-loading">Loading...</div>}>
+    <Suspense fallback={<div className="site-loading">Loading…</div>}>
       <LandingPage navigate={navigate} />
     </Suspense>
   );

@@ -1,10 +1,46 @@
 import { useCallback, useEffect, useState } from "react";
-import { getRouteForPath } from "./routes";
+import { getHashTargetId, getRouteForPath } from "./routes";
 import type { SiteRoute } from "./routes";
 
 export interface SiteRouter {
   route: SiteRoute;
   navigate: (href: string) => void;
+}
+
+function scrollToLocationHash(): () => void {
+  const id = getHashTargetId(window.location.hash);
+  if (!id) {
+    window.scrollTo({ top: 0, behavior: "auto" });
+    return () => undefined;
+  }
+
+  let frame = 0;
+  let cancelled = false;
+  let requestId = 0;
+
+  const findTarget = () => {
+    if (cancelled) {
+      return;
+    }
+
+    const target = document.getElementById(id);
+    if (target) {
+      target.scrollIntoView({ behavior: "auto" });
+      return;
+    }
+
+    frame += 1;
+    if (frame < 120) {
+      requestId = window.requestAnimationFrame(findTarget);
+    }
+  };
+
+  requestId = window.requestAnimationFrame(findTarget);
+
+  return () => {
+    cancelled = true;
+    window.cancelAnimationFrame(requestId);
+  };
 }
 
 export function useSiteRouter(): SiteRouter {
@@ -13,13 +49,16 @@ export function useSiteRouter(): SiteRouter {
   );
 
   const navigate = useCallback((href: string) => {
-    if (href === window.location.pathname) {
+    const url = new URL(href, window.location.origin);
+    const nextLocation = `${url.pathname}${url.search}${url.hash}`;
+    const currentLocation = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+
+    if (nextLocation === currentLocation) {
       return;
     }
 
-    window.history.pushState(null, "", href);
-    setRoute(getRouteForPath(href));
-    window.scrollTo({ top: 0, behavior: "auto" });
+    window.history.pushState(null, "", nextLocation);
+    setRoute(getRouteForPath(url.pathname));
   }, []);
 
   useEffect(() => {
@@ -30,6 +69,8 @@ export function useSiteRouter(): SiteRouter {
     window.addEventListener("popstate", handlePopState);
     return () => window.removeEventListener("popstate", handlePopState);
   }, []);
+
+  useEffect(() => scrollToLocationHash(), [route]);
 
   return { route, navigate };
 }

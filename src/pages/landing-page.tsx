@@ -1,10 +1,12 @@
-import { useState, type CSSProperties } from "react";
+import type { CSSProperties } from "react";
+import type { ColumnDef } from "@tanstack/react-table";
 import { EditableCell, Gigatable, themes, useGigatable } from "../gigatable";
 import type { EditableCellInputProps } from "../gigatable";
-import { ParticleField } from "../site/particle-field";
+import { PackageManagerTabs } from "../docs/code-block";
 import { GitHubLink } from "../site/github-link";
+import { ParticleField } from "../site/particle-field";
 import { SiteLink } from "../site/site-link";
-import type { ColumnDef } from "@tanstack/react-table";
+import { ThemeSelector } from "../site/theme";
 
 interface LandingPageProps {
   navigate: (href: string) => void;
@@ -89,7 +91,7 @@ const previewData: Array<PreviewStrain> = [
     name: "Cinder Bloom",
     project: "Thermo Vault",
     storage: "banked",
-    ph: 7.0,
+    ph: 7,
     viability: 97,
     status: "Validated",
   },
@@ -111,6 +113,7 @@ const PreviewTextInput = ({
   onKeyDown,
 }: EditableCellInputProps<unknown>) => (
   <input
+    aria-label="Cell value"
     autoFocus
     value={String(value ?? "")}
     onChange={onChange}
@@ -128,247 +131,364 @@ const previewColumns: Array<ColumnDef<PreviewStrain>> = [
     cell: (cell) => <EditableCell {...cell} renderInput={PreviewTextInput} />,
     meta: { editable: true },
   },
-  { accessorKey: "project", header: "Project", size: 220 },
+  { accessorKey: "project", header: "Project", size: 210 },
   { accessorKey: "storage", header: "Storage", size: 132 },
   {
     accessorKey: "ph",
     header: "pH",
     size: 96,
     cell: (cell) => <EditableCell {...cell} renderInput={PreviewTextInput} />,
-    meta: { editable: true },
+    meta: {
+      editable: true,
+      parsePastedValue: (value) => Number(value),
+    },
   },
   {
     accessorKey: "viability",
     header: "Viability",
     size: 136,
     cell: (cell) => <EditableCell {...cell} renderInput={PreviewTextInput} />,
-    meta: { editable: true },
+    meta: {
+      editable: true,
+      parsePastedValue: (value) => Number(value),
+    },
   },
-  { accessorKey: "status", header: "Status", size: 298 },
+  { accessorKey: "status", header: "Status", size: 190 },
 ];
 
-const featureStats = [
-  ["100k+", "Virtualized Rows"],
-  ["TSV", "Copy & Paste"],
-  ["Typed", "Theme API"],
-  ["Undo", "History Stack"],
+const features = [
+  {
+    index: "01",
+    title: "Select Like a Spreadsheet",
+    description:
+      "Click, drag, Shift-select, and navigate with the keyboard across virtualized rows.",
+    code: "allowCellSelection\nallowRangeSelection",
+  },
+  {
+    index: "02",
+    title: "Edit Domain Values",
+    description:
+      "Bring your own inputs, parse clipboard values, and clear cells with typed defaults.",
+    code: "meta: { editable: true }",
+  },
+  {
+    index: "03",
+    title: "Move Data With TSV",
+    description:
+      "Round-trip rectangular selections through Excel and Google Sheets.",
+    code: "allowPaste\nonPasteComplete",
+  },
+  {
+    index: "04",
+    title: "Fill Any Direction",
+    description:
+      "Repeat values vertically or horizontally with eligible-column and preview hooks.",
+    code: 'fillDirection="both"',
+  },
+  {
+    index: "05",
+    title: "Undo Every Mutation",
+    description:
+      "Edits, paste, fill, and clearing become coherent history entries.",
+    code: "history: true\nmaxHistorySize: 50",
+  },
+  {
+    index: "06",
+    title: "Compose the Renderer",
+    description:
+      "Replace the body, cells, footer, or virtualizer without losing interactions.",
+    code: "<Gigatable.Cell />",
+  },
 ];
 
-const installCommand = "npx gigatable init";
+const architecture = [
+  ["React 19", "Concurrent-ready UI"],
+  ["TanStack Table", "Headless table state"],
+  ["TanStack Virtual", "Only visible rows mount"],
+  ["TypeScript", "Typed from input to theme"],
+];
 
 export function LandingPage({ navigate }: LandingPageProps) {
-  const [copiedInstallCommand, setCopiedInstallCommand] = useState(false);
-  const { table, paste, applyFill, undo, redo } = useGigatable({
-    columns: previewColumns,
-    data: previewData,
-    history: true,
-  });
-
-  const copyInstallCommand = async () => {
-    try {
-      await navigator.clipboard.writeText(installCommand);
-    } catch {
-      const textarea = document.createElement("textarea");
-      textarea.value = installCommand;
-      textarea.setAttribute("readonly", "");
-      textarea.style.position = "fixed";
-      textarea.style.opacity = "0";
-      document.body.appendChild(textarea);
-      textarea.select();
-      document.execCommand("copy");
-      document.body.removeChild(textarea);
-    }
-
-    setCopiedInstallCommand(true);
-    window.setTimeout(() => setCopiedInstallCommand(false), 1400);
-  };
-
+  const { table, paste, applyFill, applyHorizontalFill, undo, redo } =
+    useGigatable({
+      columns: previewColumns,
+      data: previewData,
+      history: true,
+      enableColumnResizing: true,
+      columnResizeMode: "onChange",
+    });
   return (
-    <main className="relative min-h-screen overflow-x-hidden bg-[#05070d] text-slate-100">
-      <ParticleField />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_12%,rgba(34,211,238,0.14),transparent_30%),linear-gradient(180deg,rgba(5,7,13,0.18),rgba(5,7,13,0.88)_62%,#05070d)]" />
-      <div className="relative z-10">
-        <header className="mx-auto flex h-20 w-full max-w-7xl items-center justify-between px-5 sm:px-8 lg:px-10">
-          <SiteLink
-            href="/"
-            navigate={navigate}
-            className="inline-flex items-center gap-2 rounded-md text-sm font-bold uppercase tracking-[0.18em] text-cyan-100 transition-colors hover:text-white focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#05070d]"
-          >
-            <span className="h-2 w-2 rounded-full bg-emerald-300 shadow-[0_0_18px_rgba(110,231,183,0.9)]" />
-            <span>Gigatable</span>
-          </SiteLink>
-          <nav className="flex items-center gap-2 rounded-full border border-white/10 bg-white/4 p-1 text-sm shadow-2xl shadow-black/20 backdrop-blur">
-            <GitHubLink className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-slate-300 transition-colors hover:bg-white/10 hover:text-white focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#05070d]" />
-            <SiteLink
-              href="/docs"
-              navigate={navigate}
-              className="rounded-full px-4 py-2 font-semibold text-slate-300 transition-colors hover:bg-white/10 hover:text-white focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#05070d]"
-            >
-              Docs
-            </SiteLink>
-            <SiteLink
-              href="/demo"
-              navigate={navigate}
-              className="rounded-full bg-cyan-300 px-4 py-2 font-semibold text-slate-950 shadow-[0_0_24px_rgba(103,232,249,0.25)] transition-colors hover:bg-white focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#05070d]"
-            >
-              Demo
-            </SiteLink>
-          </nav>
-        </header>
+    <main className="landing-page">
+      <a href="#landing-content" className="site-skip-link">
+        Skip to Main Content
+      </a>
+      <div className="landing-ambient" aria-hidden="true">
+        <ParticleField />
+        <div />
+      </div>
 
-        <section className="mx-auto flex w-full max-w-7xl px-5 pb-14 pt-10 sm:px-8 md:pt-16 lg:min-h-[calc(72vh-80px)] lg:px-10 lg:pb-20 lg:pt-14">
-          <div className="mx-auto max-w-3xl text-center">
-            <div className="mb-6 inline-flex rounded-full border border-cyan-300/20 bg-cyan-300/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.16em] text-cyan-200 shadow-[0_0_40px_rgba(34,211,238,0.12)]">
-              React + TanStack Table + Virtual
+      <header className="landing-header">
+        <SiteLink href="/" navigate={navigate} className="landing-logo">
+          <span />
+          <span>Gigatable</span>
+        </SiteLink>
+        <nav aria-label="Primary">
+          <SiteLink href="/docs" navigate={navigate}>
+            Docs
+          </SiteLink>
+          <SiteLink href="/demo" navigate={navigate}>
+            Demo
+          </SiteLink>
+          <ThemeSelector compact />
+          <GitHubLink className="site-icon-button" />
+        </nav>
+      </header>
+
+      <div id="landing-content">
+        <section className="landing-hero">
+          <div className="landing-hero-copy">
+            <div className="landing-eyebrow">
+              <span />
+              Source-installed React data grid
             </div>
-            <h1 className="mx-auto max-w-[820px] text-balance text-5xl font-semibold leading-[0.98] tracking-[-0.035em] text-white sm:text-6xl lg:text-7xl">
-              Excel-grade grids for React.
+            <h1>
+              Excel-grade grids.
+              <br />
+              <span>Your source. Your rules.</span>
             </h1>
-            <p className="mx-auto mt-6 max-w-2xl text-pretty text-base leading-7 text-slate-300 sm:text-lg sm:leading-8">
-              Gigatable gives you cell selection, editable cells, TSV
-              copy/paste, fill handle, undo/redo, and virtualized rows as
-              source you install directly into your app.
+            <p>
+              Selection, editing, TSV clipboard, directional fill, history,
+              resizing, and virtualized rows—delivered as TypeScript source you
+              own.
             </p>
-            <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-              <SiteLink
-                href="/docs"
-                navigate={navigate}
-                className="inline-flex h-12 items-center justify-center rounded-md bg-white px-5 text-sm font-bold text-slate-950 shadow-[0_18px_60px_rgba(255,255,255,0.12)] transition-transform hover:-translate-y-0.5 hover:bg-cyan-100 focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#05070d]"
-              >
-                Read The Docs
+            <div className="landing-hero-actions">
+              <SiteLink href="/docs" navigate={navigate}>
+                Start Building
+                <span aria-hidden="true">→</span>
               </SiteLink>
-              <SiteLink
-                href="/demo"
-                navigate={navigate}
-                className="inline-flex h-12 items-center justify-center rounded-md border border-white/15 bg-white/4 px-5 text-sm font-bold text-slate-100 backdrop-blur transition-transform hover:-translate-y-0.5 hover:border-cyan-300/60 hover:bg-white/8 focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#05070d]"
-              >
-                Open Demo
+              <SiteLink href="/demo" navigate={navigate}>
+                Explore the Demo
               </SiteLink>
             </div>
-            <div className="mx-auto mt-5 flex max-w-xl items-center gap-2 rounded-lg border border-white/10 bg-slate-950/70 p-1.5 text-left shadow-[0_20px_80px_rgba(0,0,0,0.28)] backdrop-blur">
-              <div className="min-w-0 flex-1 overflow-hidden px-3">
-                <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-cyan-200/80">
-                  Install
-                </div>
-                <code className="mt-1 block truncate font-mono text-sm font-semibold text-slate-100 sm:text-base">
-                  {installCommand}
-                </code>
-              </div>
-              <button
-                type="button"
-                onClick={copyInstallCommand}
-                className="inline-flex h-10 shrink-0 items-center justify-center rounded-md border border-cyan-300/20 bg-cyan-300/10 px-4 text-sm font-bold text-cyan-100 transition-colors hover:border-cyan-200/60 hover:bg-cyan-300/20 focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#05070d]"
-                aria-label="Copy install command"
-              >
-                {copiedInstallCommand ? "Copied" : "Copy"}
-              </button>
+            <div className="landing-proof">
+              <span>React 19+</span>
+              <span>Tailwind v4</span>
+              <span>MIT</span>
+              <span>Source owned</span>
             </div>
-            <div className="mx-auto mt-10 grid max-w-2xl grid-cols-2 gap-3 sm:grid-cols-4">
-              {featureStats.map(([value, label]) => (
-                <div
-                  key={label}
-                  className="rounded-md border border-white/10 bg-white/[0.035] px-3 py-3 backdrop-blur"
-                >
-                  <div className="text-sm font-bold text-cyan-200">{value}</div>
-                  <div className="mt-1 truncate text-xs font-medium text-slate-400">
-                    {label}
-                  </div>
-                </div>
-              ))}
+          </div>
+
+          <div className="landing-install-card">
+            <div>
+              <span>01</span>
+              <strong>Install the Source</strong>
+            </div>
+            <PackageManagerTabs compact />
+            <p>
+              The CLI validates your TypeScript project, copies Gigatable, and
+              installs only 3 runtime dependencies.
+            </p>
+            <div className="landing-file-tree" translate="no">
+              <span>src/gigatable/</span>
+              <span>├── data-table/</span>
+              <span>├── table/</span>
+              <span>├── theme/</span>
+              <span>└── index.ts</span>
             </div>
           </div>
         </section>
 
-        <section className="mx-auto w-full max-w-7xl px-5 pb-10 sm:px-8 lg:px-10">
-          <div className="rounded-xl border border-white/10 bg-slate-950/75 p-3 shadow-[0_34px_140px_rgba(0,0,0,0.58)] backdrop-blur-xl">
-            <div className="mb-3 flex flex-col gap-3 px-1 text-xs text-slate-400 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full bg-emerald-300" />
-                  <span className="font-bold uppercase tracking-[0.16em] text-slate-300">
-                    Live Preview
-                  </span>
-                </div>
-                <p className="mt-2 max-w-xl text-sm leading-6 text-slate-400">
-                  Try the same selection, paste, fill, and edit surface that
-                  ships as source into your app.
-                </p>
+        <section className="landing-showcase" aria-labelledby="showcase-title">
+          <div className="landing-section-heading">
+            <div>
+              <span>Interactive Proof</span>
+              <h2 id="showcase-title">The product is the demo.</h2>
+            </div>
+            <p>
+              Click a cell, edit a value, paste TSV, drag the fill handle, or
+              resize a column. This is the same component installed into your
+              app.
+            </p>
+          </div>
+
+          <div className="landing-grid-frame">
+            <div className="landing-window-bar">
+              <div aria-hidden="true">
+                <span />
+                <span />
+                <span />
               </div>
-              <span className="font-medium tabular-nums">
-                {previewData.length} Rows / {previewColumns.length} Columns
-              </span>
+              <strong>strain-library.tsx</strong>
+              <span className="landing-live-status">Live</span>
             </div>
             <div
-              className="gt-landing-preview overflow-hidden rounded-lg border border-slate-700/70 bg-[#050812]"
-              style={{ "--gt-table-height": "318px" } as CSSProperties}
+              className="gt-landing-preview"
+              style={{ "--gt-table-height": "390px" } as CSSProperties}
             >
               <Gigatable
                 theme={themes.giga}
                 table={table}
                 allowCellSelection
                 allowRangeSelection
+                allowQuickEdit
                 allowHistory
                 allowPaste
                 allowFillHandle
+                fillDirection="both"
+                allowColumnResizing
                 paste={paste}
                 applyFill={applyFill}
+                applyHorizontalFill={applyHorizontalFill}
                 undo={undo}
                 redo={redo}
               />
             </div>
-            <div className="mt-3 grid gap-2 text-xs text-slate-400 sm:grid-cols-3">
-              <div className="rounded-md border border-white/10 bg-white/3 px-3 py-2">
-                Select cells
-              </div>
-              <div className="rounded-md border border-white/10 bg-white/3 px-3 py-2">
-                Paste TSV
-              </div>
-              <div className="rounded-md border border-white/10 bg-white/3 px-3 py-2">
-                Fill down
-              </div>
+            <div className="landing-grid-guide">
+              <span>Click to select</span>
+              <span>Double-click to edit</span>
+              <span>Drag to fill</span>
+              <span>Cmd/Ctrl+Z to undo</span>
             </div>
           </div>
         </section>
 
-        <section className="mx-auto w-full max-w-7xl px-5 pb-14 sm:px-8 lg:px-10">
-          <div className="rounded-xl border border-white/10 bg-white/[0.035] p-6 backdrop-blur">
-            <div className="mb-5 text-center text-xs font-bold uppercase tracking-[0.16em] text-slate-400">
-              Sponsors
+        <section className="landing-features" aria-labelledby="features-title">
+          <div className="landing-section-heading">
+            <div>
+              <span>Spreadsheet Behavior</span>
+              <h2 id="features-title">Small API. Serious interactions.</h2>
             </div>
-            <div className="flex justify-center">
-              <a
-                href="https://thinktank.preskok.si/en/"
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex rounded-lg border border-white/10 bg-white p-4 shadow-2xl shadow-black/20 transition-transform hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#05070d]"
-              >
-                <img
-                  src="/preskok_thinktank.png"
-                  alt="Preskok ThinkTank"
-                  className="h-14 w-auto object-contain"
-                />
-              </a>
-            </div>
+            <p>
+              Enable only what your product needs. Every behavior stays
+              explicit, typed, and customizable.
+            </p>
           </div>
-        </section>
-
-        <section className="border-y border-white/10 bg-[#06101a]/90 backdrop-blur">
-          <div className="mx-auto grid max-w-7xl gap-4 px-5 py-10 sm:px-8 md:grid-cols-3 lg:px-10">
-            {[
-              ["Installable source", "Run `npx gigatable init` and own the copied component code."],
-              ["Spreadsheet behavior", "Selection, ranges, paste, fill, and history are built in."],
-              ["Themeable surface", "Use presets, partial overrides, or write your own theme."],
-            ].map(([title, body]) => (
-              <div
-                key={title}
-                className="rounded-lg border border-white/10 bg-white/[0.035] p-5"
-              >
-                <h2 className="text-base font-bold text-white">{title}</h2>
-                <p className="mt-3 text-sm leading-6 text-slate-400">{body}</p>
-              </div>
+          <div className="landing-feature-grid">
+            {features.map((feature) => (
+              <article key={feature.index}>
+                <span>{feature.index}</span>
+                <h3>{feature.title}</h3>
+                <p>{feature.description}</p>
+                <pre>
+                  <code translate="no">{feature.code}</code>
+                </pre>
+              </article>
             ))}
           </div>
         </section>
+
+        <section className="landing-source" aria-labelledby="source-title">
+          <div className="landing-source-copy">
+            <span>Own the Implementation</span>
+            <h2 id="source-title">A dependency you can actually change.</h2>
+            <p>
+              Gigatable follows the shadcn model: install the component into
+              your repository, review every line, then adapt it to your domain
+              without waiting on a vendor roadmap.
+            </p>
+            <ul>
+              <li>Local TypeScript source with a public barrel</li>
+              <li>Typed TanStack metadata augmentation</li>
+              <li>Preset themes and CSS custom properties</li>
+              <li>Composable rendering and custom virtualizers</li>
+            </ul>
+            <SiteLink href="/docs/composition" navigate={navigate}>
+              Explore Composition <span aria-hidden="true">→</span>
+            </SiteLink>
+          </div>
+          <div className="landing-source-code">
+            <div>
+              <span>people-grid.tsx</span>
+              <span>TSX</span>
+            </div>
+            <pre>
+              <code translate="no">{`const grid = useGigatable({
+  columns,
+  data,
+  history: true,
+});
+
+return (
+  <Gigatable
+    table={grid.table}
+    allowCellSelection
+    allowRangeSelection
+    allowPaste
+    paste={grid.paste}
+    theme={themes.giga}
+  />
+);`}</code>
+            </pre>
+          </div>
+        </section>
+
+        <section className="landing-architecture" aria-label="Architecture">
+          {architecture.map(([title, description]) => (
+            <div key={title}>
+              <strong>{title}</strong>
+              <span>{description}</span>
+            </div>
+          ))}
+        </section>
+
+        <section className="landing-final-cta">
+          <div>
+            <span>Ready to ship a better grid?</span>
+            <h2>Start with source. End with your product.</h2>
+          </div>
+          <div>
+            <SiteLink href="/docs/installation" navigate={navigate}>
+              Install Gigatable
+            </SiteLink>
+            <SiteLink href="/demo" navigate={navigate}>
+              Open Full Demo
+            </SiteLink>
+          </div>
+        </section>
+
+        <footer className="landing-footer">
+          <div>
+            <SiteLink href="/" navigate={navigate} className="landing-logo">
+              <span />
+              <span>Gigatable</span>
+            </SiteLink>
+            <p>Excel-grade data interactions for React, installed as source.</p>
+          </div>
+          <div className="landing-sponsor">
+            <span>Supported by</span>
+            <a
+              href="https://thinktank.preskok.si/en/"
+              target="_blank"
+              rel="noreferrer"
+            >
+              <img
+                src="/preskok_thinktank.png"
+                alt="Preskok ThinkTank"
+                width="220"
+                height="56"
+                loading="lazy"
+              />
+            </a>
+          </div>
+          <nav aria-label="Footer">
+            <SiteLink href="/docs" navigate={navigate}>
+              Documentation
+            </SiteLink>
+            <SiteLink href="/demo" navigate={navigate}>
+              Demo
+            </SiteLink>
+            <a
+              href="https://github.com/aikenahac/gigatable"
+              target="_blank"
+              rel="noreferrer"
+            >
+              GitHub
+            </a>
+            <a href="/llms.txt" target="_blank" rel="noreferrer">
+              llms.txt
+            </a>
+          </nav>
+        </footer>
       </div>
     </main>
   );

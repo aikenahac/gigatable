@@ -1,0 +1,82 @@
+# Columns & Editing
+
+Gigatable uses TanStack Table `ColumnDef` objects. A column becomes editable when its cell renderer uses `EditableCell` and its metadata contains `editable: true`.
+
+## Read-Only and Editable Columns
+
+```tsx
+const columns: ColumnDef<Row>[] = [
+  { accessorKey: "id", header: "ID", size: 96 },
+  {
+    accessorKey: "name",
+    header: "Name",
+    size: 200,
+    cell: (cell) => <EditableCell {...cell} renderInput={TextInput} />,
+    meta: { editable: true },
+  },
+];
+```
+
+The metadata flag is the behavior contract used by paste, fill, clearing, and keyboard editing. A custom `cell` renderer without `meta.editable` remains read-only to Gigatable.
+
+## Editing Lifecycle
+
+- Double-click or press Enter on a selected editable cell to start.
+- Alt/Option-click starts quick edit when `allowQuickEdit` is enabled.
+- Enter commits and moves down.
+- Tab or Shift+Tab commits and traverses visible cells.
+- Escape cancels without changing the value.
+- Blur commits the editor’s current value.
+
+## Make Every Column Editable
+
+Set `allColumnsEditable` to wrap columns without explicit editable metadata in Gigatable’s default text editor.
+
+```tsx
+<Gigatable table={table} allColumnsEditable />
+```
+
+Columns that already render `EditableCell` keep their custom editor. This is useful for admin tools or generated schemas, but explicit metadata gives better parsing and input control.
+
+## Numeric and Select Editors
+
+Use `onValueChange` when the editor does not expose a standard input change event.
+
+```tsx
+function ScoreInput({
+  value,
+  onValueChange,
+  onBlur,
+  onKeyDown,
+}: EditableCellInputProps<number>) {
+  return (
+    <input
+      aria-label="Score"
+      type="number"
+      inputMode="numeric"
+      value={value ?? 0}
+      onChange={(event) => onValueChange(event.target.value)}
+      onBlur={onBlur}
+      onKeyDown={onKeyDown}
+    />
+  );
+}
+```
+
+Pair numeric inputs with `meta.parsePastedValue` so pasted strings enter your data model as numbers.
+
+## Controlled Application Data
+
+`useGigatable` owns an internal data array and synchronizes when the `data` reference changes. Pass a new array reference to replace the table data. Cell updates are exposed through `table.options.meta.updateCellData`.
+
+> [!NOTE]
+> Gigatable’s mutation helpers update shallow row objects by accessor key. Use flat accessor keys for editable values or adapt the installed source for nested domain models.
+
+## Troubleshooting
+
+| Symptom                              | Check                                                          |
+| ------------------------------------ | -------------------------------------------------------------- |
+| Enter does not open the editor       | The cell must be selected and the column must be editable      |
+| Paste skips custom conversion        | Add `meta.parsePastedValue`                                    |
+| Fill handle does not appear          | Enable selection, fill, and provide the fill handlers          |
+| Custom input loses keyboard behavior | Forward `onBlur` and `onKeyDown` from `EditableCellInputProps` |

@@ -9,25 +9,29 @@ import { columns } from "./columns";
 import { myData } from "./data";
 
 export function App() {
-  const { table, paste, applyFill, undo, redo } = useGigatable({
-    columns,
-    data: myData,
-    enableColumnResizing: true,
-    columnResizeMode: "onChange",
-    history: true,
-  });
+  const { table, paste, applyFill, applyHorizontalFill, undo, redo } =
+    useGigatable({
+      columns,
+      data: myData,
+      enableColumnResizing: true,
+      columnResizeMode: "onChange",
+      history: true,
+    });
 
   return (
     <Gigatable
       table={table}
       allowCellSelection
       allowRangeSelection
+      allowQuickEdit
       allowHistory
       allowPaste
       allowFillHandle
+      fillDirection="both"
       allowColumnResizing
       paste={paste}
       applyFill={applyFill}
+      applyHorizontalFill={applyHorizontalFill}
       undo={undo}
       redo={redo}
     />
@@ -43,7 +47,12 @@ import { ColumnDef } from "@tanstack/react-table";
 import { EditableCell, EditableCellInputProps } from "./gigatable";
 
 // Custom input component — receives EditableCellInputProps
-const TextInput = ({ value, onChange, onKeyDown, onBlur }: EditableCellInputProps<string>) => (
+const TextInput = ({
+  value,
+  onChange,
+  onKeyDown,
+  onBlur,
+}: EditableCellInputProps<string>) => (
   <input
     autoFocus
     value={value as string}
@@ -81,16 +90,49 @@ Add `src/gigatable/types/react-table.ts` to the `include` array in your `tsconfi
 
 ## Feature flags
 
-| Prop | Enables | Also requires |
-|---|---|---|
-| `allowCellSelection` | Click to select, arrow key navigation | — |
-| `allowRangeSelection` | Drag + Shift+Arrow range selection | `allowCellSelection` |
-| `singleColumnCellSelection` | Drag + Shift+Arrow range selection down one column | `allowCellSelection`; overrides `allowRangeSelection={false}` for this constrained mode |
-| `allowHistory` | Ctrl/Cmd+Z / Ctrl/Cmd+Shift+Z | `undo`, `redo` props + `history: true` in `useGigatable` |
-| `allowPaste` | Ctrl/Cmd+V paste (TSV) | `paste` prop |
-| `allowFillHandle` | Drag-fill down a column | `applyFill` prop + `meta: { editable: true }` on columns |
-| `allColumnsEditable` | Make every column editable with a default text input | — |
-| `allowColumnResizing` | Header-border drag resizing | `enableColumnResizing: true` in `useGigatable` |
+| Prop                        | Enables                                              | Also requires                                                                           |
+| --------------------------- | ---------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| `allowCellSelection`        | Click to select, arrow key navigation                | —                                                                                       |
+| `allowRangeSelection`       | Drag + Shift+Arrow range selection                   | `allowCellSelection`                                                                    |
+| `allowQuickEdit`            | Alt/Option-click editing and partial-text selection  | editable columns                                                                        |
+| `singleColumnCellSelection` | Drag + Shift+Arrow range selection down one column   | `allowCellSelection`; overrides `allowRangeSelection={false}` for this constrained mode |
+| `allowHistory`              | Ctrl/Cmd+Z / Ctrl/Cmd+Shift+Z                        | `undo`, `redo` props + `history: true` in `useGigatable`                                |
+| `allowPaste`                | Ctrl/Cmd+V paste (TSV)                               | `paste` prop                                                                            |
+| `allowFillHandle`           | Drag-fill in the configured direction                | `applyFill` prop + editable columns                                                     |
+| `allColumnsEditable`        | Make every column editable with a default text input | —                                                                                       |
+| `allowColumnResizing`       | Header-border drag resizing                          | `enableColumnResizing: true` in `useGigatable`                                          |
+
+Delete and Backspace clear selected editable cells whenever cell selection is
+enabled. Read-only cells are skipped, a range clear is one undo step, and
+keystrokes inside an active editor are left alone. Override the default `null`
+with `meta.getClearedValue`; no separate clearing flag is needed.
+
+## Column behavior metadata
+
+```tsx
+meta: {
+  editable: true,
+  allowFill: true,
+  parsePastedValue: (text) => Number(text),
+  getClearedValue: () => null,
+  formatFillPreview: (value) => `${value}%`,
+  getCellClassName: (cell) => cell.getValue() == null ? "text-slate-400" : undefined,
+}
+```
+
+Paste repeats over a larger selected range. Set `pasteByColumnId={false}` for
+strictly sequential paste. `PasteResult.changes[].newValue` contains the value
+after `parsePastedValue` runs.
+
+## Custom composition
+
+Omitting children keeps the default row-and-column virtualized renderer. For a
+custom body, compose `Gigatable.Table`, `Gigatable.Header`, `Gigatable.Body`,
+`Gigatable.Footer`, and `Gigatable.Cell`.
+
+`useGigatableContext<TData>()` exposes rows, columns, selection state, the
+scroll-container ref, `getCellState`, and `registerRowScroller`. Registration
+returns a cleanup function for custom virtualizers.
 
 ## Column resizing
 
@@ -127,13 +169,13 @@ import type { GigatableTheme } from "./gigatable";
 
 Themeable areas and their fields:
 
-| Area | Fields |
-|---|---|
-| `header` | `background`, `textColor`, `borderColor`, `height`, `fontSize`, `fontFamily`, `fontWeight` |
-| `row` | `height`, `background`, `hoverBackground` |
-| `cell` | `borderColor`, `fontSize`, `fontFamily`, `fontWeight`, `textColor`, `paddingX`, `paddingY` |
-| `selection` | `outline`, `rangeBackground` |
-| `paste` | `highlightBackground`, `highlightBorderColor` |
-| `fill` | `previewBackground`, `previewTextColor` |
+| Area        | Fields                                                                                     |
+| ----------- | ------------------------------------------------------------------------------------------ |
+| `header`    | `background`, `textColor`, `borderColor`, `height`, `fontSize`, `fontFamily`, `fontWeight` |
+| `row`       | `height`, `background`, `hoverBackground`                                                  |
+| `cell`      | `borderColor`, `fontSize`, `fontFamily`, `fontWeight`, `textColor`, `paddingX`, `paddingY` |
+| `selection` | `outline`, `rangeBackground`                                                               |
+| `paste`     | `highlightBackground`, `highlightBorderColor`                                              |
+| `fill`      | `previewBackground`, `previewTextColor`                                                    |
 
 String values accept CSS variable references (e.g. `"var(--primary)"`). Number values are treated as `px`.

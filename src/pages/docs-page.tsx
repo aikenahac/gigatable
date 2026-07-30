@@ -2,12 +2,11 @@ import React from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import {
-  docsSections,
   extractMarkdownHeadings,
+  getAdjacentDocs,
   getDocBySlug,
   getMarkdownHeadingId,
 } from "../docs/docs";
-import { copyMarkdownToClipboard } from "../docs/copy-markdown";
 import type { DocsSlug } from "../docs/docs";
 import {
   applyViewBoxToSvg,
@@ -20,6 +19,11 @@ import {
 } from "../docs/mermaid-pan-zoom";
 import { GitHubLink } from "../site/github-link";
 import { SiteLink } from "../site/site-link";
+import { ThemeSelector } from "../site/theme";
+import { CodeBlock, PackageManagerTabs } from "../docs/code-block";
+import { DocsNavigation, DocsSearchButton } from "../docs/docs-navigation";
+import { SearchDialog } from "../docs/search-dialog";
+import { PageActionsMenu } from "../docs/page-actions-menu";
 
 interface DocsPageProps {
   navigate: (href: string) => void;
@@ -40,6 +44,22 @@ function textFromChildren(children: React.ReactNode): string {
       return "";
     })
     .join("");
+}
+
+function removeCalloutMarker(children: React.ReactNode): React.ReactNode {
+  return React.Children.map(children, (child) => {
+    if (!React.isValidElement<{ children?: React.ReactNode }>(child)) {
+      return child;
+    }
+
+    return React.cloneElement(child, {
+      children: React.Children.map(child.props.children, (nestedChild) =>
+        typeof nestedChild === "string"
+          ? nestedChild.replace(/^\s*\[!(NOTE|TIP|WARNING)]\s*/i, "")
+          : nestedChild,
+      ),
+    });
+  });
 }
 
 function MermaidBlock({ chart }: { chart: string }) {
@@ -283,10 +303,7 @@ function MermaidBlock({ chart }: { chart: string }) {
   }
 
   return (
-    <figure
-      className="docs-mermaid"
-      aria-label="Architecture diagram"
-    >
+    <figure className="docs-mermaid" aria-label="Architecture diagram">
       Rendering diagram...
     </figure>
   );
@@ -294,220 +311,407 @@ function MermaidBlock({ chart }: { chart: string }) {
 
 export function DocsPage({ navigate, slug }: DocsPageProps) {
   const doc = getDocBySlug(slug);
-  const headings = extractMarkdownHeadings(doc.content);
-  const [copyStatus, setCopyStatus] = React.useState<
-    "idle" | "copied" | "error"
-  >("idle");
+  const headings = React.useMemo(
+    () => extractMarkdownHeadings(doc.content),
+    [doc.content],
+  );
+  const adjacent = getAdjacentDocs(doc.slug);
+  const [searchOpen, setSearchOpen] = React.useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = React.useState(false);
+  const mobileMenuButtonRef = React.useRef<HTMLButtonElement>(null);
+  const mobileNavRef = React.useRef<HTMLDivElement>(null);
+  const [activeHeading, setActiveHeading] = React.useState(
+    headings[0]?.id ?? "",
+  );
+
+  const closeMobileNav = React.useCallback((restoreFocus = true) => {
+    setMobileNavOpen(false);
+    if (restoreFocus) {
+      window.requestAnimationFrame(() => mobileMenuButtonRef.current?.focus());
+    }
+  }, []);
 
   React.useEffect(() => {
-    setCopyStatus("idle");
-  }, [doc.slug]);
+    document.title = `${doc.title} · Gigatable Docs`;
+    document
+      .querySelector('meta[name="description"]')
+      ?.setAttribute("content", doc.description);
+  }, [doc.description, doc.title]);
 
-  const handleCopyMarkdown = React.useCallback(async () => {
-    try {
-      await copyMarkdownToClipboard(doc.content);
-      setCopyStatus("copied");
-      window.setTimeout(() => setCopyStatus("idle"), 1400);
-    } catch {
-      setCopyStatus("error");
-      window.setTimeout(() => setCopyStatus("idle"), 2200);
+  React.useEffect(() => {
+    const handleShortcut = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        setSearchOpen(true);
+      }
+    };
+    window.addEventListener("keydown", handleShortcut);
+    return () => window.removeEventListener("keydown", handleShortcut);
+  }, []);
+
+  React.useEffect(() => {
+    const navigation = mobileNavRef.current;
+    if (!mobileNavOpen || !navigation) {
+      return;
     }
-  }, [doc.content]);
+
+    const focusable = Array.from(
+      navigation.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      ),
+    );
+    focusable[0]?.focus();
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeMobileNav();
+        return;
+      }
+
+      if (event.key !== "Tab" || focusable.length === 0) {
+        return;
+      }
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [closeMobileNav, mobileNavOpen]);
+
+  React.useEffect(() => {
+    setActiveHeading(headings[0]?.id ?? "");
+    const elements = headings
+      .map((heading) => document.getElementById(heading.id))
+      .filter((element): element is HTMLElement => Boolean(element));
+    if (!elements.length || typeof IntersectionObserver === "undefined") {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort(
+            (a, b) => a.boundingClientRect.top - b.boundingClientRect.top,
+          )[0];
+        if (visible?.target.id) {
+          setActiveHeading(visible.target.id);
+        }
+      },
+      { rootMargin: "-90px 0px -68% 0px", threshold: [0, 1] },
+    );
+    elements.forEach((element) => observer.observe(element));
+    return () => observer.disconnect();
+  }, [doc.slug, headings]);
+
+  const markdownSegments = doc.content.split("<!-- package-manager-tabs -->");
+  const visibleMarkdownSegments = markdownSegments.map((segment, index) =>
+    index === 0 ? segment : segment.replace(/^\s*```bash\n[\s\S]*?```\n/, ""),
+  );
+
+  const renderMarkdown = (content: string, key: string) => (
+    <ReactMarkdown
+      key={key}
+      remarkPlugins={[remarkGfm]}
+      components={{
+        h1: () => null,
+        h2: ({ children, ...props }) => {
+          const title = textFromChildren(children);
+          return (
+            <h2 id={getMarkdownHeadingId(title)} {...props}>
+              {children}
+              <a
+                className="docs-heading-anchor"
+                href={`#${getMarkdownHeadingId(title)}`}
+                aria-label={`Link to ${title}`}
+              >
+                #
+              </a>
+            </h2>
+          );
+        },
+        h3: ({ children, ...props }) => {
+          const title = textFromChildren(children);
+          return (
+            <h3 id={getMarkdownHeadingId(title)} {...props}>
+              {children}
+              <a
+                className="docs-heading-anchor"
+                href={`#${getMarkdownHeadingId(title)}`}
+                aria-label={`Link to ${title}`}
+              >
+                #
+              </a>
+            </h3>
+          );
+        },
+        a: ({ href, children, ...props }) => {
+          if (href?.startsWith("/")) {
+            return (
+              <SiteLink href={href} navigate={navigate} {...props}>
+                {children}
+              </SiteLink>
+            );
+          }
+
+          return (
+            <a
+              href={href}
+              target={href?.startsWith("http") ? "_blank" : undefined}
+              rel={href?.startsWith("http") ? "noreferrer" : undefined}
+              {...props}
+            >
+              {children}
+            </a>
+          );
+        },
+        table: ({ children, ...props }) => (
+          <div className="docs-table-scroll">
+            <table {...props}>{children}</table>
+          </div>
+        ),
+        blockquote: ({ children }) => {
+          const label = textFromChildren(children).match(
+            /^\s*\[!(NOTE|TIP|WARNING)]/i,
+          )?.[1];
+          return (
+            <blockquote
+              className={label ? `docs-callout is-${label.toLowerCase()}` : ""}
+            >
+              {label ? <strong>{label}</strong> : null}
+              <div className={label ? "docs-callout-content" : undefined}>
+                {label ? removeCalloutMarker(children) : children}
+              </div>
+            </blockquote>
+          );
+        },
+        pre: ({ children }) => <>{children}</>,
+        code: ({ className, children, ...props }) => {
+          const code = String(children).replace(/\n$/, "");
+          const language = className?.replace("language-", "");
+
+          if (language === "mermaid") {
+            return <MermaidBlock chart={code} />;
+          }
+
+          if (language || code.includes("\n")) {
+            return <CodeBlock code={code} language={language} />;
+          }
+
+          return (
+            <code className={className} translate="no" {...props}>
+              {children}
+            </code>
+          );
+        },
+      }}
+    >
+      {content}
+    </ReactMarkdown>
+  );
 
   return (
-    <main className="min-h-screen bg-[#05070d] text-slate-100 scheme-dark">
-      <header className="sticky top-0 z-30 border-b border-white/10 bg-[#05070d]/90 backdrop-blur-xl">
-        <div className="mx-auto flex h-16 max-w-[96rem] items-center justify-between gap-4 px-5 sm:px-8 lg:px-10">
-          <div className="flex min-w-0 items-center gap-6">
-            <SiteLink
-              href="/"
-              navigate={navigate}
-              className="inline-flex items-center gap-2 rounded-md text-sm font-bold text-cyan-100 transition-colors hover:text-white focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#05070d]"
+    <div className="docs-app">
+      <a href="#docs-main" className="site-skip-link">
+        Skip to Documentation
+      </a>
+      <header className="docs-header">
+        <div className="docs-header-inner">
+          <div className="docs-header-brand">
+            <button
+              ref={mobileMenuButtonRef}
+              type="button"
+              className="docs-mobile-menu-button"
+              aria-label="Open documentation navigation"
+              aria-expanded={mobileNavOpen}
+              onClick={() => setMobileNavOpen(true)}
             >
-              <span className="h-2 w-2 rounded-full bg-emerald-300 shadow-[0_0_16px_rgba(110,231,183,0.75)]" />
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 24 24"
+                width="20"
+                height="20"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+              >
+                <path d="M4 7h16M4 12h16M4 17h16" />
+              </svg>
+            </button>
+            <SiteLink href="/" navigate={navigate} className="docs-logo">
+              <span />
               <span>Gigatable</span>
             </SiteLink>
-            <nav className="hidden items-center gap-1 rounded-md border border-white/10 bg-white/4 p-1 text-sm shadow-2xl shadow-black/20 md:flex">
-              <SiteLink
-                href="/docs"
-                navigate={navigate}
-                className="rounded bg-cyan-300/10 px-3 py-1.5 font-semibold text-cyan-100 shadow-sm transition-colors hover:bg-cyan-300/15 hover:text-white"
-              >
+            <nav aria-label="Primary">
+              <SiteLink href="/docs" navigate={navigate} aria-current="page">
                 Docs
               </SiteLink>
-              <SiteLink
-                href="/demo"
-                navigate={navigate}
-                className="rounded px-3 py-1.5 font-semibold text-slate-400 transition-colors hover:bg-white/10 hover:text-white"
-              >
+              <SiteLink href="/demo" navigate={navigate}>
                 Demo
               </SiteLink>
             </nav>
           </div>
-          <div className="flex shrink-0 items-center gap-2">
-            <code className="hidden rounded-md border border-white/10 bg-slate-950/80 px-3 py-2 text-xs font-semibold text-cyan-100 shadow-sm sm:block">
-              npx gigatable init
-            </code>
-            <GitHubLink className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-white/10 bg-white/4 text-slate-300 transition-colors hover:bg-white/10 hover:text-white focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#05070d]" />
+          <div className="docs-header-actions">
+            <DocsSearchButton onClick={() => setSearchOpen(true)} />
+            <ThemeSelector compact />
+            <GitHubLink className="site-icon-button" />
           </div>
         </div>
       </header>
 
-      <div className="mx-auto grid max-w-[96rem] grid-cols-1 lg:grid-cols-[260px_minmax(0,1fr)_240px] lg:px-10">
-        <aside className="border-b border-white/10 bg-slate-950/65 px-5 py-4 sm:px-8 lg:sticky lg:top-16 lg:h-[calc(100vh-64px)] lg:border-b-0 lg:border-r lg:bg-transparent lg:px-0 lg:py-8 lg:pr-6">
-          <div className="mb-3 text-xs font-bold uppercase tracking-[0.14em] text-slate-500">
-            Documentation
-          </div>
-          <nav className="flex gap-4 overflow-x-auto pb-1 lg:block lg:space-y-6 lg:overflow-visible lg:pb-0">
-            {docsSections.map((section) => (
-              <div key={section.id} className="min-w-fit lg:min-w-0">
-                <div className="mb-2 px-3 text-xs font-bold uppercase tracking-[0.14em] text-slate-600">
-                  {section.title}
-                </div>
-                <div className="flex gap-2 lg:block">
-                  {section.items.map((item) => {
-                    const isActive = item.slug === doc.slug;
-
-                    return (
-                      <SiteLink
-                        key={item.slug}
-                        href={`/docs/${item.slug}`}
-                        navigate={navigate}
-                        className={
-                          isActive
-                            ? "block min-w-fit rounded-md border border-cyan-300/20 bg-cyan-300/10 px-3 py-2 text-sm font-bold text-cyan-100 shadow-sm shadow-cyan-950/20"
-                            : "block min-w-fit rounded-md px-3 py-2 text-sm font-semibold text-slate-400 transition-colors hover:bg-white/6 hover:text-slate-100 hover:shadow-sm"
-                        }
-                      >
-                        {item.title}
-                      </SiteLink>
-                    );
-                  })}
-                </div>
-              </div>
-            ))}
-          </nav>
+      <div className="docs-layout">
+        <aside className="docs-sidebar">
+          <DocsSearchButton onClick={() => setSearchOpen(true)} />
+          <DocsNavigation current={doc} navigate={navigate} />
         </aside>
 
-        <article className="min-w-0 border-x border-white/10 bg-[#080d18] px-5 py-8 shadow-[0_0_120px_rgba(0,0,0,0.28)] sm:px-8 md:py-12 lg:px-12">
-          <div className="mb-10 border-b border-white/10 pb-8">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-              <div className="min-w-0">
-                <div className="text-sm font-bold text-cyan-200">
-                  Gigatable docs
-                </div>
-                <h1 className="mt-3 text-balance text-4xl font-bold tracking-[-0.025em] text-white sm:text-5xl">
-                  {doc.title}
-                </h1>
+        <main id="docs-main" className="docs-main">
+          <article>
+            <header className="docs-article-header">
+              <div>
+                <span>{doc.sectionTitle}</span>
+                <h1>{doc.title}</h1>
+                <p>{doc.description}</p>
               </div>
-              <button
-                type="button"
-                onClick={handleCopyMarkdown}
-                className="inline-flex h-10 shrink-0 items-center justify-center rounded-md border border-cyan-300/20 bg-cyan-300/10 px-3 text-sm font-bold text-cyan-100 transition-colors hover:border-cyan-200/60 hover:bg-cyan-300/20 focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#080d18]"
-                aria-label={`Copy ${doc.title} markdown`}
-                aria-live="polite"
-              >
-                {copyStatus === "copied"
-                  ? "Copied"
-                  : copyStatus === "error"
-                    ? "Copy failed"
-                    : "Copy Markdown"}
-              </button>
-            </div>
-            <p className="mt-4 max-w-2xl text-pretty text-base leading-7 text-slate-400">
-              {doc.description}
-            </p>
-          </div>
+              <PageActionsMenu doc={doc} />
+            </header>
 
-          <div className="docs-content">
-            <ReactMarkdown
-              remarkPlugins={[remarkGfm]}
-              components={{
-                h1: () => null,
-                h2: ({ children, ...props }) => {
-                  const title = textFromChildren(children);
-                  return (
-                    <h2 id={getMarkdownHeadingId(title)} {...props}>
-                      {children}
-                    </h2>
-                  );
-                },
-                h3: ({ children, ...props }) => {
-                  const title = textFromChildren(children);
-                  return (
-                    <h3 id={getMarkdownHeadingId(title)} {...props}>
-                      {children}
-                    </h3>
-                  );
-                },
-                a: ({ href, children, ...props }) => {
-                  if (href?.startsWith("/")) {
-                    return (
-                      <SiteLink href={href} navigate={navigate} {...props}>
-                        {children}
-                      </SiteLink>
-                    );
-                  }
-
-                  return (
-                    <a href={href} {...props}>
-                      {children}
+            {headings.length ? (
+              <details className="docs-mobile-outline">
+                <summary>On This Page</summary>
+                <nav aria-label="On this page">
+                  {headings.map((heading) => (
+                    <a key={heading.id} href={`#${heading.id}`}>
+                      {heading.title.replace(/`/g, "")}
                     </a>
-                  );
-                },
-                pre: ({ children, ...props }) => {
-                  const [child] = React.Children.toArray(children);
+                  ))}
+                </nav>
+              </details>
+            ) : null}
 
-                  if (
-                    React.isValidElement<{ className?: string }>(child) &&
-                    child.props.className === "language-mermaid"
-                  ) {
-                    return <>{children}</>;
-                  }
+            <div className="docs-content">
+              {visibleMarkdownSegments.map((segment, index) => (
+                <React.Fragment key={`${doc.slug}-${index}`}>
+                  {renderMarkdown(segment, `${doc.slug}-${index}`)}
+                  {index < visibleMarkdownSegments.length - 1 ? (
+                    <PackageManagerTabs />
+                  ) : null}
+                </React.Fragment>
+              ))}
+            </div>
 
-                  return <pre {...props}>{children}</pre>;
-                },
-                code: ({ className, children, ...props }) => {
-                  const code = String(children).replace(/\n$/, "");
+            <footer className="docs-article-footer">
+              <div className="docs-pagination">
+                {adjacent.previous ? (
+                  <SiteLink
+                    href={`/docs/${adjacent.previous.slug}`}
+                    navigate={navigate}
+                  >
+                    <span>Previous</span>
+                    <strong>{adjacent.previous.title}</strong>
+                  </SiteLink>
+                ) : (
+                  <span />
+                )}
+                {adjacent.next ? (
+                  <SiteLink
+                    href={`/docs/${adjacent.next.slug}`}
+                    navigate={navigate}
+                  >
+                    <span>Next</span>
+                    <strong>{adjacent.next.title}</strong>
+                  </SiteLink>
+                ) : null}
+              </div>
+              <div className="docs-contribute-links">
+                <a href={doc.editUrl} target="_blank" rel="noreferrer">
+                  Edit This Page
+                </a>
+                <a href="/llms.txt" target="_blank" rel="noreferrer">
+                  llms.txt
+                </a>
+                <a href="/llms-full.txt" target="_blank" rel="noreferrer">
+                  llms-full.txt
+                </a>
+              </div>
+            </footer>
+          </article>
+        </main>
 
-                  if (className === "language-mermaid") {
-                    return <MermaidBlock chart={code} />;
-                  }
-
-                  return (
-                    <code className={className} {...props}>
-                      {children}
-                    </code>
-                  );
-                },
-              }}
-            >
-              {doc.content}
-            </ReactMarkdown>
-          </div>
-        </article>
-
-        <aside className="hidden px-5 py-8 lg:sticky lg:top-16 lg:block lg:h-[calc(100vh-64px)]">
-          <div className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">
-            On this page
-          </div>
-          <nav className="mt-3 space-y-1">
+        <aside className="docs-outline">
+          <h2>On This Page</h2>
+          <nav aria-label="On this page">
             {headings.map((heading) => (
               <a
                 key={`${heading.id}-${heading.title}`}
                 href={`#${heading.id}`}
-                className={
-                  heading.level === 3
-                    ? "block rounded-md py-1 pl-5 pr-2 text-sm font-medium text-slate-500 transition-colors hover:bg-white/6 hover:text-cyan-100"
-                    : "block rounded-md px-2 py-1 text-sm font-semibold text-slate-400 transition-colors hover:bg-white/6 hover:text-cyan-100"
+                aria-current={
+                  activeHeading === heading.id ? "location" : undefined
                 }
+                data-level={heading.level}
               >
-                {heading.title}
+                {heading.title.replace(/`/g, "")}
               </a>
             ))}
           </nav>
         </aside>
       </div>
-    </main>
+
+      {mobileNavOpen ? (
+        <div
+          ref={mobileNavRef}
+          className="docs-mobile-nav"
+          role="dialog"
+          aria-label="Documentation navigation"
+          aria-modal="true"
+        >
+          <button
+            className="docs-mobile-backdrop"
+            type="button"
+            aria-label="Close documentation navigation"
+            onClick={() => closeMobileNav()}
+          />
+          <aside>
+            <div>
+              <strong>Documentation</strong>
+              <button
+                type="button"
+                aria-label="Close documentation navigation"
+                onClick={() => closeMobileNav()}
+              >
+                ×
+              </button>
+            </div>
+            <DocsSearchButton
+              onClick={() => {
+                closeMobileNav(false);
+                setSearchOpen(true);
+              }}
+            />
+            <DocsNavigation
+              current={doc}
+              navigate={navigate}
+              onNavigate={() => closeMobileNav(false)}
+            />
+          </aside>
+        </div>
+      ) : null}
+
+      <SearchDialog
+        open={searchOpen}
+        onClose={() => setSearchOpen(false)}
+        navigate={navigate}
+      />
+    </div>
   );
 }

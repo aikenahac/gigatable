@@ -3,23 +3,51 @@ import {
   docsNav,
   docsSections,
   extractMarkdownHeadings,
+  getAdjacentDocs,
   getDocBySlug,
 } from "./docs";
 
-describe("docsNav", () => {
-  it("orders package-consumer docs from installation through types", () => {
-    const usageSection = docsSections.find((section) => section.id === "usage");
-
-    expect(usageSection?.items.map((item) => item.slug)).toEqual([
-      "installation",
-      "usage",
-      "theming",
-      "api",
-      "types",
+describe("documentation structure", () => {
+  it("starts with a documentation overview and groups the approved sections", () => {
+    expect(docsNav[0].slug).toBe("overview");
+    expect(docsSections.map((section) => section.title)).toEqual([
+      "Start",
+      "Guides",
+      "Customization",
+      "Reference",
+      "Contributing",
     ]);
   });
 
-  it("includes install commands in the installation article", () => {
+  it("covers the complete consumer feature set", () => {
+    const slugs = docsNav.map((item) => item.slug);
+
+    expect(slugs).toEqual(
+      expect.arrayContaining([
+        "quickstart",
+        "columns-editing",
+        "selection-navigation",
+        "clipboard-paste",
+        "fill-handle",
+        "history-clearing",
+        "column-resizing",
+        "virtualization-performance",
+        "theming",
+        "column-metadata",
+        "custom-inputs",
+        "composition",
+        "context-quick-edit",
+        "gigatable-api",
+        "use-gigatable-api",
+        "editable-cell-api",
+        "hooks-context-api",
+        "types",
+        "keyboard-shortcuts",
+      ]),
+    );
+  });
+
+  it("keeps install commands in the raw Markdown source", () => {
     const installation = getDocBySlug("installation");
 
     expect(installation.content).toContain("npx gigatable init");
@@ -27,46 +55,35 @@ describe("docsNav", () => {
     expect(installation.content).toContain("bunx gigatable init");
   });
 
-  it("groups contributor docs separately from usage docs", () => {
-    const contributorSection = docsSections.find(
-      (section) => section.id === "contributor",
-    );
+  it("uses the packaged default editor in the quickstart", () => {
+    const quickstart = getDocBySlug("quickstart");
 
-    expect(docsSections.map((section) => section.title)).toEqual([
-      "Usage",
-      "Contributor",
-    ]);
-    expect(contributorSection?.items.map((item) => item.slug)).toEqual([
-      "contributor-overview",
-      "contributor-file-map",
-      "contributor-architecture",
-      "contributor-interactions",
-      "contributor-theming-distribution",
-    ]);
-    expect(docsNav.map((item) => item.slug)).toEqual([
-      "installation",
-      "usage",
-      "theming",
-      "api",
-      "types",
-      "contributor-overview",
-      "contributor-file-map",
-      "contributor-architecture",
-      "contributor-interactions",
-      "contributor-theming-distribution",
-    ]);
+    expect(quickstart.content).toContain("allColumnsEditable");
+    expect(quickstart.content).not.toContain("Create an Editor");
+    expect(quickstart.content).not.toContain("EditableCellInputProps");
   });
 
-  it("documents implementation ownership and state flow for contributors", () => {
-    const overview = getDocBySlug("contributor-overview");
-    const fileMap = getDocBySlug("contributor-file-map");
+  it("documents all built-in themes and underrepresented API props", () => {
+    expect(getDocBySlug("theming").content).toContain("themes.giga");
+    expect(getDocBySlug("gigatable-api").content).toContain("containerRef");
+    expect(getDocBySlug("gigatable-api").content).toContain("tableStyle");
+    expect(getDocBySlug("use-gigatable-api").content).toContain("clearCells");
+    expect(getDocBySlug("use-gigatable-api").content).toContain(
+      "applyHorizontalFill",
+    );
+  });
+
+  it("preserves contributor architecture documentation", () => {
     const architecture = getDocBySlug("contributor-architecture");
 
-    expect(overview.content).toContain("src/gigatable");
-    expect(fileMap.content).toContain("Module ownership");
     expect(architecture.content).toContain("```mermaid");
     expect(architecture.content).toContain("useGigatable");
     expect(architecture.content).toContain("TanStack Virtual");
+  });
+
+  it("returns adjacent pages for pagination", () => {
+    expect(getAdjacentDocs("installation").previous?.slug).toBe("overview");
+    expect(getAdjacentDocs("installation").next?.slug).toBe("quickstart");
   });
 });
 

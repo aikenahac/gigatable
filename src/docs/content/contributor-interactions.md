@@ -11,6 +11,7 @@ graph TD
   User --> Edit["Inline editing"]
   User --> Clipboard["Copy and paste"]
   User --> Fill["Fill handle"]
+  User --> Clear["Delete and Backspace clearing"]
   User --> Resize["Column resizing"]
   User --> History["Undo and redo"]
 
@@ -18,6 +19,7 @@ graph TD
   Edit --> EditableCell["editable-cell.tsx"]
   Clipboard --> CopyPaste["parse-copy-data / parse-paste-data"]
   Fill --> FillHook["use-fill-handle.tsx"]
+  Clear --> Metadata["table.options.meta.clearCellData"]
   Resize --> TanStackSizing["TanStack column sizing"]
   History --> HistoryHook["use-history-state.tsx"]
 
@@ -46,12 +48,14 @@ Change this hook when arrow keys, shift ranges, drag selection, focus movement, 
 
 Key behavior:
 
-| Input | Result |
-| --- | --- |
-| Enter while selected | Enter edit mode, or save while editing. |
-| Tab while editing | Save the value and let focus move. |
-| Escape while editing | Cancel and restore the original value. |
-| Blur while editing | Save the current value. |
+| Input                    | Result                                                  |
+| ------------------------ | ------------------------------------------------------- |
+| Enter while selected     | Enter edit mode, or save and move down while editing.   |
+| Tab while editing        | Save and traverse cells, wrapping between rows.         |
+| Escape while editing     | Cancel and restore the original value.                  |
+| Blur while editing       | Save the current value.                                 |
+| Alt/Option-click or drag | Quick edit or preserve a partial text selection.        |
+| Delete or Backspace      | Clear selected editable cells as one history operation. |
 
 Columns opt in with `meta: { editable: true }`. The `allColumnsEditable` prop in `Gigatable` can wrap non-editable cells in a default text input, but explicit editable columns keep their custom input.
 
@@ -81,7 +85,7 @@ sequenceDiagram
 
 ## Fill handle
 
-`use-fill-handle.tsx` owns the drag lifecycle for the small handle rendered by `Gigatable`. The source cell must be editable, and fill writes down a single column. During drag, the hook exposes which cells are the source and target range, plus the preview value. On mouse up, `Gigatable` calls `applyFill(columnId, targetRowIndices, value)`.
+`use-fill-handle.tsx` owns the drag lifecycle for the small handle rendered by `Gigatable`. The source and target columns must allow editing and fill. The first drag movement locks the axis according to `fillDirection`; vertical fills call `applyFill`, and horizontal fills call `applyHorizontalFill`.
 
 If a fill preview looks wrong, inspect `use-fill-handle.tsx`. If the preview is correct but data is not written, inspect `applyFill` in `use-gigatable.tsx`.
 
@@ -96,3 +100,13 @@ The resize handle calls `header.getResizeHandler()` for mouse and touch input, s
 `use-history-state.tsx` is a generic reducer with `past`, `present`, and `future`. `useGigatable` calls `setPresent` from the central `handleSetData` path when `history` is enabled. `Gigatable` only wires keyboard shortcuts to the `undo` and `redo` handlers it receives.
 
 History records data array snapshots, so avoid mutating rows in place. Always return new row objects for changed rows and the old array when nothing changed.
+
+Source-data reference changes call `reset(data)`, clearing stale undo and redo
+entries. Clear, paste, and fill each use the same batched mutation path.
+
+## Compound rendering
+
+Delegated mouse and keyboard handling lives on the composed table boundary.
+`Gigatable.Cell` supplies the required data attributes and refs.
+`useGigatableContext` lets custom bodies read table models and register their
+own row scroller; always use the registration cleanup.

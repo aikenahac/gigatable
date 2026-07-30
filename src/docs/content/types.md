@@ -10,6 +10,10 @@ Props accepted by `<Gigatable>`. The only required prop is the TanStack `table` 
 interface GigatableProps<TData> {
   table: Table<TData>;
   allowColumnResizing?: boolean;
+  allowQuickEdit?: boolean;
+  pasteByColumnId?: boolean;
+  fillDirection?: "vertical" | "horizontal" | "both";
+  children?: React.ReactNode;
 }
 ```
 
@@ -62,7 +66,9 @@ Props passed into your custom editable input renderer.
 ```ts
 interface EditableCellInputProps<TValue> {
   value: TValue;
-  onChange: (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
+  onChange: (
+    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => void;
   onBlur: () => void;
   onValueChange: (value: string) => void;
   onKeyDown: (event: React.KeyboardEvent) => void;
@@ -86,14 +92,26 @@ const theme: GigatableTheme = {
 
 ## TanStack `ColumnMeta`
 
-Gigatable augments TanStack Table column metadata with `editable?: boolean`.
+Gigatable augments TanStack Table column metadata with reusable editing hooks.
 
 ```ts
 declare module "@tanstack/react-table" {
   interface ColumnMeta<TData extends RowData, TValue> {
     editable?: boolean;
+    allowFill?: boolean;
+    parsePastedValue?: (value: string, cell: Cell<TData, TValue>) => unknown;
+    getClearedValue?: (cell: Cell<TData, TValue>) => unknown;
+    formatFillPreview?: (value: unknown, cell: Cell<TData, TValue>) => string;
+    getCellClassName?: (cell: Cell<TData, TValue>) => string | undefined;
   }
 }
 ```
 
 Include `src/gigatable/types/react-table.ts` in `tsconfig.json` so TypeScript recognizes the field.
+
+## Composition types
+
+`GigatableCellState`, `GigatableContextValue`, `GigatableFeatures`, and
+`GigatableRowScroller` describe the compound rendering API.
+`UseQuickEditOptions` and `QuickEditBindings` support custom editors through
+the exported `useQuickEdit` hook.
