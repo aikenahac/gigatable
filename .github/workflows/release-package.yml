@@ -1,0 +1,54 @@
+name: Release Gigatable CLI
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: gigatable/pnpm-lock.yaml
+
+      - name: Install CLI dependencies
+        run: pnpm --dir gigatable install --frozen-lockfile
+
+      - name: Verify release tag
+        run: |
+          node -e 'const pkg=require("./gigatable/package.json"); if (`v${pkg.version}` !== process.env.GITHUB_REF_NAME) { throw new Error(`Tag ${process.env.GITHUB_REF_NAME} does not match v${pkg.version}`); }'
+
+      - name: Test, build, and pack
+        run: |
+          pnpm --dir gigatable test
+          pnpm --dir gigatable build
+          mkdir -p dist/release
+          pnpm --dir gigatable pack --pack-destination ../dist/release
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Gigatable ${{ github.ref_name }}
+          generate_release_notes: true
+          body: |
+            Documentation and discovery release for Gigatable's source-installed React data grid.
+
+            Install with:
+
+            ```bash
+            npx gigatable init
+            ```
+          files: dist/release/gigatable-*.tgz
