@@ -4,7 +4,23 @@
 
 Gigatable adds editable cells, range selection, Excel-compatible copy/paste, fill handles, resizing, virtualization, and undo/redo to TanStack Table. Run `npx gigatable init` to install the TypeScript source directly in your app.
 
-[Website](https://gigatable.dev/) · [Interactive demo](https://gigatable.dev/demo/) · [Documentation](https://gigatable.dev/docs/)
+[![CI](https://github.com/aikenahac/gigatable/actions/workflows/ci.yml/badge.svg)](https://github.com/aikenahac/gigatable/actions/workflows/ci.yml)
+[![npm version](https://img.shields.io/npm/v/gigatable.svg)](https://www.npmjs.com/package/gigatable)
+[![npm downloads](https://img.shields.io/npm/dm/gigatable.svg)](https://www.npmjs.com/package/gigatable)
+[![license](https://img.shields.io/badge/license-MIT-22c55e.svg)](LICENSE)
+
+[Website](https://gigatable.dev/) · [Interactive demo](https://gigatable.dev/demo/) · [Documentation](https://gigatable.dev/docs/) · [Comparisons](https://gigatable.dev/compare/)
+
+## Product Fit
+
+Choose Gigatable when a React application needs TanStack Table control,
+spreadsheet-style data entry, and an implementation the team can inspect,
+modify, and version locally.
+
+Choose another grid when formulas, workbooks, cross-sheet references, pivoting,
+extensive enterprise modules, vendor support, or a non-React platform is a core
+requirement. TanStack Table is Gigatable's headless foundation, not a competing
+rendered grid.
 
 ## Agent Skill
 
@@ -20,17 +36,17 @@ npx skills add aikenahac/gigatable --skill gigatable
 With the reviewed macOS/Linux installer:
 
 ```bash
-curl -fsSL https://github.com/aikenahac/gigatable/releases/latest/download/install-gigatable-skill.sh | sh
+curl -fsSL https://github.com/aikenahac/gigatable/releases/download/skills-v1.0.0/install-gigatable-skill.sh | sh
 ```
 
 With PowerShell on Windows:
 
 ```powershell
-irm "https://github.com/aikenahac/gigatable/releases/latest/download/install-gigatable-skill.ps1" | iex
+irm "https://github.com/aikenahac/gigatable/releases/download/skills-v1.0.0/install-gigatable-skill.ps1" | iex
 ```
 
 Or download
-[`gigatable-skill.zip`](https://github.com/aikenahac/gigatable/releases/latest/download/gigatable-skill.zip)
+[`gigatable-skill.zip`](https://github.com/aikenahac/gigatable/releases/download/skills-v1.0.0/gigatable-skill.zip)
 and place its `gigatable/` folder under the local or global skills directory for
 your agent.
 
@@ -48,14 +64,6 @@ sh install-gigatable-skill.sh --scope global --agents codex,claude-code --yes
 See the [Agent Skill guide](https://gigatable.dev/docs/agent-skill/) for
 supported paths, version pinning, checksum verification, and manual
 installation.
-
-## Sponsors
-
-Gigatable is supported by [Preskok ThinkTank](https://thinktank.preskok.si/en/).
-
-<a href="https://thinktank.preskok.si/en/" target="_blank" rel="noopener noreferrer">
-  <img src="public/preskok_thinktank.png" alt="Preskok Think Tank" width="220" />
-</a>
 
 ## Features
 
@@ -346,6 +354,14 @@ To persist widths, pass controlled TanStack state such as `state: { columnSizing
 ## Browser Support
 
 Modern browsers with ES2018+ support: Chrome/Edge 90+, Firefox 88+, Safari 14+.
+
+## Sponsors
+
+Gigatable is supported by [Preskok ThinkTank](https://thinktank.preskok.si/en/).
+
+<a href="https://thinktank.preskok.si/en/" target="_blank" rel="noopener noreferrer">
+  <img src="public/preskok_thinktank.png" alt="Preskok Think Tank" width="220" />
+</a>
 
 ## License
 

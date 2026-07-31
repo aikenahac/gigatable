@@ -3,6 +3,10 @@ import {
   isDocsSlug,
   type DocsSlug,
 } from "../docs/docs-manifest";
+import {
+  comparisonSlugs,
+  type ComparisonSlug,
+} from "../comparisons/comparisons";
 
 export const resourceSlugs = [
   "editable-tanstack-table",
@@ -16,6 +20,7 @@ export type SiteRoute =
   | { name: "demo" }
   | { name: "docs"; slug: DocsSlug }
   | { name: "resource"; slug: ResourceSlug }
+  | { name: "comparison"; slug: "overview" | ComparisonSlug }
   | { name: "not-found" };
 
 function normalizePath(pathname: string): string {
@@ -35,6 +40,17 @@ export function getRouteForPath(pathname: string): SiteRoute {
 
   if (path === "/demo") {
     return { name: "demo" };
+  }
+
+  if (path === "/compare") {
+    return { name: "comparison", slug: "overview" };
+  }
+
+  if (path.startsWith("/compare/")) {
+    const slug = path.replace("/compare/", "");
+    return comparisonSlugs.includes(slug as ComparisonSlug)
+      ? { name: "comparison", slug: slug as ComparisonSlug }
+      : { name: "not-found" };
   }
 
   if (path === "/docs") {
@@ -76,6 +92,10 @@ export function getCanonicalPath(route: SiteRoute): string {
     }
 
     return "/features/excel-copy-paste/";
+  }
+
+  if (route.name === "comparison") {
+    return route.slug === "overview" ? "/compare/" : `/compare/${route.slug}/`;
   }
 
   return "/404.html";

@@ -46,6 +46,8 @@ function getLastModified(route) {
       : "src/docs/docs-manifest.ts";
   } else if (route.name === "resource") {
     source = "src/pages/resource-page.tsx";
+  } else if (route.name === "comparison") {
+    source = "src/comparisons/comparisons.ts";
   } else if (route.name === "not-found") {
     source = "src/pages/not-found-page.tsx";
   }
@@ -82,11 +84,16 @@ function createHead(route, dateModified) {
   const jsonLd = JSON.stringify(
     server.getJsonLdForRoute(route, dateModified),
   ).replaceAll("<", "\\u003c");
+  const markdownAlternate = seo.markdownPath
+    ? `\n    <link rel="alternate" type="text/markdown" href="${escapeAttribute(
+        `https://gigatable.dev${seo.markdownPath}`,
+      )}" />`
+    : "";
 
   return `
     <meta name="description" content="${escapeAttribute(seo.description)}" />
     <meta name="robots" content="${escapeAttribute(seo.robots)}" />
-    <link rel="canonical" href="${escapeAttribute(canonicalUrl)}" />
+    <link rel="canonical" href="${escapeAttribute(canonicalUrl)}" />${markdownAlternate}
     <meta property="og:title" content="${escapeAttribute(seo.title)}" />
     <meta property="og:description" content="${escapeAttribute(seo.description)}" />
     <meta property="og:url" content="${escapeAttribute(canonicalUrl)}" />
@@ -171,11 +178,7 @@ writeFileSync(path.join(outputDirectory, "sitemap.xml"), sitemap, "utf8");
 
 writeFileSync(
   path.join(outputDirectory, "robots.txt"),
-  `User-agent: *
-Allow: /
-
-Sitemap: https://gigatable.dev/sitemap.xml
-`,
+  server.getRobotsTxt(),
   "utf8",
 );
 

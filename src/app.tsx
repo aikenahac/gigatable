@@ -19,6 +19,11 @@ const ResourcePage = lazy(() =>
     default: module.ResourcePage,
   })),
 );
+const ComparisonPage = lazy(() =>
+  import("./pages/comparison-page").then((module) => ({
+    default: module.ComparisonPage,
+  })),
+);
 const NotFoundPage = lazy(() =>
   import("./pages/not-found-page").then((module) => ({
     default: module.NotFoundPage,
@@ -72,6 +77,14 @@ function SiteApp({ initialPathname }: { initialPathname: string }) {
     return (
       <Suspense fallback={<div className="site-loading">Loading…</div>}>
         <ResourcePage slug={route.slug} navigate={navigate} />
+      </Suspense>
+    );
+  }
+
+  if (route.name === "comparison") {
+    return (
+      <Suspense fallback={<div className="site-loading">Loading…</div>}>
+        <ComparisonPage slug={route.slug} navigate={navigate} />
       </Suspense>
     );
   }

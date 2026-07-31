@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: |
+            pnpm-lock.yaml
+            gigatable/pnpm-lock.yaml
+
+      - name: Install website dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install CLI dependencies
+        run: pnpm --dir gigatable install --frozen-lockfile
+
+      - name: Test website and grid
+        run: pnpm test
+
+      - name: Build and verify prerendered SEO
+        run: pnpm build
+
+      - name: Test and build CLI
+        run: |
+          pnpm --dir gigatable test
+          pnpm --dir gigatable build
+
+      - name: Validate and package agent skill
+        run: |
+          pnpm skills:validate
+          pnpm skills:package
+          pnpm skills:test

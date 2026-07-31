@@ -29,13 +29,37 @@
   for = "/docs/*.md"
 
   [headers.values]
-    X-Robots-Tag = "noindex"
+    X-Robots-Tag = "noindex, follow"
+
+[[headers]]
+  for = "/*.md"
+
+  [headers.values]
+    X-Robots-Tag = "noindex, follow"
+
+[[headers]]
+  for = "/guides/*.md"
+
+  [headers.values]
+    X-Robots-Tag = "noindex, follow"
+
+[[headers]]
+  for = "/features/*.md"
+
+  [headers.values]
+    X-Robots-Tag = "noindex, follow"
+
+[[headers]]
+  for = "/compare/*.md"
+
+  [headers.values]
+    X-Robots-Tag = "noindex, follow"
 
 [[headers]]
   for = "/llms*.txt"
 
   [headers.values]
-    X-Robots-Tag = "noindex"
+    X-Robots-Tag = "noindex, follow"
 
 [[headers]]
   for = "/assets/*"

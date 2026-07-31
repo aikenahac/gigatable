@@ -1,16 +1,21 @@
-# gigatable-cli
+# Gigatable React Data Grid CLI
 
-Documentation: [gigatable.dev](https://gigatable.dev/)
-
-**Gigatable is supported by [Preskok ThinkTank](https://thinktank.preskok.si/en/).**
-
-<a href="https://thinktank.preskok.si/en/" target="_blank" rel="noopener noreferrer">
-  <img src="https://raw.githubusercontent.com/aikenahac/gigatable/refs/heads/master/public/preskok_thinktank.png" alt="Preskok Think Tank" width="220" />
-</a>
+[![npm version](https://img.shields.io/npm/v/gigatable.svg)](https://www.npmjs.com/package/gigatable)
+[![npm downloads](https://img.shields.io/npm/dm/gigatable.svg)](https://www.npmjs.com/package/gigatable)
+[![license](https://img.shields.io/badge/license-MIT-22c55e.svg)](https://github.com/aikenahac/gigatable/blob/master/LICENSE)
 
 Gigatable is the open-source, source-installed React data grid with Excel-like interactions and TanStack control. It includes spreadsheet navigation, quick editing, range clearing, Excel-compatible copy/paste, directional fill, compound rendering, column resizing, virtualization, and undo/redo.
 
 > **Install:** `npx gigatable init` copies the source files directly into your project. You own the code.
+
+[Website](https://gigatable.dev/) · [Demo](https://gigatable.dev/demo/) · [Documentation](https://gigatable.dev/docs/) · [Comparisons](https://gigatable.dev/compare/) · [GitHub](https://github.com/aikenahac/gigatable)
+
+## Product Fit
+
+Choose Gigatable for React 19 and TypeScript applications that need TanStack
+Table control, spreadsheet-style data entry, and locally owned source. Choose a
+different grid when formulas, workbooks, pivoting, extensive enterprise modules,
+vendor support, or a non-React platform is central.
 
 ## Requirements
 
@@ -325,6 +330,18 @@ All values accept strings (including CSS variable references like `"var(--primar
 
 - **Tailwind CSS v4 required** — all styling uses Tailwind utility classes.
 - **TypeScript only** — JavaScript projects are not supported.
-- **Fill handle fills up/down only** — not left, or right.
+- **No formula or workbook engine** — Gigatable is a data grid, not a spreadsheet runtime.
 - **Paste format: TSV** — compatible with Excel and Google Sheets. JSON or CSV paste is not supported.
 - **React 19+** — older React versions are untested.
+
+## Sponsors
+
+Gigatable is supported by [Preskok ThinkTank](https://thinktank.preskok.si/en/).
+
+<a href="https://thinktank.preskok.si/en/" target="_blank" rel="noopener noreferrer">
+  <img src="https://raw.githubusercontent.com/aikenahac/gigatable/refs/heads/master/public/preskok_thinktank.png" alt="Preskok Think Tank" width="220" />
+</a>
+
+## License
+
+MIT

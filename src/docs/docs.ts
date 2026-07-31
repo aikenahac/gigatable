@@ -100,7 +100,7 @@ export interface MarkdownHeading {
 
 export const docsNav: Array<DocsNavItem> = docsManifest.map((entry) => ({
   ...entry,
-  editUrl: `https://github.com/aikenahac/gigatable/edit/main/src/docs/content/${entry.sourceFile}`,
+  editUrl: `https://github.com/aikenahac/gigatable/edit/master/src/docs/content/${entry.sourceFile}`,
   content: contentBySlug[entry.slug],
 }));
 

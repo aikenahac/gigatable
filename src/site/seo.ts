@@ -1,4 +1,5 @@
 import packageMetadata from "../../package.json";
+import { comparisons, getComparison } from "../comparisons/comparisons";
 import { docsManifest, defaultDocsSlug } from "../docs/docs-manifest";
 import { getCanonicalPath, type SiteRoute } from "./routes";
 
@@ -12,6 +13,7 @@ export interface PageSeo {
   description: string;
   image: string;
   imageAlt: string;
+  markdownPath?: string;
   robots: string;
   title: string;
   type: "article" | "website";
@@ -25,6 +27,7 @@ const resourceSeo = {
     image: "/og/editable-tanstack-table.png",
     imageAlt:
       "Gigatable guide to building an editable data grid with TanStack Table",
+    markdownPath: "/guides/editable-tanstack-table.md",
     type: "article" as const,
   },
   "excel-copy-paste": {
@@ -34,6 +37,7 @@ const resourceSeo = {
     image: "/og/excel-copy-paste.png",
     imageAlt:
       "Excel-compatible copy and paste in the Gigatable React data grid",
+    markdownPath: "/features/excel-copy-paste.md",
     type: "article" as const,
   },
 };
@@ -44,12 +48,13 @@ export function getSeoForRoute(route: SiteRoute): PageSeo {
   if (route.name === "landing") {
     return {
       canonicalPath,
-      title: "Open-Source React Data Grid with Excel-Like UX | Gigatable",
+      title: "Gigatable React Data Grid | Excel-Like, Source-Installed",
       description:
-        "Build editable, virtualized React grids with selection, Excel-compatible copy/paste, fill and undo/redo. Install the TypeScript source with npx gigatable init.",
+        "Gigatable is the source-installed React data grid for TanStack Table, with editable cells, Excel-compatible copy/paste, fill, virtualization and undo/redo.",
       image: "/og/gigatable.png",
       imageAlt:
         "Gigatable, an open-source React data grid with Excel-like interactions",
+      markdownPath: "/gigatable.md",
       robots: defaultRobots,
       type: "website",
     };
@@ -78,6 +83,7 @@ export function getSeoForRoute(route: SiteRoute): PageSeo {
       description: doc.seoDescription,
       image: "/og/docs.png",
       imageAlt: "Gigatable React data grid documentation",
+      markdownPath: `/docs/${doc.slug}.md`,
       robots: defaultRobots,
       type: "article",
     };
@@ -88,6 +94,34 @@ export function getSeoForRoute(route: SiteRoute): PageSeo {
       canonicalPath,
       ...resourceSeo[route.slug],
       robots: defaultRobots,
+    };
+  }
+
+  if (route.name === "comparison") {
+    if (route.slug === "overview") {
+      return {
+        canonicalPath,
+        title: "Compare React Data Grids | Gigatable Decision Guide",
+        description:
+          "Compare Gigatable with AG Grid, MUI X Data Grid and Handsontable by source ownership, licensing, TanStack control, spreadsheet interactions and product fit.",
+        image: "/og/gigatable.png",
+        imageAlt: "Compare Gigatable with other React data grids",
+        markdownPath: "/compare/index.md",
+        robots: defaultRobots,
+        type: "article",
+      };
+    }
+
+    const comparison = getComparison(route.slug);
+    return {
+      canonicalPath,
+      title: `${comparison.seoTitle} | Gigatable`,
+      description: comparison.seoDescription,
+      image: "/og/gigatable.png",
+      imageAlt: `${comparison.title} for React applications`,
+      markdownPath: `/compare/${route.slug}.md`,
+      robots: defaultRobots,
+      type: "article",
     };
   }
 
@@ -129,6 +163,16 @@ function breadcrumbItems(route: SiteRoute) {
     });
   }
 
+  if (route.name === "comparison") {
+    items.push({ name: "Compare", path: "/compare/" });
+    if (route.slug !== "overview") {
+      items.push({
+        name: getComparison(route.slug).alternative,
+        path: getCanonicalPath(route),
+      });
+    }
+  }
+
   return items;
 }
 
@@ -153,21 +197,36 @@ export function getJsonLdForRoute(
       },
       {
         "@context": "https://schema.org",
-        "@type": "SoftwareSourceCode",
+        "@type": "SoftwareApplication",
         "@id": `${siteOrigin}/#software`,
         name: siteName,
+        alternateName: "Gigatable React Data Grid",
         description: seo.description,
+        disambiguatingDescription:
+          "Gigatable is a source-installed React data grid and is not Google Cloud Bigtable or the separate React GigaTable package.",
         url: `${siteOrigin}/`,
-        codeRepository: "https://github.com/aikenahac/gigatable",
+        sameAs: [
+          "https://github.com/aikenahac/gigatable",
+          "https://www.npmjs.com/package/gigatable",
+        ],
+        applicationCategory: "DeveloperApplication",
+        operatingSystem: "Web",
+        softwareRequirements:
+          "React 19+, TypeScript, Tailwind CSS v4, and a modern browser",
         downloadUrl: "https://www.npmjs.com/package/gigatable",
-        programmingLanguage: "TypeScript",
-        runtimePlatform: "React 19",
-        version: packageMetadata.version,
+        softwareVersion: packageMetadata.version,
         license: "https://github.com/aikenahac/gigatable/blob/master/LICENSE",
         isAccessibleForFree: true,
+        isBasedOn: {
+          "@type": "SoftwareApplication",
+          name: "TanStack Table",
+          url: "https://tanstack.com/table/latest",
+        },
         author: {
           "@type": "Person",
+          "@id": `${siteOrigin}/#author`,
           name: "Aiken Tine Ahac",
+          url: "https://aiken.si",
         },
         sponsor: {
           "@type": "Organization",
@@ -175,10 +234,41 @@ export function getJsonLdForRoute(
           url: "https://thinktank.preskok.si/en/",
         },
       },
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareSourceCode",
+        "@id": `${siteOrigin}/#source`,
+        name: "Gigatable TypeScript source",
+        description:
+          "Application-owned React and TypeScript source for the Gigatable data grid.",
+        url: "https://github.com/aikenahac/gigatable",
+        codeRepository: "https://github.com/aikenahac/gigatable",
+        programmingLanguage: "TypeScript",
+        runtimePlatform: "React 19",
+        version: packageMetadata.version,
+        license: "https://github.com/aikenahac/gigatable/blob/master/LICENSE",
+        isAccessibleForFree: true,
+        isPartOf: {
+          "@id": `${siteOrigin}/#software`,
+        },
+        author: {
+          "@type": "Person",
+          "@id": `${siteOrigin}/#author`,
+          name: "Aiken Tine Ahac",
+        },
+      },
     );
   }
 
-  if (route.name === "docs" || route.name === "resource") {
+  if (
+    route.name === "docs" ||
+    route.name === "resource" ||
+    route.name === "comparison"
+  ) {
+    const datePublished =
+      route.name === "comparison" && route.slug !== "overview"
+        ? getComparison(route.slug).verifiedOn
+        : undefined;
     graph.push({
       "@context": "https://schema.org",
       "@type": "TechArticle",
@@ -188,6 +278,7 @@ export function getJsonLdForRoute(
       url: canonicalUrl,
       image: `${siteOrigin}${seo.image}`,
       inLanguage: "en",
+      ...(datePublished ? { datePublished } : {}),
       ...(dateModified ? { dateModified } : {}),
       author: {
         "@type": "Person",
@@ -277,6 +368,18 @@ export function applySeoToDocument(route: SiteRoute) {
     rel: "canonical",
     href: canonicalUrl,
   });
+  const existingMarkdown = document.head.querySelector<HTMLLinkElement>(
+    'link[rel="alternate"][type="text/markdown"]',
+  );
+  if (seo.markdownPath) {
+    ensureLink('link[rel="alternate"][type="text/markdown"]', {
+      rel: "alternate",
+      type: "text/markdown",
+      href: `${siteOrigin}${seo.markdownPath}`,
+    });
+  } else {
+    existingMarkdown?.remove();
+  }
 
   const openGraph = {
     "og:title": seo.title,
@@ -326,4 +429,55 @@ export const canonicalRoutes: Array<SiteRoute> = [
   ),
   { name: "resource", slug: "editable-tanstack-table" },
   { name: "resource", slug: "excel-copy-paste" },
+  { name: "comparison", slug: "overview" },
+  ...comparisons.map(
+    (comparison): SiteRoute => ({
+      name: "comparison",
+      slug: comparison.slug,
+    }),
+  ),
 ];
+
+const allowedCrawlers = [
+  "Googlebot",
+  "Bingbot",
+  "OAI-SearchBot",
+  "ChatGPT-User",
+  "Claude-SearchBot",
+  "Claude-User",
+  "PerplexityBot",
+  "Perplexity-User",
+];
+
+const blockedTrainingCrawlers = [
+  "GPTBot",
+  "ClaudeBot",
+  "Google-Extended",
+  "Applebot-Extended",
+  "CCBot",
+  "Bytespider",
+  "meta-externalagent",
+];
+
+function crawlerGroup(userAgent: string, allowed: boolean) {
+  return `User-agent: ${userAgent}
+Content-Signal: search=${allowed ? "yes" : "no"},ai-input=${
+    allowed ? "yes" : "no"
+  },ai-train=no,use=reference
+${allowed ? "Allow" : "Disallow"}: /`;
+}
+
+export function getRobotsTxt() {
+  return `User-agent: *
+Content-Signal: search=yes,ai-input=yes,ai-train=no,use=reference
+Allow: /
+
+${allowedCrawlers.map((crawler) => crawlerGroup(crawler, true)).join("\n\n")}
+
+${blockedTrainingCrawlers
+  .map((crawler) => crawlerGroup(crawler, false))
+  .join("\n\n")}
+
+Sitemap: ${siteOrigin}/sitemap.xml
+`;
+}

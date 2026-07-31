@@ -1,4 +1,25 @@
-# gigatable — Usage Cheatsheet
+# Gigatable React Data Grid — Usage Cheatsheet
+
+Gigatable is an MIT-licensed, source-installed interaction layer for TanStack
+Table. The copied React and TypeScript implementation belongs to this
+application. It provides editable cells, range selection, keyboard navigation,
+Excel-compatible TSV copy/paste, directional fill, clearing, resizing,
+virtualization, and undo/redo.
+
+## Product fit
+
+Use Gigatable for React data-entry and operational workflows where TanStack
+Table should remain the state model and the team wants to own the rendered grid
+source.
+
+Use a different product when formulas, workbook files, cross-sheet references,
+pivoting, extensive enterprise modules, vendor support, or a non-React platform
+is a core requirement. TanStack Table is Gigatable's headless foundation, not a
+competing rendered grid.
+
+Documentation: https://gigatable.dev/docs/
+
+Comparisons: https://gigatable.dev/compare/
 
 ## Minimal setup
 

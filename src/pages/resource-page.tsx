@@ -140,6 +140,8 @@ function EditableTanStackGuide(props: ResourcePageProps) {
         <p>
           Gigatable keeps the TanStack table instance as the source of truth and
           adds that interaction layer as React components and hooks you own.
+          TanStack Table is therefore Gigatable&apos;s foundation, not a
+          competing rendered grid.
         </p>
       </section>
 
@@ -223,6 +225,10 @@ function EditableTanStackGuide(props: ResourcePageProps) {
           or inspect the{" "}
           <SiteLink href="/docs/columns-editing/" navigate={props.navigate}>
             columns and editing guide
+          </SiteLink>
+          , or use the{" "}
+          <SiteLink href="/compare/" navigate={props.navigate}>
+            React data grid comparison guide
           </SiteLink>
           .
         </p>

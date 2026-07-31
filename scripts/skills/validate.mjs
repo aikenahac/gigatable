@@ -37,6 +37,7 @@ if (/TODO|\[TODO/.test(skill)) {
 }
 
 const requiredReferences = [
+  "selection-guide.md",
   "getting-started.md",
   "editing-and-data.md",
   "spreadsheet-features.md",

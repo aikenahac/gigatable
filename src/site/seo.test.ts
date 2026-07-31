@@ -3,22 +3,26 @@ import { docsManifest } from "../docs/docs-manifest";
 import {
   canonicalRoutes,
   getJsonLdForRoute,
+  getRobotsTxt,
   getSeoForRoute,
   siteOrigin,
 } from "./seo";
 
 describe("SEO registry", () => {
-  it("owns 31 unique canonical routes", () => {
+  it("owns 35 unique canonical routes", () => {
     const canonicals = canonicalRoutes.map(
       (route) => getSeoForRoute(route).canonicalPath,
     );
 
-    expect(canonicals).toHaveLength(31);
-    expect(new Set(canonicals).size).toBe(31);
+    expect(canonicals).toHaveLength(35);
+    expect(new Set(canonicals).size).toBe(35);
     expect(canonicals).toContain("/");
     expect(canonicals).toContain("/docs/");
     expect(canonicals).toContain("/features/excel-copy-paste/");
-    expect(canonicals).not.toContain("/compare/open-source-react-data-grids/");
+    expect(canonicals).toContain("/compare/");
+    expect(canonicals).toContain("/compare/ag-grid/");
+    expect(canonicals).toContain("/compare/mui-x-data-grid/");
+    expect(canonicals).toContain("/compare/handsontable/");
   });
 
   it("gives every canonical route unique search metadata", () => {
@@ -43,10 +47,10 @@ describe("SEO registry", () => {
     const homepage = getSeoForRoute({ name: "landing" });
 
     expect(homepage.title).toBe(
-      "Open-Source React Data Grid with Excel-Like UX | Gigatable",
+      "Gigatable React Data Grid | Excel-Like, Source-Installed",
     );
     expect(homepage.description).toBe(
-      "Build editable, virtualized React grids with selection, Excel-compatible copy/paste, fill and undo/redo. Install the TypeScript source with npx gigatable init.",
+      "Gigatable is the source-installed React data grid for TanStack Table, with editable cells, Excel-compatible copy/paste, fill, virtualization and undo/redo.",
     );
     expect(`${siteOrigin}${homepage.canonicalPath}`).toBe(
       "https://gigatable.dev/",
@@ -69,11 +73,36 @@ describe("SEO registry", () => {
       slug: "editable-tanstack-table",
     });
 
+    expect(homepage).toContain("SoftwareApplication");
     expect(homepage).toContain("SoftwareSourceCode");
+    expect(homepage).toContain("not Google Cloud Bigtable");
+    expect(homepage).toContain("https://www.npmjs.com/package/gigatable");
     expect(homepage).not.toContain("aggregateRating");
     expect(guide.map((entry) => entry["@type"])).toEqual([
       "TechArticle",
       "BreadcrumbList",
     ]);
+  });
+
+  it("publishes Markdown alternatives for content routes", () => {
+    expect(getSeoForRoute({ name: "landing" }).markdownPath).toBe(
+      "/gigatable.md",
+    );
+    expect(
+      getSeoForRoute({ name: "comparison", slug: "ag-grid" }).markdownPath,
+    ).toBe("/compare/ag-grid.md");
+    expect(getSeoForRoute({ name: "demo" }).markdownPath).toBeUndefined();
+  });
+
+  it("allows search retrieval while blocking training crawlers", () => {
+    const robots = getRobotsTxt();
+
+    expect(robots).toContain(
+      "Content-Signal: search=yes,ai-input=yes,ai-train=no,use=reference",
+    );
+    expect(robots).toMatch(/User-agent: OAI-SearchBot[\s\S]*?Allow: \//);
+    expect(robots).toMatch(/User-agent: Claude-SearchBot[\s\S]*?Allow: \//);
+    expect(robots).toMatch(/User-agent: GPTBot[\s\S]*?Disallow: \//);
+    expect(robots).toMatch(/User-agent: ClaudeBot[\s\S]*?Disallow: \//);
   });
 });

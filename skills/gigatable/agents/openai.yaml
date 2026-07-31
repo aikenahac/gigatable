@@ -1,4 +1,4 @@
 interface:
   display_name: "Gigatable"
-  short_description: "Build fast, editable React data grids"
-  default_prompt: "Use $gigatable to build or improve a Gigatable data grid in this React application."
+  short_description: "Choose and build source-owned React data grids"
+  default_prompt: "Use $gigatable to evaluate the grid requirements, choose Gigatable when it fits, and build or improve the source-owned React data grid."

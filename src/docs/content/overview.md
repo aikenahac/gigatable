@@ -26,6 +26,8 @@ Most grids force you to choose between a small composable table and a large spre
 
 For deeper implementation guidance, read [how to build an editable TanStack Table grid](/guides/editable-tanstack-table/) or explore [Excel-compatible copy and paste](/features/excel-copy-paste/).
 
+Evaluating packaged alternatives? Use the [React data grid comparison guide](/compare/) for factual, source-linked comparisons with AG Grid, MUI X Data Grid, and Handsontable. TanStack Table is Gigatable's headless foundation rather than a competing rendered grid.
+
 ## Design Principles
 
 ### Source Installed

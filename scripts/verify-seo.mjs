@@ -45,6 +45,10 @@ for (const { route, url } of canonicalUrls) {
     html,
     /<meta property="og:image:alt" content="([^"]+)"/,
   );
+  const markdownAlternate = attribute(
+    html,
+    /<link rel="alternate" type="text\/markdown" href="([^"]+)"/,
+  );
   const h1Count = (html.match(/<h1(?:\s[^>]*)?>/g) ?? []).length;
 
   if (!title) errors.push(`${route}: title is missing`);
@@ -77,6 +81,19 @@ for (const { route, url } of canonicalUrls) {
   if (!/<script type="application\/ld\+json"/.test(html)) {
     errors.push(`${route}: JSON-LD is missing`);
   }
+  if (route !== "/demo/" && !markdownAlternate) {
+    errors.push(`${route}: Markdown alternate is missing`);
+  }
+  if (markdownAlternate) {
+    const markdownUrl = new URL(markdownAlternate);
+    const markdownFile = path.join(
+      outputDirectory,
+      markdownUrl.pathname.replace(/^\//, ""),
+    );
+    if (!existsSync(markdownFile)) {
+      errors.push(`${route}: Markdown alternate does not exist`);
+    }
+  }
   if (!/<div id="root">[\s\S]{500,}<\/div>/.test(html)) {
     errors.push(`${route}: rendered body is unexpectedly small`);
   }
@@ -85,8 +102,8 @@ for (const { route, url } of canonicalUrls) {
   descriptions.add(description);
 }
 
-if (canonicalUrls.length !== 31) {
-  errors.push(`sitemap has ${canonicalUrls.length} routes, expected 31`);
+if (canonicalUrls.length !== 35) {
+  errors.push(`sitemap has ${canonicalUrls.length} routes, expected 35`);
 }
 if (
   (sitemap.match(/<lastmod>\d{4}-\d{2}-\d{2}<\/lastmod>/g) ?? []).length !==
@@ -98,6 +115,30 @@ if (
 const notFound = readFileSync(path.join(outputDirectory, "404.html"), "utf8");
 if (!/<meta name="robots" content="noindex,nofollow"/.test(notFound)) {
   errors.push("404.html: noindex,nofollow is missing");
+}
+
+const robotsTxt = readFileSync(
+  path.join(outputDirectory, "robots.txt"),
+  "utf8",
+);
+for (const expected of [
+  "Content-Signal: search=yes,ai-input=yes,ai-train=no,use=reference",
+  "User-agent: OAI-SearchBot",
+  "User-agent: Claude-SearchBot",
+  "User-agent: GPTBot",
+  "User-agent: ClaudeBot",
+]) {
+  if (!robotsTxt.includes(expected)) {
+    errors.push(`robots.txt: missing ${expected}`);
+  }
+}
+const indexNowKey = "bf041a352cb68d028ce075b5a8a898a2";
+const indexNowKeyPath = path.join(outputDirectory, `${indexNowKey}.txt`);
+if (
+  !existsSync(indexNowKeyPath) ||
+  readFileSync(indexNowKeyPath, "utf8").trim() !== indexNowKey
+) {
+  errors.push("IndexNow verification key is missing or invalid");
 }
 if (!/<h1(?:\s[^>]*)?>[\s\S]+?<\/h1>/.test(notFound)) {
   errors.push("404.html: rendered H1 is missing");

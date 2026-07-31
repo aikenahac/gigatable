@@ -55,8 +55,27 @@ describe("getRouteForPath", () => {
     });
   });
 
-  it("does not expose the removed comparison page", () => {
-    expect(getRouteForPath("/compare/open-source-react-data-grids/")).toEqual({
+  it("maps the comparison hub and supported alternatives", () => {
+    expect(getRouteForPath("/compare/")).toEqual({
+      name: "comparison",
+      slug: "overview",
+    });
+    expect(getRouteForPath("/compare/ag-grid/")).toEqual({
+      name: "comparison",
+      slug: "ag-grid",
+    });
+    expect(getRouteForPath("/compare/mui-x-data-grid/")).toEqual({
+      name: "comparison",
+      slug: "mui-x-data-grid",
+    });
+    expect(getRouteForPath("/compare/handsontable/")).toEqual({
+      name: "comparison",
+      slug: "handsontable",
+    });
+  });
+
+  it("rejects unknown comparison pages", () => {
+    expect(getRouteForPath("/compare/not-real/")).toEqual({
       name: "not-found",
     });
   });
@@ -67,6 +86,9 @@ describe("getRouteForPath", () => {
       "/docs/theming/",
     );
     expect(getCanonicalPath(getRouteForPath("/demo"))).toBe("/demo/");
+    expect(getCanonicalPath(getRouteForPath("/compare/ag-grid"))).toBe(
+      "/compare/ag-grid/",
+    );
   });
 
   it("decodes deep-link heading targets safely", () => {

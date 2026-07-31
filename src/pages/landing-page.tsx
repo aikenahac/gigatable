@@ -260,6 +260,10 @@ const faqs = [
     "Gigatable is an open-source React data grid built on TanStack Table and TanStack Virtual. Its CLI copies the TypeScript implementation into your application.",
   ],
   [
+    "Is Gigatable related to Google Bigtable or React GigaTable?",
+    "No. Gigatable at gigatable.dev and the npm package named gigatable are a source-installed React data grid. It is unrelated to Google Cloud Bigtable and the separate React GigaTable package.",
+  ],
+  [
     "Is Gigatable a spreadsheet?",
     "No. It is a data grid with spreadsheet interactions such as editing, range selection, clipboard paste, fill, and history. It is not a workbook engine and does not provide formulas or XLSX file handling.",
   ],
@@ -331,15 +335,15 @@ export function LandingPage({ navigate }: LandingPageProps) {
               Open-source React data grid · MIT licensed
             </div>
             <h1>
-              Excel-like React data grids.
+              Gigatable React Data Grid.
               <br />
-              <span>Your source. Your rules.</span>
+              <span>Excel-like UX. Your source.</span>
             </h1>
             <p>
-              Gigatable adds editable cells, range selection, Excel-compatible
+              Gigatable is the source-installed React data grid for TanStack
+              Table. It adds editable cells, range selection, Excel-compatible
               copy/paste, fill handles, resizing, virtualization and undo/redo
-              to TanStack Table—with TypeScript source installed directly in
-              your app.
+              as TypeScript you own.
             </p>
             <div className="landing-hero-actions">
               <SiteLink
@@ -597,6 +601,10 @@ return (
               <span>Feature Guide</span>
               <strong>Excel-Compatible Copy and Paste</strong>
             </SiteLink>
+            <SiteLink href="/compare/" navigate={navigate}>
+              <span>Decision Guide</span>
+              <strong>Compare React Data Grids</strong>
+            </SiteLink>
           </div>
         </section>
 
@@ -687,6 +695,9 @@ return (
             </SiteLink>
             <SiteLink href="/demo/" navigate={navigate}>
               Demo
+            </SiteLink>
+            <SiteLink href="/compare/" navigate={navigate}>
+              Compare
             </SiteLink>
             <a
               href="https://github.com/aikenahac/gigatable"

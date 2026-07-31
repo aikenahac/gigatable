@@ -2,7 +2,7 @@
 
 Install the Gigatable agent skill to give compatible coding agents focused guidance for building, customizing, optimizing, and troubleshooting Gigatable in React applications.
 
-The skill is source-controlled in [`skills/gigatable`](https://github.com/aikenahac/gigatable/tree/main/skills/gigatable). It contains a concise workflow plus on-demand references for editing, spreadsheet interactions, composition, performance, and the public API.
+The skill is source-controlled in [`skills/gigatable`](https://github.com/aikenahac/gigatable/tree/master/skills/gigatable). It contains a fit-selection workflow plus on-demand references for editing, spreadsheet interactions, composition, performance, and the public API.
 
 ## Install With the Skills CLI
 
@@ -30,14 +30,14 @@ Omit `--agent`, `--global`, and `--yes` to choose interactively.
 The reviewed release installer asks which agents to target and whether to install into the current project or globally:
 
 ```bash
-curl -fsSL https://github.com/aikenahac/gigatable/releases/latest/download/install-gigatable-skill.sh | sh
+curl -fsSL https://github.com/aikenahac/gigatable/releases/download/skills-v1.0.0/install-gigatable-skill.sh | sh
 ```
 
 For non-interactive use, download the script and pass explicit options:
 
 ```bash
 curl -fsSL \
-  https://github.com/aikenahac/gigatable/releases/latest/download/install-gigatable-skill.sh \
+  https://github.com/aikenahac/gigatable/releases/download/skills-v1.0.0/install-gigatable-skill.sh \
   -o install-gigatable-skill.sh
 
 sh install-gigatable-skill.sh \
@@ -53,14 +53,14 @@ Use `--list-agents` to see every supported agent and its resolved project and gl
 Run the interactive PowerShell installer:
 
 ```powershell
-irm "https://github.com/aikenahac/gigatable/releases/latest/download/install-gigatable-skill.ps1" | iex
+irm "https://github.com/aikenahac/gigatable/releases/download/skills-v1.0.0/install-gigatable-skill.ps1" | iex
 ```
 
 Download it first to pass non-interactive parameters:
 
 ```powershell
 irm `
-  "https://github.com/aikenahac/gigatable/releases/latest/download/install-gigatable-skill.ps1" `
+  "https://github.com/aikenahac/gigatable/releases/download/skills-v1.0.0/install-gigatable-skill.ps1" `
   -OutFile "install-gigatable-skill.ps1"
 
 .\install-gigatable-skill.ps1 `
@@ -73,7 +73,7 @@ Use `-ListAgents` to inspect destinations and `-Version skills-v1.0.0` to select
 
 ## Download the Skill Folder
 
-Download [`gigatable-skill.zip`](https://github.com/aikenahac/gigatable/releases/latest/download/gigatable-skill.zip), verify it against the release `SHA256SUMS`, and extract it. The archive contains one ready-to-install `gigatable/` folder.
+Download [`gigatable-skill.zip`](https://github.com/aikenahac/gigatable/releases/download/skills-v1.0.0/gigatable-skill.zip), verify it against the release `SHA256SUMS`, and extract it. The archive contains one ready-to-install `gigatable/` folder.
 
 Copy that folder below an agent's skills directory. Examples:
 

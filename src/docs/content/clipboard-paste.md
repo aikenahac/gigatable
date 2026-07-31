@@ -1,5 +1,7 @@
 # Clipboard & Paste
 
+If clipboard behavior is part of a broader grid decision, see the [React data grid comparison guide](/compare/) for feature and licensing tradeoffs.
+
 Gigatable copies and pastes tab-separated values so selections round-trip through Excel, Google Sheets, and text editors.
 
 Want the interaction model and a live example first? See [React Data Grid with Excel Copy and Paste](/features/excel-copy-paste/), then use this guide for the implementation details.

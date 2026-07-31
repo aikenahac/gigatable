@@ -1,7 +1,12 @@
 import { PassThrough } from "node:stream";
 import { renderToPipeableStream } from "react-dom/server";
 import App from "./app";
-import { canonicalRoutes, getJsonLdForRoute, getSeoForRoute } from "./site/seo";
+import {
+  canonicalRoutes,
+  getJsonLdForRoute,
+  getRobotsTxt,
+  getSeoForRoute,
+} from "./site/seo";
 import { getCanonicalPath, type SiteRoute } from "./site/routes";
 
 export interface PrerenderRoute {
@@ -16,7 +21,7 @@ export function getPrerenderRoutes(): Array<PrerenderRoute> {
   }));
 }
 
-export { getJsonLdForRoute, getSeoForRoute };
+export { getJsonLdForRoute, getRobotsTxt, getSeoForRoute };
 
 export function render(pathname: string): Promise<string> {
   return new Promise((resolve, reject) => {
