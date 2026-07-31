@@ -26,7 +26,10 @@ export interface RegistryMetrics {
 }
 
 export function buildRegistryRows(size: RegistrySize): Array<Strain> {
-  return Array.from({ length: size }, (_, index) => strains[index % strains.length]);
+  return Array.from(
+    { length: size },
+    (_, index) => strains[index % strains.length],
+  );
 }
 
 export function getRegistryRowId(index: number): string {
@@ -83,8 +86,7 @@ function LiveFpsMetric() {
 const registryColumns: Array<ColumnDef<Strain>> = [
   {
     id: "registryId",
-    accessorFn: (_row, index) =>
-      `BIO-${String(index + 1).padStart(6, "0")}`,
+    accessorFn: (_row, index) => `BIO-${String(index + 1).padStart(6, "0")}`,
     header: "Registry ID",
     size: 130,
     cell: (cell) => cell.getValue(),
@@ -191,19 +193,24 @@ export function BiobankRegistryDemo() {
       <div className="demo-control-bar">
         <label className="demo-size-control">
           <span>Registry size</span>
-          <select
-            aria-label="Registry size"
-            value={selectedSize}
-            onChange={(event) =>
-              handleSizeChange(Number(event.target.value) as RegistrySize)
-            }
-          >
-            {REGISTRY_SIZE_OPTIONS.map((size) => (
-              <option key={size} value={size}>
-                {formatCount(size)} strains
-              </option>
-            ))}
-          </select>
+          <span className="demo-size-select">
+            <select
+              aria-label="Registry size"
+              value={selectedSize}
+              onChange={(event) =>
+                handleSizeChange(Number(event.target.value) as RegistrySize)
+              }
+            >
+              {REGISTRY_SIZE_OPTIONS.map((size) => (
+                <option key={size} value={size}>
+                  {formatCount(size)} strains
+                </option>
+              ))}
+            </select>
+            <svg aria-hidden="true" viewBox="0 0 16 16" width="16" height="16">
+              <path d="m3.5 6 4.5 4.5L12.5 6" />
+            </svg>
+          </span>
         </label>
         <p className="demo-live-count" aria-live="polite">
           <strong>
@@ -223,7 +230,10 @@ export function BiobankRegistryDemo() {
         </div>
       </div>
 
-      <div className="demo-performance-grid" aria-label="Performance indicators">
+      <div
+        className="demo-performance-grid"
+        aria-label="Performance indicators"
+      >
         {metricCards.map((metric) => (
           <div key={metric.label}>
             <strong>{metric.value}</strong>
@@ -235,7 +245,8 @@ export function BiobankRegistryDemo() {
       <p className="demo-metric-note">
         Live measurements from this browser and device. Virtualization keeps
         rendering work proportional to the viewport, not the registry size. FPS
-        is a rolling browser animation-frame sample and pauses in background tabs.
+        is a rolling browser animation-frame sample and pauses in background
+        tabs.
       </p>
 
       <div

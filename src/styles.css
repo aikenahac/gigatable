@@ -2804,14 +2804,37 @@
     font-weight: 720;
   }
 
-  .demo-size-control select {
+  .demo-size-select {
+    position: relative;
+    display: inline-flex;
+  }
+
+  .demo-size-select select {
+    appearance: none;
     min-height: 2.35rem;
     border: 1px solid var(--site-border-strong);
     border-radius: 0.45rem;
     background: var(--site-bg-raised);
     color: var(--site-text);
-    padding: 0 2rem 0 0.65rem;
+    padding: 0 2.4rem 0 0.65rem;
     font-size: 0.76rem;
+  }
+
+  .demo-size-select svg {
+    position: absolute;
+    top: 50%;
+    right: 0.7rem;
+    color: var(--site-text-muted);
+    pointer-events: none;
+    transform: translateY(-50%);
+  }
+
+  .demo-size-select path {
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.5;
   }
 
   .demo-live-count {
