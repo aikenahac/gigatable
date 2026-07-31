@@ -106,6 +106,7 @@ export interface GigatableProps<TData> {
     selectedCell: CellCoordinates,
     clipboardData?: string,
     copyBuffer?: CopyBuffer | null,
+    isColumnEditable?: (columnId: string) => boolean,
   ) => PasteResult;
   /** Called after each paste with a summary of all cell changes. */
   onPasteComplete?: (result: PasteResult) => void;
@@ -792,6 +793,7 @@ function GigatableRoot<TData>({
           selectedCell,
           clipboardText,
           pasteByColumnId ? copyBufferRef.current : null,
+          isColumnEditable,
         );
 
         if (clipboardText && result.totalChanges > 0) {

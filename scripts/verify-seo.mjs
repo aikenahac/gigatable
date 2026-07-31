@@ -13,9 +13,19 @@ const titles = new Set();
 const descriptions = new Set();
 
 function routeFile(route) {
-  return route === "/"
-    ? path.join(outputDirectory, "index.html")
-    : path.join(outputDirectory, route.replace(/^\/|\/$/g, ""), "index.html");
+  if (route === "/") {
+    return path.join(outputDirectory, "index.html");
+  }
+
+  if (!route.endsWith("/")) {
+    return path.join(outputDirectory, `${route.replace(/^\//, "")}.html`);
+  }
+
+  return path.join(
+    outputDirectory,
+    route.replace(/^\/|\/$/g, ""),
+    "index.html",
+  );
 }
 
 function attribute(html, pattern) {
@@ -81,7 +91,7 @@ for (const { route, url } of canonicalUrls) {
   if (!/<script type="application\/ld\+json"/.test(html)) {
     errors.push(`${route}: JSON-LD is missing`);
   }
-  if (route !== "/demo/" && !markdownAlternate) {
+  if (route !== "/demo" && !markdownAlternate) {
     errors.push(`${route}: Markdown alternate is missing`);
   }
   if (markdownAlternate) {
@@ -102,8 +112,8 @@ for (const { route, url } of canonicalUrls) {
   descriptions.add(description);
 }
 
-if (canonicalUrls.length !== 35) {
-  errors.push(`sitemap has ${canonicalUrls.length} routes, expected 35`);
+if (canonicalUrls.length !== 36) {
+  errors.push(`sitemap has ${canonicalUrls.length} routes, expected 36`);
 }
 if (
   (sitemap.match(/<lastmod>\d{4}-\d{2}-\d{2}<\/lastmod>/g) ?? []).length !==
@@ -178,16 +188,27 @@ for (const file of htmlFiles) {
     const currentRoutePath =
       file === path.join(outputDirectory, "index.html")
         ? "/"
-        : `/${path
-            .relative(outputDirectory, path.dirname(file))
-            .split(path.sep)
-            .join("/")}/`;
+        : path.basename(file) !== "index.html"
+          ? `/${path
+              .relative(outputDirectory, file)
+              .replaceAll(path.sep, "/")
+              .replace(/\.html$/, "")}`
+          : `/${path
+              .relative(outputDirectory, path.dirname(file))
+              .split(path.sep)
+              .join("/")}/`;
     const targetPath = (rawPath || currentRoutePath).split("?")[0];
+    const cleanUrlFile = path.join(
+      outputDirectory,
+      `${targetPath.replace(/^\//, "")}.html`,
+    );
     const targetFile = targetPath.endsWith("/")
       ? routeFile(targetPath)
       : existsSync(path.join(outputDirectory, targetPath))
         ? path.join(outputDirectory, targetPath)
-        : routeFile(`${targetPath}/`);
+        : existsSync(cleanUrlFile)
+          ? cleanUrlFile
+          : routeFile(`${targetPath}/`);
 
     if (!existsSync(targetFile)) {
       errors.push(`${path.relative(outputDirectory, file)}: broken ${href}`);

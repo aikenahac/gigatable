@@ -12,6 +12,7 @@ import virtualizationPerformanceContent from "./content/virtualization-performan
 import themingContent from "./content/theming.md?raw";
 import columnMetadataContent from "./content/column-metadata.md?raw";
 import customInputsContent from "./content/custom-inputs.md?raw";
+import optionalCellsContent from "./content/optional-cells.md?raw";
 import compositionContent from "./content/composition.md?raw";
 import contextQuickEditContent from "./content/context-quick-edit.md?raw";
 import gigatableApiContent from "./content/gigatable-api.md?raw";
@@ -56,6 +57,7 @@ const contentBySlug: Record<DocsSlug, string> = {
   theming: themingContent,
   "column-metadata": columnMetadataContent,
   "custom-inputs": customInputsContent,
+  "optional-cells": optionalCellsContent,
   composition: compositionContent,
   "context-quick-edit": contextQuickEditContent,
   "gigatable-api": gigatableApiContent,

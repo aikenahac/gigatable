@@ -10,9 +10,9 @@ const urlList = [
   ...sitemap.matchAll(/<loc>(https:\/\/gigatable\.dev\/[^<]*)<\/loc>/g),
 ].map(([, url]) => url);
 
-if (urlList.length !== 35) {
+if (urlList.length !== 36) {
   throw new Error(
-    `Expected 35 canonical URLs in ${sitemapPath}, found ${urlList.length}`,
+    `Expected 36 canonical URLs in ${sitemapPath}, found ${urlList.length}`,
   );
 }
 

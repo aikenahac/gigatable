@@ -41,6 +41,29 @@ clsx
 The website presents these commands as package-manager tabs. They all run the
 same `init` workflow.
 
+## Optional Cell Source
+
+`gigatable init` includes the grid interaction layer and its basic text editor,
+not domain-specific selectors, dates, numeric and range inputs, badges,
+progress displays, popovers, or dialogs. Applications own that UI.
+
+After installing the core, you can add the dependency-free optional source pack:
+
+<!-- package-manager-tabs:add-cells -->
+
+```bash
+npx gigatable add cells
+pnpm dlx gigatable add cells
+yarn dlx gigatable add cells
+bunx gigatable add cells
+```
+
+The command validates the existing Gigatable root, asks where it is installed,
+and copies editable source into its `cells/` directory. It confirms before
+overwriting and installs no packages. Adapt the components to your product and
+design system. Continue with [Optional Cells](/docs/optional-cells) for the
+component APIs and typed column examples.
+
 ## TypeScript setup
 
 Add the TanStack Table augmentation file to your `tsconfig.json` include list. This enables `meta: { editable: true }` on column definitions.

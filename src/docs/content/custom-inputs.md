@@ -2,6 +2,22 @@
 
 `EditableCell` delegates the editing UI to `renderInput`. The renderer receives the current value and all commit, cancel, and keyboard bindings.
 
+Gigatable core does not ship domain-specific cell components. It keeps the
+basic text-editing path; your application supplies specialized cell UI. Run
+`npx gigatable add cells` for optional, dependency-free source containing
+starter select, date, number, badge, progress, popover, and dialog cells. See
+[Optional Cells](/docs/optional-cells) for installation, component APIs, and
+typed examples.
+
+The optional `SelectCell` opens a custom listbox as soon as edit mode starts.
+Arrow keys, Home, End, typeahead, Enter, Escape, and pointer selection work
+without opening a second native control. `DateCell` follows the same activation
+contract with a dependency-free calendar grid supporting day, week, and month
+keyboard navigation. Neither component depends on shadcn/ui or its theme tokens.
+`NumberCell` keeps its numeric value visible beside an active slider. Pass the
+same semantic `tone` used by the view renderer, plus an optional `suffix`, so
+editing and display states retain one visual language.
+
 ## Input Contract
 
 ```ts
@@ -11,6 +27,8 @@ interface EditableCellInputProps<TValue> {
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => void;
   onBlur: () => void;
+  onDraftChange: (value: TValue) => void;
+  commitValue: (value: TValue) => void;
   onValueChange: (value: string) => void;
   onKeyDown: (event: React.KeyboardEvent) => void;
   cancelEditing: () => void;
@@ -19,6 +37,9 @@ interface EditableCellInputProps<TValue> {
 ```
 
 Forward `onBlur` and `onKeyDown` so Enter, Tab, Escape, and blur follow the standard lifecycle.
+
+Use `renderValue(value)` on `EditableCell` when edit mode stores a typed value
+but view mode needs a label or formatted representation.
 
 ## Select Editor
 
@@ -49,12 +70,14 @@ function StatusInput({
 
 ## Domain Component
 
-Components that return a value instead of an event should call `onValueChange`.
+Components that return typed values should call `onDraftChange` while the user
+is editing and `commitValue` at an explicit commit boundary. `onValueChange`
+remains available as the legacy immediate string-commit adapter.
 
 ```tsx
 function RatingInput({
   value,
-  onValueChange,
+  onDraftChange,
   onBlur,
   onKeyDown,
 }: EditableCellInputProps<number>) {
@@ -65,7 +88,7 @@ function RatingInput({
       min="0"
       max="100"
       value={value}
-      onChange={(event) => onValueChange(event.target.value)}
+      onChange={(event) => onDraftChange(Number(event.target.value))}
       onBlur={onBlur}
       onKeyDown={onKeyDown}
     />
@@ -80,6 +103,15 @@ Call `cancelEditing()` when an editor-specific action should restore the origina
 ## Focus
 
 The standard text editor focuses when mounted. Custom components should focus their primary control only when editing begins. Avoid multiple auto-focused descendants and preserve visible focus styles.
+
+Single-click selects a cell. Double-click, Alt/Option-click, or Enter activates
+its editor; controls inside an active editor use normal single-click behavior.
+Display-only and action columns stay read-only. Popovers and dialogs that edit a
+field should use the same `EditableCell` lifecycle with explicit Save and Cancel
+actions. Stop active controls and portals from leaking pointer or keyboard events
+into grid selection. Mount portal content and global listeners only while open,
+cancel transient overlays when their virtualized trigger unmounts or scrolls
+away, and restore focus to the originating cell.
 
 ## Paste and Stored Types
 

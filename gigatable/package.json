@@ -38,8 +38,8 @@
   "scripts": {
     "build": "tsc",
     "test": "vitest run",
-    "deploy": "npx tsx scripts/deploy.ts",
-    "prepare": "npx tsx scripts/prepare.ts"
+    "deploy": "tsx scripts/deploy.ts",
+    "prepare": "tsx scripts/prepare.ts"
   },
   "dependencies": {
     "fs-extra": "^11.2.0",

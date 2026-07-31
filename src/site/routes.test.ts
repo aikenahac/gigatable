@@ -80,12 +80,12 @@ describe("getRouteForPath", () => {
     });
   });
 
-  it("normalizes canonical routes to trailing slashes", () => {
+  it("uses the clean demo URL and trailing slashes for article routes", () => {
     expect(getCanonicalPath(getRouteForPath("/docs"))).toBe("/docs/");
     expect(getCanonicalPath(getRouteForPath("/docs/theming"))).toBe(
       "/docs/theming/",
     );
-    expect(getCanonicalPath(getRouteForPath("/demo"))).toBe("/demo/");
+    expect(getCanonicalPath(getRouteForPath("/demo"))).toBe("/demo");
     expect(getCanonicalPath(getRouteForPath("/compare/ag-grid"))).toBe(
       "/compare/ag-grid/",
     );

@@ -35,7 +35,7 @@ function ComparisonHeader({ navigate }: Pick<ComparisonPageProps, "navigate">) {
         <SiteLink href="/docs/" navigate={navigate}>
           Docs
         </SiteLink>
-        <SiteLink href="/demo/" navigate={navigate}>
+        <SiteLink href="/demo" navigate={navigate}>
           Demo
         </SiteLink>
         <SupportLink className="site-support-link" />
@@ -92,7 +92,7 @@ function ComparisonOverview({ navigate }: ComparisonPageProps) {
             >
               Install Gigatable
             </SiteLink>
-            <SiteLink href="/demo/" navigate={navigate}>
+            <SiteLink href="/demo" navigate={navigate}>
               Open the Demo
             </SiteLink>
           </div>
@@ -191,7 +191,7 @@ function ComparisonDetail({
             >
               Install Gigatable
             </SiteLink>
-            <SiteLink href="/demo/" navigate={navigate}>
+            <SiteLink href="/demo" navigate={navigate}>
               Open the Demo
             </SiteLink>
           </div>
@@ -293,7 +293,7 @@ function ComparisonDetail({
                 Gigatable documentation
               </SiteLink>
               , try the{" "}
-              <SiteLink href="/demo/" navigate={navigate}>
+              <SiteLink href="/demo" navigate={navigate}>
                 interactive demo
               </SiteLink>
               , or return to the{" "}

@@ -38,7 +38,10 @@ const columns: ColumnDef<Person>[] = [
 ];
 ```
 
-Always forward `onBlur` and `onKeyDown`. Use `cancelEditing` for editor-specific cancellation. Use `onValueChange` for controls that return a value instead of a DOM change event.
+Always forward `onBlur` and `onKeyDown` for native inline inputs. Use
+`cancelEditing` for editor-specific cancellation, `onDraftChange` for typed
+drafts, and `commitValue` for typed commits. `onValueChange` is retained as the
+legacy immediate string-commit adapter.
 
 ## Handle typed values
 
@@ -58,7 +61,9 @@ const scoreColumn: ColumnDef<Person> = {
 };
 ```
 
-The packaged `EditableCell` change adapters commit editor values as strings. `parsePastedValue` applies only to clipboard input. If direct editing must retain numbers, dates, or domain objects, adapt the installed editor/mutation source or add an explicit application conversion layer rather than relying on generic casts.
+`onDraftChange` and `commitValue` preserve numbers, dates, and domain values
+without string casts. `parsePastedValue` remains responsible for converting
+clipboard text into the same stored type.
 
 ## Use column metadata
 
@@ -89,6 +94,7 @@ Keep the incoming `data` reference stable until the application truly replaces i
 
 ## Editing lifecycle
 
+- Single-click selects without editing.
 - Double-click or Enter starts an editable selected cell.
 - Enter commits and moves down.
 - Tab or Shift+Tab commits and traverses visible cells.

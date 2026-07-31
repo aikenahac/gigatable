@@ -21,7 +21,7 @@ export function NotFoundPage({
           <SiteLink href="/docs/" navigate={navigate}>
             Read the Docs
           </SiteLink>
-          <SiteLink href="/demo/" navigate={navigate}>
+          <SiteLink href="/demo" navigate={navigate}>
             Open the Demo
           </SiteLink>
         </nav>

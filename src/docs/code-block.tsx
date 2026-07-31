@@ -111,15 +111,17 @@ export function CodeBlock({
 }
 
 export type PackageManager = "npm" | "pnpm" | "yarn" | "bun";
+export type GigatableCliCommand = "init" | "add cells";
 
-const packageCommands: Record<PackageManager, string> = {
-  npm: "npx gigatable init",
-  pnpm: "pnpm dlx gigatable init",
-  yarn: "yarn dlx gigatable init",
-  bun: "bunx gigatable init",
+const packageExecutors: Record<PackageManager, string> = {
+  npm: "npx",
+  pnpm: "pnpm dlx",
+  yarn: "yarn dlx",
+  bun: "bunx",
 };
 
 const packageManagerKey = "gigatable-package-manager";
+const packageManagerChangeEvent = "gigatable:package-manager-change";
 
 function getInitialPackageManager(): PackageManager {
   if (typeof window === "undefined") {
@@ -135,34 +137,74 @@ function getInitialPackageManager(): PackageManager {
     : "npm";
 }
 
-export function PackageManagerTabs({ compact = false }: { compact?: boolean }) {
+function getPackageManagerCommand(
+  manager: PackageManager,
+  command: GigatableCliCommand,
+): string {
+  return `${packageExecutors[manager]} gigatable ${command}`;
+}
+
+function usePackageManagerPreference(): PackageManager {
   const [manager, setManager] = React.useState<PackageManager>("npm");
 
   React.useEffect(() => {
-    setManager(getInitialPackageManager());
+    const syncManager = () => setManager(getInitialPackageManager());
+    syncManager();
+    window.addEventListener("storage", syncManager);
+    window.addEventListener(packageManagerChangeEvent, syncManager);
+    return () => {
+      window.removeEventListener("storage", syncManager);
+      window.removeEventListener(packageManagerChangeEvent, syncManager);
+    };
   }, []);
+
+  return manager;
+}
+
+export function PackageManagerCommand({
+  command,
+}: {
+  command: GigatableCliCommand;
+}) {
+  const manager = usePackageManagerPreference();
+  return <code>{getPackageManagerCommand(manager, command)}</code>;
+}
+
+export function PackageManagerTabs({
+  compact = false,
+  command = "init",
+}: {
+  compact?: boolean;
+  command?: GigatableCliCommand;
+}) {
+  const manager = usePackageManagerPreference();
 
   const selectManager = (nextManager: PackageManager) => {
     window.localStorage.setItem(packageManagerKey, nextManager);
-    setManager(nextManager);
+    window.dispatchEvent(new Event(packageManagerChangeEvent));
   };
 
   return (
     <div className={compact ? "package-tabs is-compact" : "package-tabs"}>
       <div role="tablist" aria-label="Package managers">
-        {(Object.keys(packageCommands) as Array<PackageManager>).map((item) => (
-          <button
-            key={item}
-            type="button"
-            role="tab"
-            aria-selected={item === manager}
-            onClick={() => selectManager(item)}
-          >
-            {item}
-          </button>
-        ))}
+        {(Object.keys(packageExecutors) as Array<PackageManager>).map(
+          (item) => (
+            <button
+              key={item}
+              type="button"
+              role="tab"
+              aria-selected={item === manager}
+              onClick={() => selectManager(item)}
+            >
+              {item}
+            </button>
+          ),
+        )}
       </div>
-      <CodeBlock code={packageCommands[manager]} language="bash" />
+      <CodeBlock
+        code={getPackageManagerCommand(manager, command)}
+        language="bash"
+      />
     </div>
   );
 }

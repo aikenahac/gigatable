@@ -65,9 +65,10 @@ export function getSeoForRoute(route: SiteRoute): PageSeo {
       canonicalPath,
       title: "Interactive React Data Grid Demo | Gigatable",
       description:
-        "Try cell selection, inline editing, Excel-compatible copy/paste, fill handles, column resizing, keyboard navigation and undo/redo in a virtualized React grid.",
+        "Explore Biobank Registry, Support Operations and Production Schedule demos, including a live selectable 100–100,000-row virtualization performance dashboard.",
       image: "/og/demo.png",
-      imageAlt: "Interactive Gigatable React data grid demo",
+      imageAlt:
+        "Gigatable Biobank, Support Operations and Production Schedule demo",
       robots: defaultRobots,
       type: "website",
     };

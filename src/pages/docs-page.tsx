@@ -22,7 +22,11 @@ import { GitHubLink } from "../site/github-link";
 import { SiteLink } from "../site/site-link";
 import { SupportLink } from "../site/support-link";
 import { ThemeSelector } from "../site/theme";
-import { CodeBlock, PackageManagerTabs } from "../docs/code-block";
+import {
+  CodeBlock,
+  PackageManagerTabs,
+  type GigatableCliCommand,
+} from "../docs/code-block";
 import { DocsNavigation, DocsSearchButton } from "../docs/docs-navigation";
 import { SearchDialog } from "../docs/search-dialog";
 import { PageActionsMenu } from "../docs/page-actions-menu";
@@ -409,7 +413,12 @@ export function DocsPage({ navigate, slug }: DocsPageProps) {
     return () => observer.disconnect();
   }, [doc.slug, headings]);
 
-  const markdownSegments = doc.content.split("<!-- package-manager-tabs -->");
+  const packageManagerMarker = /<!-- package-manager-tabs(?::add-cells)? -->/g;
+  const packageManagerCommands: GigatableCliCommand[] = Array.from(
+    doc.content.matchAll(packageManagerMarker),
+    (match) => (match[0].includes(":add-cells") ? "add cells" : "init"),
+  );
+  const markdownSegments = doc.content.split(packageManagerMarker);
   const visibleMarkdownSegments = markdownSegments.map((segment, index) =>
     index === 0 ? segment : segment.replace(/^\s*```bash\n[\s\S]*?```\n/, ""),
   );
@@ -551,7 +560,7 @@ export function DocsPage({ navigate, slug }: DocsPageProps) {
               <SiteLink href="/docs/" navigate={navigate} aria-current="page">
                 Docs
               </SiteLink>
-              <SiteLink href="/demo/" navigate={navigate}>
+              <SiteLink href="/demo" navigate={navigate}>
                 Demo
               </SiteLink>
             </nav>
@@ -621,7 +630,9 @@ export function DocsPage({ navigate, slug }: DocsPageProps) {
                 <React.Fragment key={`${doc.slug}-${index}`}>
                   {renderMarkdown(segment, `${doc.slug}-${index}`)}
                   {index < visibleMarkdownSegments.length - 1 ? (
-                    <PackageManagerTabs />
+                    <PackageManagerTabs
+                      command={packageManagerCommands[index]}
+                    />
                   ) : null}
                 </React.Fragment>
               ))}

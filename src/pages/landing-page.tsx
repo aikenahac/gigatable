@@ -318,7 +318,7 @@ export function LandingPage({ navigate }: LandingPageProps) {
           <SiteLink href="/docs/" navigate={navigate}>
             Docs
           </SiteLink>
-          <SiteLink href="/demo/" navigate={navigate}>
+          <SiteLink href="/demo" navigate={navigate}>
             Demo
           </SiteLink>
           <SupportLink className="site-support-link" />
@@ -355,7 +355,7 @@ export function LandingPage({ navigate }: LandingPageProps) {
                 <span aria-hidden="true">→</span>
               </SiteLink>
               <SiteLink
-                href="/demo/"
+                href="/demo"
                 navigate={navigate}
                 onClick={() => trackEvent("Demo Opened")}
               >
@@ -646,7 +646,7 @@ return (
               Install Gigatable
             </SiteLink>
             <SiteLink
-              href="/demo/"
+              href="/demo"
               navigate={navigate}
               onClick={() => trackEvent("Demo Opened")}
             >
@@ -693,7 +693,7 @@ return (
             <SiteLink href="/docs/" navigate={navigate}>
               Documentation
             </SiteLink>
-            <SiteLink href="/demo/" navigate={navigate}>
+            <SiteLink href="/demo" navigate={navigate}>
               Demo
             </SiteLink>
             <SiteLink href="/compare/" navigate={navigate}>

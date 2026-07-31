@@ -194,6 +194,29 @@ export const docsManifest = [
   {
     section: "customization",
     sectionTitle: "Customization",
+    slug: "optional-cells",
+    title: "Optional Cells",
+    description:
+      "Install and adapt selectors, dates, numbers, overlays, badges, and progress cells.",
+    seoTitle: "Optional React Data Grid Cell Components | Gigatable",
+    seoDescription:
+      "Install and customize Gigatable's dependency-free SelectCell, DateCell, NumberCell, BadgeCell, ProgressCell, PopoverCell and DialogCell source.",
+    sourceFile: "optional-cells.md",
+    keywords: [
+      "cells",
+      "select",
+      "datepicker",
+      "number",
+      "badge",
+      "progress",
+      "popover",
+      "dialog",
+    ],
+    audience: "consumer",
+  },
+  {
+    section: "customization",
+    sectionTitle: "Customization",
     slug: "composition",
     title: "Compound Composition",
     description: "Replace table layers while retaining Gigatable behavior.",

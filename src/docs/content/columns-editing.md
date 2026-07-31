@@ -23,6 +23,7 @@ The metadata flag is the behavior contract used by paste, fill, clearing, and ke
 
 ## Editing Lifecycle
 
+- Single-click selects without starting an editor.
 - Double-click or press Enter on a selected editable cell to start.
 - Alt/Option-click starts quick edit when `allowQuickEdit` is enabled.
 - Enter commits and moves down.
@@ -42,12 +43,14 @@ Columns that already render `EditableCell` keep their custom editor. This is use
 
 ## Numeric and Select Editors
 
-Use `onValueChange` when the editor does not expose a standard input change event.
+Use `onDraftChange` when an editor returns a typed value without a DOM change
+event. Call `commitValue` when a custom control has an explicit commit action.
+`onValueChange` remains the legacy immediate string-commit adapter.
 
 ```tsx
 function ScoreInput({
   value,
-  onValueChange,
+  onDraftChange,
   onBlur,
   onKeyDown,
 }: EditableCellInputProps<number>) {
@@ -57,7 +60,7 @@ function ScoreInput({
       type="number"
       inputMode="numeric"
       value={value ?? 0}
-      onChange={(event) => onValueChange(event.target.value)}
+      onChange={(event) => onDraftChange(Number(event.target.value))}
       onBlur={onBlur}
       onKeyDown={onKeyDown}
     />

@@ -31,6 +31,7 @@ Do not silently replace customized installed source. Preserve application-specif
 - Read [editing-and-data.md](references/editing-and-data.md) for columns, editors, parsing, clearing, metadata, and data synchronization.
 - Read [spreadsheet-features.md](references/spreadsheet-features.md) for selection, paste, fill, history, resizing, and keyboard behavior.
 - Read [customization-and-performance.md](references/customization-and-performance.md) for themes, composition, context, accessibility, and virtualization.
+- Read [custom-cell-components.md](references/custom-cell-components.md) for display, editor, action, and overlay cell contracts, including focus, portals, typed values, and virtualized cleanup.
 - Read [api-reference.md](references/api-reference.md) when wiring props, handlers, return values, or exported types.
 
 ## Implement safely

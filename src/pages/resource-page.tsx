@@ -63,7 +63,7 @@ function ResourceLayout({
           <SiteLink href="/docs/" navigate={navigate}>
             Docs
           </SiteLink>
-          <SiteLink href="/demo/" navigate={navigate}>
+          <SiteLink href="/demo" navigate={navigate}>
             Demo
           </SiteLink>
           <SupportLink className="site-support-link" />
@@ -94,7 +94,7 @@ function ResourceLayout({
               Install Gigatable
             </SiteLink>
             <SiteLink
-              href="/demo/"
+              href="/demo"
               navigate={navigate}
               onClick={() => trackEvent("Demo Opened")}
             >

@@ -21,6 +21,38 @@ Documentation: https://gigatable.dev/docs/
 
 Comparisons: https://gigatable.dev/compare/
 
+## Application-owned cells
+
+The core includes the interaction layer and basic text editing. It does not
+choose product-specific selectors, date pickers, numeric sliders, badges,
+progress displays, popovers, or dialogs for your application. Add
+dependency-free starter source
+after `init` with:
+
+```bash
+npx gigatable add cells
+```
+
+Adapt the copied `cells/` components locally. Keep pure action and display
+columns read-only. Field-editing popovers and dialogs should use
+`EditableCell`, just like inline editors. Only `meta.editable` columns
+participate in paste, fill, clearing, and history.
+
+Single-click selects without editing. Double-click activates an editor or
+overlay, Alt/Option-click provides the power-user activation path when
+`allowQuickEdit` is enabled, and Enter activates the selected editable cell.
+Controls inside an active editor use normal single-click interaction.
+
+The optional `SelectCell` mounts a focused custom listbox immediately on
+activation; use Arrow keys, Home/End, typeahead, and Enter to choose an option.
+`DateCell` mounts a custom calendar with Arrow, Home/End, Page Up/Page Down,
+Enter, and Escape support. Both are dependency-free and use Gigatable theme
+variables instead of shadcn-specific tokens.
+
+Range-mode `NumberCell` keeps a compact numeric input visible beside the active
+slider. Use `tone` (or a value-to-tone callback) and `suffix` to match the
+read-only progress renderer, for example `tone="success"` and `suffix="%"`.
+
 ## Minimal setup
 
 ```tsx
@@ -82,6 +114,10 @@ const TextInput = ({
     onBlur={onBlur}
   />
 );
+
+// Typed controls use onDraftChange while editing and commitValue when an
+// explicit action should save and close. onValueChange(string) remains the
+// legacy immediate-commit adapter.
 
 export const columns: ColumnDef<MyRow, unknown>[] = [
   {

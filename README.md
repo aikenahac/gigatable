@@ -11,6 +11,12 @@ Gigatable adds editable cells, range selection, Excel-compatible copy/paste, fil
 
 [Website](https://gigatable.dev/) · [Interactive demo](https://gigatable.dev/demo/) · [Documentation](https://gigatable.dev/docs/) · [Comparisons](https://gigatable.dev/compare/)
 
+The core focuses on grid interaction and basic text editing; applications own
+domain-specific cell UI. After `init`, run `npx gigatable add cells` for
+optional, dependency-free editable source to adapt locally.
+The pack includes keyboard-first custom listbox and calendar editors styled
+from Gigatable variables; it does not require shadcn/ui or shadcn theme tokens.
+
 ## Product Fit
 
 Choose Gigatable when a React application needs TanStack Table control,
@@ -294,7 +300,12 @@ const {
 }
 ```
 
-`renderInput` receives `EditableCellInputProps<TValue>`: `{ value, onChange, onBlur, onValueChange, onKeyDown, cancelEditing, className }`.
+`renderInput` receives `EditableCellInputProps<TValue>`: `{ value, onChange,
+onBlur, onDraftChange, commitValue, onValueChange, onKeyDown, cancelEditing,
+className }`. Use the typed callbacks for new custom editors;
+`onValueChange(string)` is the legacy immediate-commit adapter.
+Use the optional `renderValue(value)` prop to format a typed value while the
+cell is not being edited.
 
 ### Gigatable Props
 

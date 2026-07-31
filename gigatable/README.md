@@ -8,6 +8,15 @@ Gigatable is the open-source, source-installed React data grid with Excel-like i
 
 > **Install:** `npx gigatable init` copies the source files directly into your project. You own the code.
 
+Gigatable core supplies grid interaction and basic text editing, not
+application-specific cell UI. After `init`, optionally run
+`npx gigatable add cells` to copy dependency-free starter source for selectors,
+dates, numeric and range inputs, badges, progress displays, popovers, and
+dialogs. The pack is excluded
+from `init`, installs no dependencies, and is yours to adapt.
+Its selectors and dates use custom keyboard-accessible listbox and calendar
+source rather than requiring shadcn/ui or browser-native picker styling.
+
 [Website](https://gigatable.dev/) · [Demo](https://gigatable.dev/demo/) · [Documentation](https://gigatable.dev/docs/) · [Comparisons](https://gigatable.dev/compare/) · [GitHub](https://github.com/aikenahac/gigatable)
 
 ## Product Fit
@@ -102,13 +111,18 @@ const TextInput = ({
 
 const NumberInput =
   (step = 1) =>
-  ({ value, onChange, onKeyDown, onBlur }: EditableCellInputProps<number>) => (
+  ({
+    value,
+    onDraftChange,
+    onKeyDown,
+    onBlur,
+  }: EditableCellInputProps<number>) => (
     <input
       autoFocus
       type="number"
       step={step}
       value={value as number}
-      onChange={onChange}
+      onChange={(event) => onDraftChange(Number(event.target.value))}
       onKeyDown={onKeyDown}
       onBlur={onBlur}
     />
@@ -192,7 +206,9 @@ Wraps TanStack Table's `useReactTable`. Accepts all standard `TableOptions<TData
 
 ### `<EditableCell>`
 
-Renders a cell in either view mode (double-click/Enter to edit) or edit mode. Accepts all TanStack `CellContext<TData, TValue>` props plus:
+Renders a cell in either view mode (single-click selects; double-click,
+Alt/Option-click with `allowQuickEdit`, or Enter edits) or edit mode. Accepts
+all TanStack `CellContext<TData, TValue>` props plus:
 
 | Prop          | Type                                 | Description                 |
 | ------------- | ------------------------------------ | --------------------------- |
@@ -207,7 +223,9 @@ Props passed to your `renderInput` component:
 | `value`         | Current cell value                                                 |
 | `onChange`      | Standard input change handler                                      |
 | `onBlur`        | Commits value and exits edit mode                                  |
-| `onValueChange` | Commit a value string directly (for custom/select inputs)          |
+| `onDraftChange` | Update the typed draft without committing                          |
+| `commitValue`   | Commit a typed value and exit edit mode                            |
+| `onValueChange` | Legacy immediate string commit adapter                             |
 | `onKeyDown`     | Forward to handle Tab (save + move), Enter (save), Escape (cancel) |
 | `cancelEditing` | Discard changes and return to view mode                            |
 | `className`     | Optional className for the input element                           |
@@ -236,7 +254,7 @@ interface CellChange {
 
 | Shortcut                 | Action                            |
 | ------------------------ | --------------------------------- |
-| Click                    | Select cell                       |
+| Click                    | Select cell without editing       |
 | Shift+Click / Drag       | Extend range selection            |
 | Arrow keys               | Move selection                    |
 | Shift+Arrow              | Extend range                      |

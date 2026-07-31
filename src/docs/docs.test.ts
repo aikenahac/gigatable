@@ -35,6 +35,7 @@ describe("documentation structure", () => {
         "theming",
         "column-metadata",
         "custom-inputs",
+        "optional-cells",
         "composition",
         "context-quick-edit",
         "gigatable-api",
@@ -53,6 +54,10 @@ describe("documentation structure", () => {
     expect(installation.content).toContain("npx gigatable init");
     expect(installation.content).toContain("pnpm dlx gigatable init");
     expect(installation.content).toContain("bunx gigatable init");
+    expect(installation.content).toContain("npx gigatable add cells");
+    expect(installation.content).toContain("pnpm dlx gigatable add cells");
+    expect(installation.content).toContain("yarn dlx gigatable add cells");
+    expect(installation.content).toContain("bunx gigatable add cells");
   });
 
   it("documents every agent skill installation route", () => {
@@ -82,6 +87,26 @@ describe("documentation structure", () => {
     expect(getDocBySlug("use-gigatable-api").content).toContain(
       "applyHorizontalFill",
     );
+  });
+
+  it("documents every optional source cell", () => {
+    const optionalCells = getDocBySlug("optional-cells").content;
+
+    for (const component of [
+      "SelectCell",
+      "DateCell",
+      "NumberCell",
+      "BadgeCell",
+      "ProgressCell",
+      "PopoverCell",
+      "DialogCell",
+    ]) {
+      expect(optionalCells).toContain(component);
+    }
+    expect(optionalCells).toContain("npx gigatable add cells");
+    expect(optionalCells).toContain("pnpm dlx gigatable add cells");
+    expect(optionalCells).toContain("yarn dlx gigatable add cells");
+    expect(optionalCells).toContain("bunx gigatable add cells");
   });
 
   it("preserves contributor architecture documentation", () => {

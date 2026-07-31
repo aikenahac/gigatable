@@ -77,8 +77,8 @@
     "skills:test": "node --test scripts/skills/test-installers.mjs",
     "verify:ai-discovery": "node scripts/verify-ai-discovery.mjs",
     "submit:indexnow": "node scripts/submit-indexnow.mjs",
-    "cli:deploy": "npx tsx gigatable/scripts/deploy.ts",
-    "cli:prepare": "npx tsx gigatable/scripts/prepare.ts"
+    "cli:deploy": "pnpm --dir gigatable exec tsx scripts/deploy.ts",
+    "cli:prepare": "pnpm --dir gigatable exec tsx scripts/prepare.ts"
   },
   "browserslist": [
     ">0.2%",

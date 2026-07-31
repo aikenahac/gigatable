@@ -130,6 +130,13 @@ function outputPathForCanonical(canonicalPath) {
     return path.join(outputDirectory, "index.html");
   }
 
+  if (!canonicalPath.endsWith("/")) {
+    return path.join(
+      outputDirectory,
+      `${canonicalPath.replace(/^\//, "")}.html`,
+    );
+  }
+
   return path.join(
     outputDirectory,
     canonicalPath.replace(/^\/|\/$/g, ""),

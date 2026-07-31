@@ -257,6 +257,7 @@ export function useGigatable<TData extends Record<string, unknown>, TValue>({
       selectedCell: CellCoordinates,
       clipboardData: string | undefined,
       copyBuffer?: CopyBuffer | null,
+      isColumnEditable?: (columnId: string) => boolean,
     ): PasteResult => {
       if (!clipboardData) {
         return { changes: [], totalChanges: 0 };
@@ -288,7 +289,7 @@ export function useGigatable<TData extends Record<string, unknown>, TValue>({
 
             copyBuffer.columnIds.forEach((columnId, colIndex) => {
               const column = columns.find((c) => c.id === columnId);
-              if (!column) {
+              if (!column || isColumnEditable?.(columnId) === false) {
                 return;
               }
 
@@ -341,6 +342,9 @@ export function useGigatable<TData extends Record<string, unknown>, TValue>({
               const targetColIndex = startColIndex + colIndex;
               if (targetColIndex < columns.length) {
                 const columnId = columns[targetColIndex].id;
+                if (isColumnEditable?.(columnId) === false) {
+                  return;
+                }
                 const targetCell = targetRow
                   .getAllCells()
                   .find((cell) => cell.column.id === columnId) as

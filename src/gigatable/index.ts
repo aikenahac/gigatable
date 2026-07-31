@@ -7,7 +7,10 @@ export type {
 export type { CellCoordinates } from "./data-table/use-cell-selection";
 export type { Selection } from "./data-table/use-cell-selection";
 export type { CopyBuffer } from "./data-table/parse-copy-data";
-export type { EditableCellInputProps } from "./data-table/editable-cell";
+export type {
+  EditableCellInputProps,
+  EditableCellProps,
+} from "./data-table/editable-cell";
 export type {
   GigatableCellState,
   GigatableContextValue,

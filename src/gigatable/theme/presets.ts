@@ -20,7 +20,7 @@ const light: GigatableTheme = {
     fontSize: "14px",
     fontFamily: "ui-sans-serif, system-ui, sans-serif",
     fontWeight: 400,
-    textColor: "inherit",
+    textColor: "#111827",
     paddingX: "12px",
     paddingY: "8px",
   },
@@ -116,9 +116,9 @@ const minimal: GigatableTheme = {
 
 const giga: GigatableTheme = {
   header: {
-    background: "#101827",
-    textColor: "#e0f2fe",
-    borderColor: "#243244",
+    background: "#1a2638",
+    textColor: "#edf6ff",
+    borderColor: "#34465f",
     height: "38px",
     fontSize: "13px",
     fontFamily: "ui-sans-serif, system-ui, sans-serif",
@@ -126,15 +126,15 @@ const giga: GigatableTheme = {
   },
   row: {
     height: "32px",
-    background: "#050812",
-    hoverBackground: "#0b1220",
+    background: "#0d1523",
+    hoverBackground: "#172338",
   },
   cell: {
-    borderColor: "#1e293b",
+    borderColor: "#293a51",
     fontSize: "13px",
     fontFamily: "ui-sans-serif, system-ui, sans-serif",
     fontWeight: 500,
-    textColor: "#dbeafe",
+    textColor: "#e7f0fb",
     paddingX: "12px",
     paddingY: "7px",
   },

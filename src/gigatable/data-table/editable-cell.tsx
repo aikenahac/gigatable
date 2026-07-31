@@ -23,6 +23,10 @@ export interface EditableCellInputProps<TValue> {
   onBlur: () => void;
   /** Commits a value string directly without a DOM event — useful for select or custom inputs. */
   onValueChange: (value: string) => void;
+  /** Updates the typed editor draft without committing it. */
+  onDraftChange: (value: TValue) => void;
+  /** Commits a typed value immediately and exits edit mode. */
+  commitValue: (value: TValue) => void;
   /** Forward keydown events to handle Tab (save + move), Enter (save), Escape (cancel). */
   onKeyDown: (e: React.KeyboardEvent) => void;
   /** Call to discard changes and return to view mode without saving. */
@@ -31,16 +35,27 @@ export interface EditableCellInputProps<TValue> {
   className?: string;
 }
 
-interface EditableCellProps<TData, TValue> extends CellContext<TData, TValue> {
+/** Props accepted by {@link EditableCell}. */
+export type EditableCellProps<TData, TValue> = Omit<
+  CellContext<TData, TValue>,
+  "renderValue"
+> & {
+  /** Component rendered while the cell is being edited. */
   renderInput: React.FunctionComponent<EditableCellInputProps<TValue>>;
-}
+  /** Optional view-mode renderer. The default renders the value as text or `-` when empty. */
+  renderValue?:
+    | CellContext<TData, TValue>["renderValue"]
+    | ((value: TValue) => React.ReactNode);
+};
 
 function EditableCellComponent<TData, TValue>({
   getValue,
+  cell,
   row: { id: rowKey, index: rowId },
   column: { id: colId },
   table,
   renderInput,
+  renderValue,
 }: EditableCellProps<TData, TValue>): React.ReactElement {
   const initialValue = getValue();
   const RenderInput = renderInput;
@@ -48,6 +63,13 @@ function EditableCellComponent<TData, TValue>({
   const [value, setValue] = useState<TValue>(initialValue);
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
   const quickEditEnabled = React.use(QuickEditContext);
+  // Spreading a TanStack CellContext also supplies its zero-argument
+  // `renderValue`. Only treat a function that replaces that method as the
+  // optional Gigatable formatter.
+  const customRenderValue =
+    renderValue === cell.renderValue
+      ? undefined
+      : (renderValue as ((value: TValue) => React.ReactNode) | undefined);
 
   const onDoubleClick = () => setIsEditing(true);
   const quickEdit = useQuickEdit({
@@ -78,16 +100,19 @@ function EditableCellComponent<TData, TValue>({
     restoreCellFocus();
   };
 
-  const onValueChange = (value: string) => {
-    setValue(value as unknown as TValue);
+  const commitValue = (nextValue: TValue) => {
+    setValue(nextValue);
     setIsEditing(false);
     (table.options.meta as TableMeta<TData> | undefined)?.updateCellData?.(
       rowId,
       colId,
-      value,
+      nextValue,
     );
     restoreCellFocus();
   };
+
+  const onValueChange = (nextValue: string) =>
+    commitValue(nextValue as unknown as TValue);
 
   const onChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
@@ -149,6 +174,8 @@ function EditableCellComponent<TData, TValue>({
           onChange={onChange}
           onBlur={handleBlur}
           onValueChange={onValueChange}
+          onDraftChange={setValue}
+          commitValue={commitValue}
           onKeyDown={handleKeyDownOnEdit}
           cancelEditing={cancelEditing}
         />
@@ -167,7 +194,11 @@ function EditableCellComponent<TData, TValue>({
       data-editable-cell-viewing
       tabIndex={0}
     >
-      {value ? String(value) : "-"}
+      {customRenderValue
+        ? customRenderValue(value)
+        : value
+          ? String(value)
+          : "-"}
     </div>
   );
 }
@@ -185,7 +216,9 @@ export const EditableCell = React.memo(
       prevProps.getValue() === nextProps.getValue() &&
       prevProps.row.index === nextProps.row.index &&
       prevProps.row.id === nextProps.row.id &&
-      prevProps.column.id === nextProps.column.id
+      prevProps.column.id === nextProps.column.id &&
+      prevProps.renderInput === nextProps.renderInput &&
+      prevProps.renderValue === nextProps.renderValue
     );
   },
 ) as typeof EditableCellComponent;

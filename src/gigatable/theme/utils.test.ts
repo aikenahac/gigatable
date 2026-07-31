@@ -63,9 +63,9 @@ describe("resolveTheme", () => {
 
   it("resolves themes.giga as a modern dark technical preset", () => {
     const vars = resolveTheme(themes.giga);
-    expect(vars["--gt-header-bg"]).toBe("#101827");
-    expect(vars["--gt-row-bg"]).toBe("#050812");
-    expect(vars["--gt-cell-text-color"]).toBe("#dbeafe");
+    expect(vars["--gt-header-bg"]).toBe("#1a2638");
+    expect(vars["--gt-row-bg"]).toBe("#0d1523");
+    expect(vars["--gt-cell-text-color"]).toBe("#e7f0fb");
     expect(vars["--gt-selection-outline"]).toBe("#22d3ee");
     expect(vars["--gt-range-bg"]).toBe("rgba(34, 211, 238, 0.16)");
   });

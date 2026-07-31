@@ -70,6 +70,8 @@ interface EditableCellInputProps<TValue> {
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => void;
   onBlur: () => void;
+  onDraftChange: (value: TValue) => void;
+  commitValue: (value: TValue) => void;
   onValueChange: (value: string) => void;
   onKeyDown: (event: React.KeyboardEvent) => void;
   cancelEditing: () => void;

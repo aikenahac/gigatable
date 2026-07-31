@@ -15,6 +15,10 @@ describe("documentation assets", () => {
       assets.find((asset) => asset.fileName === "docs/gigatable-api.md")
         ?.source,
     ).toContain("containerRef");
+    expect(
+      assets.find((asset) => asset.fileName === "docs/optional-cells.md")
+        ?.source,
+    ).toContain("SelectCell");
   });
 
   it("emits concise and full LLM documentation", () => {

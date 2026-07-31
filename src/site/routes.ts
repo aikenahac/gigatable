@@ -79,7 +79,7 @@ export function getCanonicalPath(route: SiteRoute): string {
   }
 
   if (route.name === "demo") {
-    return "/demo/";
+    return "/demo";
   }
 
   if (route.name === "docs") {

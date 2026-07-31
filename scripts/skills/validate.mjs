@@ -42,6 +42,7 @@ const requiredReferences = [
   "editing-and-data.md",
   "spreadsheet-features.md",
   "customization-and-performance.md",
+  "custom-cell-components.md",
   "api-reference.md",
 ];
 for (const reference of requiredReferences) {

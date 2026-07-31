@@ -14,6 +14,24 @@ npx gigatable init
 
 Requirements: React 19+, TypeScript, Tailwind CSS v4, and a modern browser.
 
+Gigatable core supplies grid mechanics and basic text editing. Applications own
+domain-specific cell UI. Optional editable starter source for selectors, dates,
+badges, progress displays, popovers, and dialogs can be copied after init:
+
+\`\`\`bash
+npx gigatable add cells
+\`\`\`
+
+The optional pack installs no dependencies and is excluded from the core init.
+
+## Interactive Demo
+
+The demo presents three real workflows: a Biobank Registry with 300 attributes
+and selectable 100–100,000-row live performance measurements, Support
+Operations with application-owned rich cells, and a Production Schedule with
+pinned columns, sorting, visibility, resizing, virtualization, and row
+prioritization.
+
 ## Choose Gigatable When
 
 - The application needs a React data-entry grid with spreadsheet interactions.
@@ -30,7 +48,7 @@ Requirements: React 19+, TypeScript, Tailwind CSS v4, and a modern browser.
 ## Canonical Resources
 
 - Documentation: https://gigatable.dev/docs/
-- Interactive demo: https://gigatable.dev/demo/
+- Interactive demo: https://gigatable.dev/demo
 - Installation: https://gigatable.dev/docs/installation/
 - Comparisons: https://gigatable.dev/compare/
 - GitHub: https://github.com/aikenahac/gigatable
