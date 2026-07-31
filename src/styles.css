@@ -2833,6 +2833,65 @@
     font-weight: 760;
   }
 
+  .comparison-pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+
+  .comparison-pricing-grid > div {
+    border: 1px solid var(--site-border);
+    border-radius: 0.65rem;
+    background: var(--site-bg-raised);
+    padding: 1.1rem;
+  }
+
+  .comparison-pricing-grid > div:first-child {
+    border-color: color-mix(
+      in srgb,
+      var(--site-accent) 45%,
+      var(--site-border)
+    );
+    background: color-mix(
+      in srgb,
+      var(--site-accent-soft) 46%,
+      var(--site-bg-raised)
+    );
+  }
+
+  .comparison-pricing-grid span {
+    display: block;
+    color: var(--site-text-faint);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.65rem;
+    font-weight: 780;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .comparison-pricing-grid strong {
+    display: block;
+    margin-top: 0.45rem;
+    color: var(--site-text);
+    font-size: 1.2rem;
+  }
+
+  .comparison-pricing-grid > div:first-child strong {
+    color: var(--site-accent-strong);
+  }
+
+  .comparison-pricing-grid p {
+    margin-top: 0.65rem;
+    font-size: 0.78rem;
+    line-height: 1.65;
+  }
+
+  .comparison-pricing-note {
+    color: var(--site-text-faint);
+    font-size: 0.72rem;
+  }
+
   .comparison-table-wrap {
     overflow-x: auto;
     margin-top: 1.5rem;
@@ -2881,6 +2940,51 @@
 
   .comparison-table-wrap td {
     color: var(--site-text-muted);
+  }
+
+  .comparison-table-wrap td > span:last-child {
+    display: block;
+    margin-top: 0.65rem;
+  }
+
+  .comparison-access {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid var(--site-border);
+    border-radius: 999px;
+    padding: 0.2rem 0.48rem;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.62rem;
+    font-weight: 790;
+    letter-spacing: 0.02em;
+    line-height: 1.35;
+  }
+
+  .comparison-access.is-free {
+    border-color: color-mix(
+      in srgb,
+      var(--site-accent) 42%,
+      var(--site-border)
+    );
+    background: var(--site-accent-soft);
+    color: var(--site-accent-strong);
+  }
+
+  .comparison-access.is-paid {
+    border-color: color-mix(in srgb, #d97706 42%, var(--site-border));
+    background: color-mix(in srgb, #f59e0b 13%, var(--site-bg-raised));
+    color: color-mix(in srgb, #d97706 82%, var(--site-text));
+  }
+
+  .comparison-access.is-mixed {
+    border-color: color-mix(in srgb, #7c3aed 36%, var(--site-border));
+    background: color-mix(in srgb, #8b5cf6 11%, var(--site-bg-raised));
+    color: color-mix(in srgb, #8b5cf6 72%, var(--site-text));
+  }
+
+  .comparison-access.is-not-included {
+    background: var(--site-bg-subtle);
+    color: var(--site-text-faint);
   }
 
   .resource-grid-demo {
@@ -3022,6 +3126,10 @@
 
     .landing-resource-grid a {
       min-height: 13rem;
+    }
+
+    .comparison-pricing-grid {
+      grid-template-columns: 1fr;
     }
 
     .resource-header nav > a:not(.site-icon-button) {

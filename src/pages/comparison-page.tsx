@@ -1,5 +1,8 @@
 import { comparisons, getComparison } from "../comparisons/comparisons";
-import type { ComparisonSlug } from "../comparisons/comparisons";
+import type {
+  ComparisonCell,
+  ComparisonSlug,
+} from "../comparisons/comparisons";
 import { GitHubLink } from "../site/github-link";
 import { SiteLink } from "../site/site-link";
 import { SupportLink } from "../site/support-link";
@@ -8,6 +11,17 @@ import { ThemeSelector } from "../site/theme";
 interface ComparisonPageProps {
   navigate: (href: string) => void;
   slug: "overview" | ComparisonSlug;
+}
+
+function ComparisonTableCell({ cell }: { cell: ComparisonCell }) {
+  return (
+    <td>
+      <span className={`comparison-access is-${cell.access}`}>
+        {cell.label}
+      </span>
+      <span>{cell.detail}</span>
+    </td>
+  );
 }
 
 function ComparisonHeader({ navigate }: Pick<ComparisonPageProps, "navigate">) {
@@ -184,7 +198,36 @@ function ComparisonDetail({
         </header>
         <article className="resource-content comparison-content">
           <section>
-            <h2>Feature and architecture comparison</h2>
+            <h2>Published pricing</h2>
+            <p>
+              Pricing and license terms last checked{" "}
+              <time dateTime={comparison.verifiedOn}>
+                {comparison.verifiedOn}
+              </time>
+              . Prices can change; confirm the linked vendor page before
+              purchasing.
+            </p>
+            <div className="comparison-pricing-grid">
+              <div>
+                <span>Gigatable</span>
+                <strong>$0 · MIT</strong>
+                <p>{comparison.pricing.gigatable}</p>
+              </div>
+              <div>
+                <span>{comparison.alternative}</span>
+                <strong>{comparison.pricing.alternativeHeadline}</strong>
+                <p>{comparison.pricing.alternative}</p>
+              </div>
+            </div>
+            <p className="comparison-pricing-note">{comparison.pricing.note}</p>
+          </section>
+          <section>
+            <h2>Free and paid feature comparison</h2>
+            <p>
+              Each cell names the lowest relevant license tier for that
+              capability. “Free · MIT” means the feature is included in
+              Gigatable’s current open-source implementation.
+            </p>
             <div className="comparison-table-wrap">
               <table>
                 <thead>
@@ -198,8 +241,8 @@ function ComparisonDetail({
                   {comparison.rows.map((row) => (
                     <tr key={row.dimension}>
                       <th scope="row">{row.dimension}</th>
-                      <td>{row.gigatable}</td>
-                      <td>{row.alternative}</td>
+                      <ComparisonTableCell cell={row.gigatable} />
+                      <ComparisonTableCell cell={row.alternative} />
                     </tr>
                   ))}
                 </tbody>

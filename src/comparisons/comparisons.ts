@@ -6,15 +6,30 @@ export const comparisonSlugs = [
 
 export type ComparisonSlug = (typeof comparisonSlugs)[number];
 
+export type ComparisonAccess = "free" | "paid" | "mixed" | "not-included";
+
 export interface ComparisonSource {
   label: string;
   url: string;
 }
 
+export interface ComparisonCell {
+  access: ComparisonAccess;
+  label: string;
+  detail: string;
+}
+
 export interface ComparisonRow {
   dimension: string;
+  gigatable: ComparisonCell;
+  alternative: ComparisonCell;
+}
+
+export interface ComparisonPricing {
   gigatable: string;
+  alternativeHeadline: string;
   alternative: string;
+  note: string;
 }
 
 export interface ComparisonDefinition {
@@ -25,11 +40,24 @@ export interface ComparisonDefinition {
   seoDescription: string;
   summary: string;
   verifiedOn: string;
+  pricing: ComparisonPricing;
   rows: Array<ComparisonRow>;
   chooseGigatable: Array<string>;
   chooseAlternative: Array<string>;
   sources: Array<ComparisonSource>;
 }
+
+const freeGigatable = (detail: string): ComparisonCell => ({
+  access: "free",
+  label: "Free · MIT",
+  detail,
+});
+
+const unavailableInGigatable = (detail: string): ComparisonCell => ({
+  access: "not-included",
+  label: "Not included",
+  detail,
+});
 
 export const comparisons: Array<ComparisonDefinition> = [
   {
@@ -38,69 +66,135 @@ export const comparisons: Array<ComparisonDefinition> = [
     title: "Gigatable vs AG Grid",
     seoTitle: "Gigatable vs AG Grid for React Data Grids",
     seoDescription:
-      "Compare Gigatable and AG Grid for React: source ownership, licensing tiers, TanStack integration, spreadsheet interactions and enterprise grid features.",
+      "Compare Gigatable and AG Grid pricing and feature tiers for React: free spreadsheet interactions, source ownership, TanStack integration and enterprise capabilities.",
     summary:
-      "Choose Gigatable for a compact, source-installed interaction layer on TanStack Table. Choose AG Grid when a broad packaged grid platform, enterprise modules, or vendor support matters more than owning the implementation.",
+      "Gigatable includes its current editing, range selection, clipboard, fill, virtualization and history features under MIT. AG Grid Community is free for core grid work, while cell range selection, clipboard operations and fill require AG Grid Enterprise.",
     verifiedOn: "2026-07-31",
+    pricing: {
+      gigatable:
+        "$0. All current Gigatable features are MIT licensed, including selection, clipboard paste, fill and undo/redo. There is no per-developer fee.",
+      alternativeHeadline: "$999+ per developer",
+      alternative:
+        "AG Grid Community is free. AG Grid Enterprise starts at $999 USD per developer for a perpetual license with one year of updates. The Enterprise Bundle starts at $1,498 per developer.",
+      note: "Prices are published starting prices before tax, volume discounts or deployment-specific licensing.",
+    },
     rows: [
       {
-        dimension: "Delivery model",
-        gigatable:
-          "The CLI copies TypeScript source into the application for local review and modification.",
-        alternative:
-          "Installed as AG Grid runtime packages with Community and Enterprise editions.",
+        dimension: "Commercial production",
+        gigatable: freeGigatable(
+          "The complete source-installed grid can be used and modified in commercial applications.",
+        ),
+        alternative: {
+          access: "mixed",
+          label: "Free core · Paid advanced",
+          detail:
+            "AG Grid Community is free for production. Enterprise features require a production license starting at $999 per developer.",
+        },
       },
       {
-        dimension: "Licensing",
-        gigatable:
-          "MIT licensed for personal and commercial use, including the installed source.",
-        alternative:
-          "AG Grid Community is free; AG Grid Enterprise uses a commercial license.",
+        dimension: "Cell editing",
+        gigatable: freeGigatable(
+          "Editable cells, typed parsing and custom React editors are included.",
+        ),
+        alternative: {
+          access: "free",
+          label: "Free · Community",
+          detail:
+            "Basic text, number, date, checkbox, large-text and select editors are available in Community.",
+        },
       },
       {
-        dimension: "Table model",
-        gigatable:
-          "Keeps TanStack Table as the row, column, sizing, filtering and controlled-state model.",
-        alternative:
-          "Uses AG Grid's own integrated grid model, components and APIs.",
+        dimension: "Cell and range selection",
+        gigatable: freeGigatable(
+          "Single-cell and rectangular range selection with mouse and keyboard navigation are included.",
+        ),
+        alternative: {
+          access: "paid",
+          label: "Paid · Enterprise $999+",
+          detail:
+            "AG Grid documents Excel-like cell range selection as an Enterprise feature.",
+        },
       },
       {
-        dimension: "Spreadsheet interactions",
-        gigatable:
-          "Selection, TSV clipboard, fill, clearing and history are included in the MIT source.",
-        alternative:
-          "Cell selection, clipboard and fill-handle documentation is marked as Enterprise functionality.",
+        dimension: "Excel-style copy and paste",
+        gigatable: freeGigatable(
+          "TSV copy/paste, typed value parsing and repeated paste across a selection are included.",
+        ),
+        alternative: {
+          access: "paid",
+          label: "Paid · Enterprise $999+",
+          detail:
+            "AG Grid clipboard operations, including paste into editable cells, are Enterprise features.",
+        },
       },
       {
-        dimension: "Advanced grid breadth",
-        gigatable:
-          "Focused on editable product workflows; no built-in grouping, pivoting, formulas or workbook export.",
-        alternative:
-          "Offers a much broader feature set including enterprise grouping, pivoting, server-side data and Excel export.",
+        dimension: "Fill handle",
+        gigatable: freeGigatable(
+          "Directional drag-fill and fill preview hooks are included.",
+        ),
+        alternative: {
+          access: "paid",
+          label: "Paid · Enterprise $999+",
+          detail:
+            "AG Grid documents the spreadsheet-style fill handle as an Enterprise feature.",
+        },
       },
       {
-        dimension: "Customization tradeoff",
-        gigatable:
-          "Change the local React and TypeScript implementation directly.",
-        alternative:
-          "Configure and extend a mature packaged component through its supported APIs.",
+        dimension: "Undo and redo",
+        gigatable: freeGigatable(
+          "Editing, paste, fill and clearing share one configurable history stack.",
+        ),
+        alternative: {
+          access: "mixed",
+          label: "Free edits · Paid clipboard/fill",
+          detail:
+            "AG Grid provides edit history in Community, but undoing Enterprise-only paste and fill workflows still requires those paid features.",
+        },
+      },
+      {
+        dimension: "Virtualization",
+        gigatable: freeGigatable(
+          "TanStack Virtual powers row and column virtualization.",
+        ),
+        alternative: {
+          access: "free",
+          label: "Free · Community",
+          detail:
+            "AG Grid Community includes row and column virtualization and performance optimizations.",
+        },
+      },
+      {
+        dimension: "Grouping, pivoting and Excel export",
+        gigatable: unavailableInGigatable(
+          "Gigatable intentionally focuses on editable product workflows and does not include these platform features.",
+        ),
+        alternative: {
+          access: "paid",
+          label: "Paid · Enterprise $999+",
+          detail:
+            "Row grouping, pivoting, server-side row models and Excel export are part of AG Grid Enterprise.",
+        },
       },
     ],
     chooseGigatable: [
-      "Your application already uses TanStack Table or needs its controlled state model.",
-      "You want spreadsheet-style data entry without adopting a large grid platform.",
+      "Your application needs the listed spreadsheet interactions without per-developer licensing.",
+      "You want TanStack Table as the controlled state model.",
       "Owning and adapting the implementation is more important than vendor support.",
-      "MIT-licensed selection, clipboard, fill and history cover the required workflow.",
+      "The focused MIT feature set covers the required data-entry workflow.",
     ],
     chooseAlternative: [
       "You need grouping, pivoting, tree data, server-side row models or Excel export.",
       "A packaged enterprise platform and commercial support are desired.",
-      "You prefer configuration APIs over maintaining application-owned source.",
+      "The Enterprise license cost fits the breadth of advanced features you need.",
     ],
     sources: [
       {
-        label: "AG Grid licensing and feature tiers",
+        label: "AG Grid pricing and feature tiers",
         url: "https://www.ag-grid.com/license-pricing/",
+      },
+      {
+        label: "AG Grid Community vs Enterprise",
+        url: "https://www.ag-grid.com/react-data-grid/community-vs-enterprise/",
       },
       {
         label: "AG Grid cell selection",
@@ -126,66 +220,134 @@ export const comparisons: Array<ComparisonDefinition> = [
     title: "Gigatable vs MUI X Data Grid",
     seoTitle: "Gigatable vs MUI X Data Grid for React",
     seoDescription:
-      "Compare Gigatable and MUI X Data Grid for React: source ownership, licensing tiers, TanStack control, Material UI integration and spreadsheet features.",
+      "Compare Gigatable and MUI X Data Grid pricing and feature tiers for React, including free editing, Premium clipboard workflows, TanStack control and Material UI integration.",
     summary:
-      "Choose Gigatable for source ownership, TanStack control and spreadsheet interactions under MIT. Choose MUI X when deep Material UI integration and its Community, Pro or Premium feature tiers fit the product.",
+      "Gigatable includes all of its current spreadsheet interactions under MIT. MUI X Community is free for core grid work, Pro adds professional features, and cell selection, clipboard paste, drag-fill and built-in history require Premium.",
     verifiedOn: "2026-07-31",
+    pricing: {
+      gigatable:
+        "$0. All current Gigatable features are MIT licensed with no per-developer or per-application fee.",
+      alternativeHeadline: "$299–$1,399/year",
+      alternative:
+        "MUI X Community is free. Pro is $299 USD per year per developer; Premium is $599 per year per developer; Enterprise starts at $1,399 per year per developer with a 15-seat minimum.",
+      note: "The displayed MUI prices are annual list prices for the currently selected pricing model; application scope, renewals and volume terms can change the total.",
+    },
     rows: [
       {
-        dimension: "Delivery model",
-        gigatable:
-          "Source-installed React and TypeScript that becomes part of the application.",
-        alternative:
-          "Versioned MUI X packages consumed as runtime dependencies.",
+        dimension: "Commercial production",
+        gigatable: freeGigatable(
+          "The complete installed source can be used in commercial products under MIT.",
+        ),
+        alternative: {
+          access: "mixed",
+          label: "Free core · Paid Pro/Premium",
+          detail:
+            "The Community packages are MIT. Pro and Premium features require a commercial license for each applicable developer.",
+        },
       },
       {
-        dimension: "Licensing",
-        gigatable: "The complete current grid source is MIT licensed.",
-        alternative:
-          "The Community Data Grid is MIT; Pro and Premium packages use commercial licenses.",
+        dimension: "Cell editing",
+        gigatable: freeGigatable(
+          "Typed editable cells and custom React inputs are included.",
+        ),
+        alternative: {
+          access: "free",
+          label: "Free · Community",
+          detail:
+            "Cell and row editing are available in the MIT Community Data Grid.",
+        },
       },
       {
-        dimension: "Design-system fit",
-        gigatable:
-          "Theme presets, CSS variables and compound rendering are design-system neutral.",
-        alternative:
-          "Designed to integrate with the Material UI component and styling ecosystem.",
+        dimension: "Virtualization",
+        gigatable: freeGigatable(
+          "Row and column virtualization use TanStack Virtual.",
+        ),
+        alternative: {
+          access: "free",
+          label: "Free · Community",
+          detail:
+            "The Community Data Grid includes virtualization for its core rendered grid.",
+        },
       },
       {
-        dimension: "Table model",
-        gigatable:
-          "Builds its rendered interactions around a TanStack Table instance.",
-        alternative: "Uses the MUI X Data Grid state, component and API model.",
+        dimension: "Column resizing and pinning",
+        gigatable: freeGigatable(
+          "Interactive resizing is included; pinning can remain controlled through the TanStack model and local source.",
+        ),
+        alternative: {
+          access: "paid",
+          label: "Paid · Pro $299/year+",
+          detail:
+            "MUI lists column resizing and column pinning among Data Grid Pro capabilities.",
+        },
       },
       {
-        dimension: "Spreadsheet interactions",
-        gigatable:
-          "Cell selection, clipboard paste, directional fill and undo history ship in the MIT source.",
-        alternative:
-          "MUI's feature matrix places cell selection and clipboard paste in Data Grid Premium.",
+        dimension: "Cell and range selection",
+        gigatable: freeGigatable(
+          "Mouse and keyboard cell/range selection are included.",
+        ),
+        alternative: {
+          access: "paid",
+          label: "Paid · Premium $599/year+",
+          detail:
+            "MUI documents cell selection and rectangular ranges with DataGridPremium.",
+        },
       },
       {
-        dimension: "Advanced grid breadth",
-        gigatable:
-          "Intentionally omits grouping, pivoting, Excel export and an AI assistant.",
-        alternative:
-          "Pro and Premium add capabilities such as tree data, grouping, pivoting, Excel export and AI-assisted grid state.",
+        dimension: "Clipboard paste and drag-fill",
+        gigatable: freeGigatable(
+          "Excel-compatible TSV paste, typed parsing, repeated paste and directional drag-fill are included.",
+        ),
+        alternative: {
+          access: "paid",
+          label: "Paid · Premium $599/year+",
+          detail:
+            "MUI's paste, fill shortcuts and drag-to-fill examples use DataGridPremium.",
+        },
+      },
+      {
+        dimension: "Undo and redo",
+        gigatable: freeGigatable(
+          "Edits, paste, fill and clear operations share one history stack.",
+        ),
+        alternative: {
+          access: "paid",
+          label: "Paid · Premium $599/year+",
+          detail:
+            "MUI's built-in Data Grid history and toolbar controls are documented with DataGridPremium.",
+        },
+      },
+      {
+        dimension: "Grouping, pivoting and Excel export",
+        gigatable: unavailableInGigatable(
+          "Gigatable does not provide these data-analysis platform features.",
+        ),
+        alternative: {
+          access: "paid",
+          label: "Paid · Premium $599/year+",
+          detail:
+            "MUI X Premium includes row grouping, pivoting and Excel export.",
+        },
       },
     ],
     chooseGigatable: [
+      "You need the listed spreadsheet interactions without a Premium license.",
       "You need TanStack-controlled state rather than an integrated grid state model.",
       "You want to own and modify the implementation inside the repository.",
-      "MIT spreadsheet interactions are needed without a premium grid tier.",
       "The application is not tied to Material UI.",
     ],
     chooseAlternative: [
       "The application already standardizes on Material UI and MUI X.",
-      "You need Pro or Premium features such as tree data, grouping, pivoting or Excel export.",
-      "A packaged component with an established commercial upgrade path is preferred.",
+      "You need Premium features such as grouping, pivoting or Excel export.",
+      "A packaged component with commercial support is worth the annual developer licensing.",
     ],
     sources: [
       {
-        label: "MUI X licensing",
+        label: "MUI product pricing",
+        url: "https://mui.com/pricing/",
+      },
+      {
+        label: "MUI X licensing and plan definitions",
         url: "https://mui.com/x/introduction/licensing/",
       },
       {
@@ -193,12 +355,16 @@ export const comparisons: Array<ComparisonDefinition> = [
         url: "https://mui.com/x/react-data-grid/features/",
       },
       {
+        label: "MUI X cell selection",
+        url: "https://mui.com/x/react-data-grid/cell-selection/",
+      },
+      {
         label: "MUI X clipboard and fill handle",
         url: "https://mui.com/x/react-data-grid/clipboard/",
       },
       {
-        label: "MUI X virtualization",
-        url: "https://mui.com/x/react-data-grid/virtualization/",
+        label: "MUI X undo and redo",
+        url: "https://mui.com/x/react-data-grid/undo-redo/",
       },
     ],
   },
@@ -208,65 +374,120 @@ export const comparisons: Array<ComparisonDefinition> = [
     title: "Gigatable vs Handsontable",
     seoTitle: "Gigatable vs Handsontable for React Data Entry",
     seoDescription:
-      "Compare Gigatable and Handsontable for React: source ownership, production licensing, TanStack integration, clipboard workflows and formula support.",
+      "Compare Gigatable and Handsontable pricing for React: MIT commercial use, paid Handsontable production licensing, spreadsheet interactions and formula support.",
     summary:
-      "Choose Gigatable for an MIT, source-owned TanStack data-entry grid. Choose Handsontable when spreadsheet-first behavior, formula calculation and a commercial production license fit the product.",
+      "Gigatable includes all of its current data-grid features under MIT for commercial use. Current Handsontable releases require a paid license for commercially driven production work; the free Hobby license is limited to personal, exploratory, non-commercial projects.",
     verifiedOn: "2026-07-31",
+    pricing: {
+      gigatable:
+        "$0. All current Gigatable features are MIT licensed for commercial use with no per-developer fee.",
+      alternativeHeadline: "$999+ per developer",
+      alternative:
+        "Handsontable Hobby is free only for personal, exploratory, non-commercial work. Standard starts at $999 USD per developer, Priority starts at $1,299 per developer, and Enterprise pricing is custom.",
+      note: "Handsontable says each developer working with the product needs a license. Contact Handsontable to confirm billing term, volume and contract details.",
+    },
     rows: [
       {
-        dimension: "Delivery model",
-        gigatable:
-          "The CLI installs editable TypeScript source into the application.",
-        alternative:
-          "Installed as Handsontable and React wrapper packages with a license key.",
+        dimension: "Commercial production",
+        gigatable: freeGigatable(
+          "The complete source-installed grid is available for commercial applications.",
+        ),
+        alternative: {
+          access: "paid",
+          label: "Paid · Standard $999+",
+          detail:
+            "The free Hobby license excludes commercially driven work. Standard is the entry paid tier for commercial teams.",
+        },
       },
       {
-        dimension: "Licensing",
-        gigatable: "MIT licensed for commercial production use.",
-        alternative:
-          "Current releases use proprietary non-commercial or commercial licenses; the last MIT release was 6.2.2.",
+        dimension: "Cell editing",
+        gigatable: freeGigatable(
+          "Typed values, custom React editors and inline editing are included.",
+        ),
+        alternative: {
+          access: "paid",
+          label: "Paid in commercial use · $999+",
+          detail:
+            "Handsontable includes editing in its full feature set, but current commercial production use requires a paid developer license.",
+        },
       },
       {
-        dimension: "Product model",
-        gigatable:
-          "A data grid with selected spreadsheet interactions, backed by TanStack Table.",
-        alternative:
-          "A spreadsheet-oriented grid with its own data, plugin and rendering model.",
+        dimension: "Cell and range selection",
+        gigatable: freeGigatable(
+          "Mouse and keyboard range selection are included.",
+        ),
+        alternative: {
+          access: "paid",
+          label: "Paid in commercial use · $999+",
+          detail:
+            "Spreadsheet selection is available, but commercial production requires the paid license.",
+        },
       },
       {
-        dimension: "Clipboard and editing",
-        gigatable:
-          "Typed TSV paste, custom React editors, directional fill and coherent history.",
-        alternative:
-          "Built-in clipboard, editing and plugin hooks for spreadsheet-style workflows.",
+        dimension: "Clipboard and fill",
+        gigatable: freeGigatable(
+          "TSV copy/paste, typed parsing, repeated paste and directional fill are included.",
+        ),
+        alternative: {
+          access: "paid",
+          label: "Paid in commercial use · $999+",
+          detail:
+            "Clipboard and spreadsheet fill behavior are part of Handsontable's full paid commercial feature set.",
+        },
       },
       {
-        dimension: "Formula support",
-        gigatable:
-          "No formula engine, workbook model or cross-sheet references.",
-        alternative:
-          "Integrates HyperFormula for hundreds of functions and cross-sheet calculation.",
+        dimension: "Virtualization",
+        gigatable: freeGigatable(
+          "TanStack Virtual provides row and column virtualization.",
+        ),
+        alternative: {
+          access: "paid",
+          label: "Paid in commercial use · $999+",
+          detail:
+            "Handsontable's rendered-grid performance features are covered by its commercial product license.",
+        },
       },
       {
-        dimension: "Customization tradeoff",
-        gigatable:
-          "Change local source and compose custom render layers around TanStack.",
-        alternative:
-          "Configure a broad spreadsheet component through options, plugins and hooks.",
+        dimension: "Undo and redo",
+        gigatable: freeGigatable(
+          "Editing, paste, fill and clearing share one application-owned history stack.",
+        ),
+        alternative: {
+          access: "paid",
+          label: "Paid in commercial use · $999+",
+          detail:
+            "Undo/redo is part of Handsontable's spreadsheet feature set under the applicable commercial license.",
+        },
+      },
+      {
+        dimension: "Formula calculation",
+        gigatable: unavailableInGigatable(
+          "Gigatable has no formula engine, workbook model or cross-sheet references.",
+        ),
+        alternative: {
+          access: "paid",
+          label: "Paid in commercial use · $999+",
+          detail:
+            "Handsontable integrates HyperFormula for spreadsheet functions and cross-sheet calculation.",
+        },
       },
     ],
     chooseGigatable: [
       "The product is a React CRUD or operational data-entry interface, not a workbook.",
+      "MIT commercial use and no per-developer fee are requirements.",
       "TanStack Table state and source ownership are architectural requirements.",
-      "MIT commercial use is required for the complete interaction layer.",
       "Domain-specific React editors matter more than formula calculation.",
     ],
     chooseAlternative: [
       "Users need formulas, cross-sheet calculations or a spreadsheet-first model.",
-      "A commercial production license is acceptable.",
-      "A broad plugin-based spreadsheet component is preferable to application-owned source.",
+      "The commercial per-developer license fits the project.",
+      "A broad vendor-supported spreadsheet component is preferable to application-owned source.",
     ],
     sources: [
+      {
+        label: "Handsontable pricing and commercial tiers",
+        url: "https://handsontable.com/pricing",
+      },
       {
         label: "Handsontable software license",
         url: "https://handsontable.com/docs/react-data-grid/software-license/",

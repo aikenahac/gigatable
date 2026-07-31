@@ -3,7 +3,8 @@ import type { ComparisonDefinition } from "./comparisons";
 export function comparisonToMarkdown(comparison: ComparisonDefinition): string {
   const rows = comparison.rows
     .map(
-      (row) => `| ${row.dimension} | ${row.gigatable} | ${row.alternative} |`,
+      (row) =>
+        `| ${row.dimension} | **${row.gigatable.label}** — ${row.gigatable.detail} | **${row.alternative.label}** — ${row.alternative.detail} |`,
     )
     .join("\n");
   const gigatableReasons = comparison.chooseGigatable
@@ -24,7 +25,14 @@ ${comparison.summary}
 
 Last verified: ${comparison.verifiedOn}
 
-## Feature and Architecture Comparison
+## Published Pricing
+
+- **Gigatable:** ${comparison.pricing.gigatable}
+- **${comparison.alternative}:** ${comparison.pricing.alternative}
+
+${comparison.pricing.note}
+
+## Free and Paid Feature Comparison
 
 | Decision factor | Gigatable | ${comparison.alternative} |
 | --- | --- | --- |
