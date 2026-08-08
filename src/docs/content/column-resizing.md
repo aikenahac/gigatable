@@ -1,3 +1,15 @@
+---
+title: "Column Resizing"
+description: "Enable draggable TanStack column resizing, reset widths and persist controlled column-sizing state with Gigatable."
+summary: "Enable resizing and persist TanStack column sizing state."
+seoTitle: "Resizable React Data Grid Columns | Gigatable"
+seoDescription: "Enable draggable TanStack column resizing, reset widths and persist controlled column-sizing state with Gigatable."
+section: "guides"
+sectionTitle: "Guides"
+keywords: ["resize","width","columnSizing","persist"]
+audience: "consumer"
+---
+
 # Column Resizing
 
 Gigatable renders resize handles around TanStack Table’s column sizing state.

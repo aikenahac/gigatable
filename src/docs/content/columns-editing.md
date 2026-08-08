@@ -1,3 +1,15 @@
+---
+title: "Columns & Editing"
+description: "Define typed TanStack columns, custom cell editors, editable metadata, commit behavior and controlled data updates with Gigatable."
+summary: "Define typed columns, editable cells, and commit behavior."
+seoTitle: "Editable React Data Grid Cells and Columns | Gigatable"
+seoDescription: "Define typed TanStack columns, custom cell editors, editable metadata, commit behavior and controlled data updates with Gigatable."
+section: "guides"
+sectionTitle: "Guides"
+keywords: ["columns","editable","input","cell","allColumnsEditable"]
+audience: "consumer"
+---
+
 # Columns & Editing
 
 Gigatable uses TanStack Table `ColumnDef` objects. A column becomes editable when its cell renderer uses `EditableCell` and its metadata contains `editable: true`.

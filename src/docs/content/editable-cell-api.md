@@ -1,3 +1,15 @@
+---
+title: "EditableCell"
+description: "Reference the EditableCell wrapper, custom input bindings, keyboard behavior and editable-column metadata contract."
+summary: "Reference the editable wrapper and custom input contract."
+seoTitle: "EditableCell API | Gigatable React Grid Docs"
+seoDescription: "Reference the EditableCell wrapper, custom input bindings, keyboard behavior and editable-column metadata contract."
+section: "reference"
+sectionTitle: "Reference"
+keywords: ["editablecell","renderInput","input props","api"]
+audience: "consumer"
+---
+
 # EditableCell
 
 `EditableCell` wraps a TanStack cell context with view/edit state and keyboard commit behavior.

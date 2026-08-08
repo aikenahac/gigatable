@@ -1,10 +1,13 @@
 import React from "react";
+import {
+  ThemeProvider as NextThemesProvider,
+  useTheme,
+} from "next-themes";
 
 export type ThemeMode = "system" | "light" | "dark";
 export type ResolvedTheme = Exclude<ThemeMode, "system">;
 
 const STORAGE_KEY = "gigatable-site-theme";
-const DARK_QUERY = "(prefers-color-scheme: dark)";
 
 export function isThemeMode(value: string | null): value is ThemeMode {
   return value === "system" || value === "light" || value === "dark";
@@ -25,65 +28,49 @@ interface ThemeContextValue {
 
 const ThemeContext = React.createContext<ThemeContextValue | null>(null);
 
-function readStoredTheme(): ThemeMode {
-  try {
-    const stored = window.localStorage.getItem(STORAGE_KEY);
-    return isThemeMode(stored) ? stored : "system";
-  } catch {
-    return "system";
-  }
-}
-
-function getSystemTheme(): ResolvedTheme {
-  return window.matchMedia(DARK_QUERY).matches ? "dark" : "light";
-}
-
-function applyTheme(theme: ResolvedTheme) {
-  document.documentElement.dataset.theme = theme;
-  document.documentElement.style.colorScheme = theme;
+function applyThemeColor(theme: ResolvedTheme) {
   document
     .querySelector('meta[name="theme-color"]')
     ?.setAttribute("content", theme === "dark" ? "#07090f" : "#f7f9fc");
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [mode, setModeState] = React.useState<ThemeMode>("system");
-  const [systemTheme, setSystemTheme] = React.useState<ResolvedTheme>("light");
-  const resolvedTheme = resolveTheme(mode, systemTheme === "dark");
+  return (
+    <NextThemesProvider
+      attribute={["class", "data-theme"]}
+      defaultTheme="system"
+      disableTransitionOnChange
+      enableSystem
+      storageKey={STORAGE_KEY}
+    >
+      <ThemeBridge>{children}</ThemeBridge>
+    </NextThemesProvider>
+  );
+}
+
+function ThemeBridge({ children }: { children: React.ReactNode }) {
+  const { resolvedTheme: nextResolvedTheme, setTheme, theme } = useTheme();
+  const requestedTheme = theme ?? null;
+  const mode: ThemeMode = isThemeMode(requestedTheme)
+    ? requestedTheme
+    : "system";
+  const resolvedTheme: ResolvedTheme =
+    nextResolvedTheme === "dark" ? "dark" : "light";
 
   React.useEffect(() => {
-    setModeState(readStoredTheme());
-    setSystemTheme(getSystemTheme());
-    const media = window.matchMedia(DARK_QUERY);
-    const handleChange = (event: MediaQueryListEvent) => {
-      setSystemTheme(event.matches ? "dark" : "light");
-    };
-
-    media.addEventListener("change", handleChange);
-    return () => media.removeEventListener("change", handleChange);
-  }, []);
-
-  React.useEffect(() => {
-    applyTheme(resolvedTheme);
+    applyThemeColor(resolvedTheme);
   }, [resolvedTheme]);
 
   const setMode = React.useCallback((nextMode: ThemeMode) => {
-    try {
-      window.localStorage.setItem(STORAGE_KEY, nextMode);
-    } catch {
-      // The preference still applies for this session when storage is blocked.
-    }
-    setModeState(nextMode);
-  }, []);
+    setTheme(nextMode);
+  }, [setTheme]);
 
   const value = React.useMemo(
     () => ({ mode, resolvedTheme, setMode }),
     [mode, resolvedTheme, setMode],
   );
 
-  return (
-    <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
-  );
+  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }
 
 export function useSiteTheme() {

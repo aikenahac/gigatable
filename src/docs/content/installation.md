@@ -1,3 +1,15 @@
+---
+title: "Installation"
+description: "Install Gigatable into a React 19, TypeScript and Tailwind CSS v4 project with npm, pnpm, yarn or bun, then verify the copied source."
+summary: "Install Gigatable with npm, pnpm, yarn, or bun."
+seoTitle: "Install the Gigatable React Data Grid | Gigatable"
+seoDescription: "Install Gigatable into a React 19, TypeScript and Tailwind CSS v4 project with npm, pnpm, yarn or bun, then verify the copied source."
+section: "start"
+sectionTitle: "Start"
+keywords: ["install","cli","requirements","tailwind","typescript"]
+audience: "consumer"
+---
+
 # Installation
 
 Gigatable is shipped as a shadcn-style source installer. The CLI copies the React component files into your app so you own the code after installation.

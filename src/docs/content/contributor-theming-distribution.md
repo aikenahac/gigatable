@@ -1,3 +1,15 @@
+---
+title: "Theming & Distribution"
+description: "Understand theme tokens, CLI sync, and release flow. Architecture and contribution guidance for Gigatable’s React data grid source."
+summary: "Understand theme tokens, CLI sync, and release flow. Architecture and contribution guidance for Gigatable’s React data grid source."
+seoTitle: "Theming & Distribution | Gigatable Contributor Docs"
+seoDescription: "Understand theme tokens, CLI sync, and release flow. Architecture and contribution guidance for Gigatable’s React data grid source."
+section: "contributing"
+sectionTitle: "Contributing"
+keywords: ["distribution","cli","publish","theme"]
+audience: "contributor"
+---
+
 # Theming and Distribution
 
 This page covers two implementation systems that sit around the core table: theme resolution and CLI distribution.

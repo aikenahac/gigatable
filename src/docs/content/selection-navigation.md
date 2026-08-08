@@ -1,3 +1,15 @@
+---
+title: "Selection & Navigation"
+description: "Configure single-cell, rectangular and single-column selection with mouse, Shift, arrow-key and virtualized keyboard navigation."
+summary: "Configure cell, range, and single-column selection."
+seoTitle: "Cell Selection and Keyboard Navigation | Gigatable"
+seoDescription: "Configure single-cell, rectangular and single-column selection with mouse, Shift, arrow-key and virtualized keyboard navigation."
+section: "guides"
+sectionTitle: "Guides"
+keywords: ["selection","range","keyboard","arrow","tab"]
+audience: "consumer"
+---
+
 # Selection & Navigation
 
 Selection is the foundation for clipboard, fill, clearing, and keyboard editing.

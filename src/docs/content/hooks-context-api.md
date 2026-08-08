@@ -1,3 +1,15 @@
+---
+title: "Hooks & Context"
+description: "Reference Gigatable context, cell state, quick-edit hooks, feature descriptions and custom row-scroller integration."
+summary: "Reference composition context, cell state, and quick edit."
+seoTitle: "Gigatable Hooks and Context API | React Grid Docs"
+seoDescription: "Reference Gigatable context, cell state, quick-edit hooks, feature descriptions and custom row-scroller integration."
+section: "reference"
+sectionTitle: "Reference"
+keywords: ["context","quick edit","cell state","feature guide"]
+audience: "consumer"
+---
+
 # Hooks & Context
 
 Gigatable exports advanced primitives for custom rendering and editors.

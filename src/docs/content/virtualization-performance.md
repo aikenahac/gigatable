@@ -1,3 +1,15 @@
+---
+title: "Virtualization & Performance"
+description: "Understand Gigatable row and column virtualization, stable inputs, row sizing and custom virtualizers for large React data grids."
+summary: "Understand row virtualization and keep large grids fast."
+seoTitle: "Virtualized React Data Grid Performance | Gigatable"
+seoDescription: "Understand Gigatable row and column virtualization, stable inputs, row sizing and custom virtualizers for large React data grids."
+section: "guides"
+sectionTitle: "Guides"
+keywords: ["virtualization","performance","large data","overscan"]
+audience: "consumer"
+---
+
 # Virtualization & Performance
 
 The stock renderer virtualizes rows with TanStack Virtual. Only the visible window plus a small overscan is mounted.

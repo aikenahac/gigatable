@@ -1,3 +1,15 @@
+---
+title: "Gigatable"
+description: "Reference every Gigatable component prop, feature flag, handler, presentation option and compound export."
+summary: "Reference every Gigatable component prop and default."
+seoTitle: "Gigatable Component API | React Data Grid Docs"
+seoDescription: "Reference every Gigatable component prop, feature flag, handler, presentation option and compound export."
+section: "reference"
+sectionTitle: "Reference"
+keywords: ["props","component","api","containerRef","tableStyle"]
+audience: "consumer"
+---
+
 # Gigatable
 
 `Gigatable` renders the virtualized grid and coordinates spreadsheet interactions around a TanStack Table instance.

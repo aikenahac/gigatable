@@ -104,7 +104,7 @@ for (const { route, url } of canonicalUrls) {
       errors.push(`${route}: Markdown alternate does not exist`);
     }
   }
-  if (!/<div id="root">[\s\S]{500,}<\/div>/.test(html)) {
+  if (!/<body>[\s\S]{500,}<\/body>/.test(html)) {
     errors.push(`${route}: rendered body is unexpectedly small`);
   }
 

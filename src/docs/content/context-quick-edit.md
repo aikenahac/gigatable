@@ -1,3 +1,15 @@
+---
+title: "Context & Quick Edit"
+description: "Use Gigatable context, cell state, custom row scrollers and quick-edit text selection in composed React data grids."
+summary: "Integrate custom renderers, scrollers, and text selection."
+seoTitle: "Gigatable Context and Quick Edit | React Grid Docs"
+seoDescription: "Use Gigatable context, cell state, custom row scrollers and quick-edit text selection in composed React data grids."
+section: "customization"
+sectionTitle: "Customization"
+keywords: ["context","useGigatableContext","useQuickEdit","scroller"]
+audience: "consumer"
+---
+
 # Context & Quick Edit
 
 Use the exported context and quick-edit hook when a custom renderer needs Gigatable’s interaction state.

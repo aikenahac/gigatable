@@ -1,3 +1,15 @@
+---
+title: "Fill Handle"
+description: "Add vertical or horizontal fill handles to a React data grid, control eligible columns and customize fill previews."
+summary: "Repeat values vertically, horizontally, or in both axes."
+seoTitle: "React Data Grid Fill Handle | Gigatable"
+seoDescription: "Add vertical or horizontal fill handles to a React data grid, control eligible columns and customize fill previews."
+section: "guides"
+sectionTitle: "Guides"
+keywords: ["fill","drag","horizontal","vertical","preview"]
+audience: "consumer"
+---
+
 # Fill Handle
 
 The fill handle repeats the selected value into editable cells while previewing the result.

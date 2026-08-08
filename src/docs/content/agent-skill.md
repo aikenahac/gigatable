@@ -1,3 +1,15 @@
+---
+title: "Agent Skill"
+description: "Install the Gigatable agent skill with npx, shell, PowerShell, or a manual ZIP for project-local or global use."
+summary: "Install Gigatable development guidance in Codex, Claude Code, Cursor, and other compatible agents."
+seoTitle: "Install the Gigatable Agent Skill | Gigatable"
+seoDescription: "Install the Gigatable agent skill with npx, shell, PowerShell, or a manual ZIP for project-local or global use."
+section: "start"
+sectionTitle: "Start"
+keywords: ["agent skill","skills cli","codex","claude code","cursor","install"]
+audience: "consumer"
+---
+
 # Agent Skill
 
 Install the Gigatable agent skill to give compatible coding agents focused guidance for building, customizing, optimizing, and troubleshooting Gigatable in React applications.

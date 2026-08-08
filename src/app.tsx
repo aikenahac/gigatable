@@ -1,13 +1,9 @@
 import { Suspense, lazy, useEffect } from "react";
 import { useSiteRouter } from "./site/use-site-router";
-import { ThemeProvider } from "./site/theme";
 import { applySeoToDocument } from "./site/seo";
 
 const DemoPage = lazy(() =>
   import("./pages/demo-page").then((module) => ({ default: module.DemoPage })),
-);
-const DocsPage = lazy(() =>
-  import("./pages/docs-page").then((module) => ({ default: module.DocsPage })),
 );
 const LandingPage = lazy(() =>
   import("./pages/landing-page").then((module) => ({
@@ -35,11 +31,7 @@ export default function App({
 }: {
   initialPathname?: string;
 }) {
-  return (
-    <ThemeProvider>
-      <SiteApp initialPathname={initialPathname} />
-    </ThemeProvider>
-  );
+  return <SiteApp initialPathname={initialPathname} />;
 }
 
 function SiteApp({ initialPathname }: { initialPathname: string }) {
@@ -48,14 +40,6 @@ function SiteApp({ initialPathname }: { initialPathname: string }) {
   useEffect(() => {
     applySeoToDocument(route);
   }, [route]);
-
-  if (route.name === "docs") {
-    return (
-      <Suspense fallback={<div className="site-loading">Loading docs…</div>}>
-        <DocsPage slug={route.slug} navigate={navigate} />
-      </Suspense>
-    );
-  }
 
   if (route.name === "demo") {
     return (

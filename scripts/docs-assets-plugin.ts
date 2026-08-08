@@ -15,14 +15,17 @@ export interface DocumentationAsset {
   source: string;
 }
 
+export function stripDocumentationFrontmatter(source: string): string {
+  return source.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n(?:\r?\n)?/, "");
+}
+
 export function buildDocumentationAssets(
   contentDirectory: string,
 ): Array<DocumentationAsset> {
   const pages = docsManifest.map((entry) => ({
     entry,
-    source: fs.readFileSync(
-      path.join(contentDirectory, entry.sourceFile),
-      "utf8",
+    source: stripDocumentationFrontmatter(
+      fs.readFileSync(path.join(contentDirectory, entry.sourceFile), "utf8"),
     ),
   }));
   const consumerPages = pages.filter(

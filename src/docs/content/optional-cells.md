@@ -1,3 +1,15 @@
+---
+title: "Optional Cells"
+description: "Install and customize Gigatable's dependency-free SelectCell, DateCell, NumberCell, BadgeCell, ProgressCell, PopoverCell and DialogCell source."
+summary: "Install and adapt selectors, dates, numbers, overlays, badges, and progress cells."
+seoTitle: "Optional React Data Grid Cell Components | Gigatable"
+seoDescription: "Install and customize Gigatable's dependency-free SelectCell, DateCell, NumberCell, BadgeCell, ProgressCell, PopoverCell and DialogCell source."
+section: "customization"
+sectionTitle: "Customization"
+keywords: ["cells","select","datepicker","number","badge","progress","popover","dialog"]
+audience: "consumer"
+---
+
 # Optional Cells
 
 Gigatable core owns grid interaction and virtualization, not product-specific

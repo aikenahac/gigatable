@@ -1,3 +1,15 @@
+---
+title: "Theming"
+description: "Style Gigatable with typed theme presets, partial overrides and CSS custom properties for light, dark and custom interfaces."
+summary: "Use presets, typed overrides, and CSS custom properties."
+seoTitle: "Theme and Style a React Data Grid | Gigatable"
+seoDescription: "Style Gigatable with typed theme presets, partial overrides and CSS custom properties for light, dark and custom interfaces."
+section: "customization"
+sectionTitle: "Customization"
+keywords: ["theme","light","dark","minimal","giga","css variables"]
+audience: "consumer"
+---
+
 # Theming
 
 Gigatable is themed through a typed `theme` prop. Theme values are resolved into CSS custom properties under the `--gt-*` namespace.

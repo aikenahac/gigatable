@@ -1,3 +1,15 @@
+---
+title: "Exported Types"
+description: "Reference Gigatable props, hook options, paste results, cell changes, editor input types, themes and TanStack metadata."
+summary: "Use Gigatable’s exported TypeScript types."
+seoTitle: "Gigatable TypeScript Types | React Data Grid Docs"
+seoDescription: "Reference Gigatable props, hook options, paste results, cell changes, editor input types, themes and TanStack metadata."
+section: "reference"
+sectionTitle: "Reference"
+keywords: ["types","typescript","paste result","selection"]
+audience: "consumer"
+---
+
 # Types
 
 Gigatable exports the public types needed to wire custom tables, inputs, themes, and paste handlers.

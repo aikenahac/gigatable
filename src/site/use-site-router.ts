@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router";
 import { getHashTargetId, getRouteForPath } from "./routes";
 import type { SiteRoute } from "./routes";
 
@@ -48,45 +49,21 @@ function scrollToLocationHash(): () => void {
 }
 
 export function useSiteRouter(initialPathname = "/"): SiteRouter {
-  const [route, setRoute] = useState<SiteRoute>(() =>
-    getRouteForPath(
-      typeof window === "undefined"
-        ? initialPathname
-        : window.location.pathname,
-    ),
+  const location = useLocation();
+  const routerNavigate = useNavigate();
+  const route = getRouteForPath(location.pathname || initialPathname);
+
+  const navigate = useCallback(
+    (href: string) => {
+      void routerNavigate(href);
+    },
+    [routerNavigate],
   );
 
-  const navigate = useCallback((href: string) => {
-    if (typeof window === "undefined") {
-      return;
-    }
-
-    const url = new URL(href, window.location.origin);
-    const nextLocation = `${url.pathname}${url.search}${url.hash}`;
-    const currentLocation = `${window.location.pathname}${window.location.search}${window.location.hash}`;
-
-    if (nextLocation === currentLocation) {
-      return;
-    }
-
-    window.history.pushState(null, "", nextLocation);
-    setRoute(getRouteForPath(url.pathname));
-  }, []);
-
-  useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
-    }
-
-    const handlePopState = () => {
-      setRoute(getRouteForPath(window.location.pathname));
-    };
-
-    window.addEventListener("popstate", handlePopState);
-    return () => window.removeEventListener("popstate", handlePopState);
-  }, []);
-
-  useEffect(() => scrollToLocationHash(), [route]);
+  useEffect(
+    () => scrollToLocationHash(),
+    [location.hash, location.pathname],
+  );
 
   return { route, navigate };
 }

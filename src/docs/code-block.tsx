@@ -1,6 +1,6 @@
 import React from "react";
 import { Highlight, themes as prismThemes } from "prism-react-renderer";
-import { copyText } from "./page-actions";
+import { copyMarkdownToClipboard } from "./copy-markdown";
 import { useSiteTheme } from "../site/theme";
 import { trackEvent } from "../site/analytics";
 
@@ -33,7 +33,7 @@ export function CodeBlock({
 
   const handleCopy = async () => {
     try {
-      await copyText(code);
+      await copyMarkdownToClipboard(code);
       if (code.includes("gigatable init")) {
         trackEvent("Install Command Copied");
       }

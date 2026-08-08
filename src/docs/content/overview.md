@@ -1,3 +1,15 @@
+---
+title: "Overview"
+description: "Learn to install and customize Gigatable: editable cells, range selection, Excel-compatible copy/paste, fill handles, virtualization and undo/redo for React."
+summary: "Learn what Gigatable provides and choose the right path through the docs."
+seoTitle: "React Data Grid Documentation | Gigatable"
+seoDescription: "Learn to install and customize Gigatable: editable cells, range selection, Excel-compatible copy/paste, fill handles, virtualization and undo/redo for React."
+section: "start"
+sectionTitle: "Start"
+keywords: ["introduction","features","react","spreadsheet","grid"]
+audience: "consumer"
+---
+
 # Overview
 
 Gigatable is an open-source React data grid with Excel-like interactions and TanStack control. It combines TanStack Table state, row and column virtualization, editable cells, spreadsheet selection, TSV clipboard support, directional fill, column resizing, and undo/redo in source code you own.

@@ -1,3 +1,15 @@
+---
+title: "Custom Inputs"
+description: "Build text, numeric, select and domain-specific editors with typed values, cancellation, focus and keyboard commit behavior."
+summary: "Build text, numeric, select, and domain-specific editors."
+seoTitle: "Custom React Data Grid Cell Editors | Gigatable"
+seoDescription: "Build text, numeric, select and domain-specific editors with typed values, cancellation, focus and keyboard commit behavior."
+section: "customization"
+sectionTitle: "Customization"
+keywords: ["input","editor","select","number","onValueChange"]
+audience: "consumer"
+---
+
 # Custom Inputs
 
 `EditableCell` delegates the editing UI to `renderInput`. The renderer receives the current value and all commit, cancel, and keyboard bindings.

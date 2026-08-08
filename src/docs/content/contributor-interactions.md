@@ -1,3 +1,15 @@
+---
+title: "Interaction Internals"
+description: "Trace selection, editing, clipboard, fill, and history. Architecture and contribution guidance for Gigatable’s React data grid source."
+summary: "Trace selection, editing, clipboard, fill, and history. Architecture and contribution guidance for Gigatable’s React data grid source."
+seoTitle: "Interaction Internals | Gigatable Contributor Docs"
+seoDescription: "Trace selection, editing, clipboard, fill, and history. Architecture and contribution guidance for Gigatable’s React data grid source."
+section: "contributing"
+sectionTitle: "Contributing"
+keywords: ["interactions","selection","editing","history"]
+audience: "contributor"
+---
+
 # Interactions
 
 Spreadsheet behavior is split across small hooks. This page explains where each interaction is implemented and how state moves through the component.

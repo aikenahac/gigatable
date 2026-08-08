@@ -1,3 +1,15 @@
+---
+title: "Quickstart"
+description: "Build your first editable React data grid with typed columns, cell selection, clipboard paste, fill handles and undo/redo."
+summary: "Render an editable, selectable table in a few minutes."
+seoTitle: "React Data Grid Quickstart | Gigatable"
+seoDescription: "Build your first editable React data grid with typed columns, cell selection, clipboard paste, fill handles and undo/redo."
+section: "start"
+sectionTitle: "Start"
+keywords: ["setup","example","first table","column definitions"]
+audience: "consumer"
+---
+
 # Quickstart
 
 Render a selectable, editable table with the built-in text editor.

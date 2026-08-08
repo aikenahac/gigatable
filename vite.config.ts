@@ -1,19 +1,20 @@
-import { defineConfig } from "vitest/config";
-import react from "@vitejs/plugin-react";
+import { defineConfig } from "vite";
+import { reactRouter } from "@react-router/dev/vite";
+import { fumadocsMdx } from "fumadocs-mdx/vite";
 import tailwindcss from "@tailwindcss/vite";
 import path from "path";
 import { docsAssetsPlugin } from "./scripts/docs-assets-plugin";
 
 export default defineConfig({
-  plugins: [docsAssetsPlugin(__dirname), tailwindcss(), react()],
+  plugins: [
+    docsAssetsPlugin(__dirname),
+    ...fumadocsMdx({ macro: { include: ["src/docs/source.ts"] } }),
+    tailwindcss(),
+    reactRouter(),
+  ],
   resolve: {
     alias: {
       "@root": path.resolve(__dirname, "./src"),
     },
-  },
-  test: {
-    environment: "node",
-    exclude: ["node_modules", "dist", ".idea", ".git", ".cache", "gigatable"],
-    passWithNoTests: true,
   },
 });

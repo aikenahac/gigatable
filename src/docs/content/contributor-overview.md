@@ -1,3 +1,15 @@
+---
+title: "Internals Overview"
+description: "Understand source ownership and package boundaries. Architecture and contribution guidance for Gigatable’s React data grid source."
+summary: "Understand source ownership and package boundaries. Architecture and contribution guidance for Gigatable’s React data grid source."
+seoTitle: "Internals Overview | Gigatable Contributor Docs"
+seoDescription: "Understand source ownership and package boundaries. Architecture and contribution guidance for Gigatable’s React data grid source."
+section: "contributing"
+sectionTitle: "Contributing"
+keywords: ["internals","source","architecture"]
+audience: "contributor"
+---
+
 # Internals Overview
 
 [View on DeepWiki](https://deepwiki.com/aikenahac/gigatable)

@@ -1,3 +1,15 @@
+---
+title: "Compound Composition"
+description: "Replace Gigatable table, header, body, footer or cell rendering while retaining selection, editing and virtualization behavior."
+summary: "Replace table layers while retaining Gigatable behavior."
+seoTitle: "Compose a Custom React Data Grid | Gigatable"
+seoDescription: "Replace Gigatable table, header, body, footer or cell rendering while retaining selection, editing and virtualization behavior."
+section: "customization"
+sectionTitle: "Customization"
+keywords: ["compound","custom body","footer","cell","children"]
+audience: "consumer"
+---
+
 # Compound Composition
 
 Gigatable’s compound components replace rendering layers while retaining selection, paste, fill, clearing, resizing, and keyboard behavior.

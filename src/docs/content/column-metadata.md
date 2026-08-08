@@ -1,3 +1,15 @@
+---
+title: "Column Metadata"
+description: "Configure editable columns, pasted-value parsing, cleared values, fill eligibility, previews and cell classes through TanStack metadata."
+summary: "Customize parsing, clearing, fill previews, and cell classes."
+seoTitle: "Gigatable Column Metadata | React Grid Docs"
+seoDescription: "Configure editable columns, pasted-value parsing, cleared values, fill eligibility, previews and cell classes through TanStack metadata."
+section: "customization"
+sectionTitle: "Customization"
+keywords: ["metadata","parse","clear","className","allowFill"]
+audience: "consumer"
+---
+
 # Column Metadata
 
 Gigatable augments TanStack Table’s `ColumnMeta` with behavior hooks. Include the augmentation file in TypeScript, then configure each column.

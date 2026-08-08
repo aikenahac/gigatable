@@ -1,3 +1,15 @@
+---
+title: "Architecture"
+description: "Follow state, rendering, and virtualization data flow. Architecture and contribution guidance for Gigatable’s React data grid source."
+summary: "Follow state, rendering, and virtualization data flow. Architecture and contribution guidance for Gigatable’s React data grid source."
+seoTitle: "Architecture | Gigatable Contributor Docs"
+seoDescription: "Follow state, rendering, and virtualization data flow. Architecture and contribution guidance for Gigatable’s React data grid source."
+section: "contributing"
+sectionTitle: "Contributing"
+keywords: ["architecture","data flow","virtualizer"]
+audience: "contributor"
+---
+
 # Architecture
 
 Gigatable is built around TanStack Table for row and column models, TanStack Virtual for row windowing, and local hooks for spreadsheet interactions. The key boundary is between the state hook and the renderer.

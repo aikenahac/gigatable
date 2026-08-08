@@ -1,3 +1,15 @@
+---
+title: "useGigatable"
+description: "Reference useGigatable options, return values, TanStack passthrough options and data mutation semantics."
+summary: "Reference hook options, return values, and mutation handlers."
+seoTitle: "useGigatable Hook API | React Data Grid Docs"
+seoDescription: "Reference useGigatable options, return values, TanStack passthrough options and data mutation semantics."
+section: "reference"
+sectionTitle: "Reference"
+keywords: ["hook","api","options","return","handlers"]
+audience: "consumer"
+---
+
 # useGigatable
 
 `useGigatable` creates the TanStack Table instance, owns mutable row data, and returns mutation/history handlers.

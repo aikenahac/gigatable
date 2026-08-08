@@ -1,3 +1,15 @@
+---
+title: "File Map"
+description: "Find the module responsible for each behavior. Architecture and contribution guidance for Gigatable’s React data grid source."
+summary: "Find the module responsible for each behavior. Architecture and contribution guidance for Gigatable’s React data grid source."
+seoTitle: "File Map | Gigatable Contributor Docs"
+seoDescription: "Find the module responsible for each behavior. Architecture and contribution guidance for Gigatable’s React data grid source."
+section: "contributing"
+sectionTitle: "Contributing"
+keywords: ["files","modules","ownership"]
+audience: "contributor"
+---
+
 # File Map
 
 This page is a contributor map for the code layout. It focuses on module ownership: what each file is responsible for and where to make common implementation changes.

@@ -1,3 +1,15 @@
+---
+title: "Keyboard Shortcuts"
+description: "Reference Gigatable keyboard and pointer interactions for selection, editing, copy/paste, fill, clearing, history and resizing."
+summary: "Reference every mouse and keyboard interaction."
+seoTitle: "React Data Grid Keyboard Shortcuts | Gigatable"
+seoDescription: "Reference Gigatable keyboard and pointer interactions for selection, editing, copy/paste, fill, clearing, history and resizing."
+section: "reference"
+sectionTitle: "Reference"
+keywords: ["keyboard","shortcut","mouse","command","control"]
+audience: "consumer"
+---
+
 # Keyboard Shortcuts
 
 Shortcuts act only when the relevant feature is enabled and focus is not inside an editor that needs native key behavior.

@@ -1,3 +1,15 @@
+---
+title: "Clipboard & Paste"
+description: "Copy and paste rectangular TSV ranges between Gigatable, Excel and Google Sheets with typed parsing, repetition and change callbacks."
+summary: "Copy TSV ranges, parse values, and inspect paste changes."
+seoTitle: "Excel-Compatible Copy and Paste | Gigatable"
+seoDescription: "Copy and paste rectangular TSV ranges between Gigatable, Excel and Google Sheets with typed parsing, repetition and change callbacks."
+section: "guides"
+sectionTitle: "Guides"
+keywords: ["clipboard","copy","paste","tsv","parsePastedValue"]
+audience: "consumer"
+---
+
 # Clipboard & Paste
 
 If clipboard behavior is part of a broader grid decision, see the [React data grid comparison guide](/compare/) for feature and licensing tradeoffs.

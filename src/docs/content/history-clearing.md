@@ -1,3 +1,15 @@
+---
+title: "History & Clearing"
+description: "Track edits, paste, fill and range clearing as undoable history entries and customize cleared values by column."
+summary: "Enable undo/redo and customize Delete or Backspace values."
+seoTitle: "Undo, Redo and Cell Clearing | Gigatable"
+seoDescription: "Track edits, paste, fill and range clearing as undoable history entries and customize cleared values by column."
+section: "guides"
+sectionTitle: "Guides"
+keywords: ["history","undo","redo","clear","delete","backspace"]
+audience: "consumer"
+---
+
 # History & Clearing
 
 History tracks table mutations from editing, paste, fill, and range clearing.
